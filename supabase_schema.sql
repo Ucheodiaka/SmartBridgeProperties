@@ -2,14 +2,14 @@
 
 -- 1. Profiles Table (For Property Listers, Landlords, Agents, and Admin Staff)
 CREATE TABLE IF NOT EXISTS profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  id TEXT PRIMARY KEY,
   email TEXT NOT NULL,
   full_name TEXT NOT NULL,
   phone TEXT,
   company_name TEXT,
-  role TEXT NOT NULL DEFAULT 'lister', -- 'lister', 'landlord', 'agent', 'admin'
+  role TEXT NOT NULL DEFAULT 'landlord', -- 'landlord', 'agent', 'developer', 'admin', 'buyer'
   avatar_url TEXT,
-  verified BOOLEAN DEFAULT FALSE,
+  verified BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -148,7 +148,8 @@ ALTER TABLE inspection_bookings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read for verified properties" ON properties FOR SELECT USING (true);
 
 -- Allow authenticated and anon reads/writes for marketplace flow (or customize with strict Auth IDs)
-CREATE POLICY "Enable all access for development" ON properties FOR ALL USING (true);
+CREATE POLICY "Enable all access for profiles" ON profiles FOR ALL USING (true);
+CREATE POLICY "Enable all access for properties" ON properties FOR ALL USING (true);
 CREATE POLICY "Enable all access for submissions" ON property_submissions FOR ALL USING (true);
 CREATE POLICY "Enable all access for inquiries" ON property_inquiries FOR ALL USING (true);
 CREATE POLICY "Enable all access for bookings" ON inspection_bookings FOR ALL USING (true);

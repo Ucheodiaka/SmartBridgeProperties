@@ -138,6 +138,9 @@ export interface OwnerAccount {
   avatar?: string;
   isVerifiedLandlord: boolean;
   joinedAt: string;
+  listerType?: 'Landlord / Property Owner' | 'Registered Real Estate Agent' | 'Property Developer' | 'Short-let Host';
+  address?: string;
+  bio?: string;
 }
 
 export type InquiryStatus = 'new' | 'contacted' | 'tour_scheduled' | 'closed';

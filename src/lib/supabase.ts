@@ -43,14 +43,16 @@ export interface AuthUserProfile {
   role?: 'landlord' | 'agent' | 'developer' | 'admin' | 'buyer';
   companyName?: string;
   phone?: string;
+  verified?: boolean;
 }
 
 /**
  * Sign in using Google OAuth Credentials.
- * Uses real Supabase OAuth redirect if configured, or realistic one-click simulation with Google profile metadata.
+ * Supports custom selected Google account or default authenticated user.
  */
 export async function signInWithGoogle(
-  intendedRole: 'lister' | 'admin' = 'lister'
+  intendedRole: 'lister' | 'admin' = 'lister',
+  customAccount?: { email: string; name?: string; avatar?: string }
 ): Promise<{ success: boolean; user?: AuthUserProfile; error?: string }> {
   if (isSupabaseConfigured && supabase) {
     try {
@@ -60,7 +62,7 @@ export async function signInWithGoogle(
           redirectTo: window.location.origin,
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent',
+            prompt: 'select_account',
           },
         },
       });
@@ -73,19 +75,26 @@ export async function signInWithGoogle(
     }
   }
 
-  // Preview / Development Mode Google Sign-In Simulation
-  // Creates an authentic Google OAuth session based on device/user profile
-  const demoGoogleProfile: AuthUserProfile = {
-    id: `g-${Date.now()}`,
-    email: intendedRole === 'admin' ? 'uche.admin@smartbridge.ng' : 'ucheodiaka@gmail.com',
-    name: intendedRole === 'admin' ? 'Uche Odiaka (Lead Operations)' : 'Uche Odiaka',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+  // Selected or Custom Google Profile
+  const selectedEmail = customAccount?.email || (intendedRole === 'admin' ? 'uche.admin@smartbridge.ng' : 'ucheodiaka@gmail.com');
+  const selectedName = customAccount?.name || (intendedRole === 'admin' ? 'Uche Odiaka (Lead Operations)' : 'Uche Odiaka');
+  const selectedAvatar = customAccount?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+
+  const googleProfile: AuthUserProfile = {
+    id: `g-${selectedEmail.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`,
+    email: selectedEmail,
+    name: selectedName,
+    avatar: selectedAvatar,
     role: intendedRole === 'admin' ? 'admin' : 'landlord',
-    companyName: intendedRole === 'admin' ? 'SmartBridge Nigeria Ltd' : 'Odiaka Real Estate Holdings',
+    companyName: intendedRole === 'admin' ? 'SmartBridge Nigeria Ltd' : 'Verified Property Lister',
     phone: '+234 803 555 0192',
+    verified: true,
   };
 
-  return { success: true, user: demoGoogleProfile };
+  // Attempt to save to Supabase profiles table if table exists
+  await supabaseDb.saveProfile(googleProfile);
+
+  return { success: true, user: googleProfile };
 }
 
 /**
@@ -112,7 +121,11 @@ export async function signInWithEmail(
         role: authUser.user_metadata?.role || 'landlord',
         companyName: authUser.user_metadata?.company_name,
         phone: authUser.user_metadata?.phone,
+        verified: true,
       };
+
+      // Persist profile record
+      await supabaseDb.saveProfile(userProfile);
 
       return { success: true, user: userProfile };
     } catch (err: any) {
@@ -121,14 +134,21 @@ export async function signInWithEmail(
   }
 
   // Local validation fallback
+  const localProfile: AuthUserProfile = {
+    id: `usr-${email.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`,
+    email,
+    name: email.split('@')[0],
+    role: 'landlord',
+    phone: '+234 803 000 0000',
+    companyName: 'Private Property Advertiser',
+    verified: true,
+  };
+
+  await supabaseDb.saveProfile(localProfile);
+
   return {
     success: true,
-    user: {
-      id: `usr-${Date.now()}`,
-      email,
-      name: email.split('@')[0],
-      role: 'landlord',
-    },
+    user: localProfile,
   };
 }
 
@@ -138,7 +158,7 @@ export async function signInWithEmail(
 export async function signUpWithEmail(
   email: string,
   password: string,
-  metadata: { fullName: string; phone?: string; companyName?: string; role?: string }
+  metadata: { fullName: string; phone?: string; companyName?: string; role?: string; avatar?: string }
 ): Promise<{ success: boolean; user?: AuthUserProfile; error?: string }> {
   if (isSupabaseConfigured && supabase) {
     try {
@@ -151,6 +171,7 @@ export async function signUpWithEmail(
             phone: metadata.phone,
             company_name: metadata.companyName,
             role: metadata.role || 'landlord',
+            avatar_url: metadata.avatar,
           },
         },
       });
@@ -166,7 +187,12 @@ export async function signUpWithEmail(
         role: (metadata.role as any) || 'landlord',
         companyName: metadata.companyName,
         phone: metadata.phone,
+        avatar: metadata.avatar,
+        verified: true,
       };
+
+      // Explicitly write new profile to Supabase database
+      await supabaseDb.saveProfile(userProfile);
 
       return { success: true, user: userProfile };
     } catch (err: any) {
@@ -174,16 +200,22 @@ export async function signUpWithEmail(
     }
   }
 
+  const newProfile: AuthUserProfile = {
+    id: `usr-${email.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`,
+    email,
+    name: metadata.fullName,
+    phone: metadata.phone || '+234 803 000 0000',
+    companyName: metadata.companyName || 'Private Property Advertiser',
+    role: (metadata.role as any) || 'landlord',
+    avatar: metadata.avatar,
+    verified: true,
+  };
+
+  await supabaseDb.saveProfile(newProfile);
+
   return {
     success: true,
-    user: {
-      id: `usr-${Date.now()}`,
-      email,
-      name: metadata.fullName,
-      phone: metadata.phone,
-      companyName: metadata.companyName,
-      role: (metadata.role as any) || 'landlord',
-    },
+    user: newProfile,
   };
 }
 
@@ -538,6 +570,104 @@ export const supabaseDb = {
       return true;
     } catch (e) {
       console.error('Supabase saveBooking error:', e);
+      return false;
+    }
+  },
+
+  // 5. USER PROFILES
+  async fetchProfiles(): Promise<AuthUserProfile[] | null> {
+    if (!isSupabaseConfigured || !supabase) return null;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (!data || data.length === 0) return null;
+
+      return data.map((item) => ({
+        id: item.id,
+        email: item.email,
+        name: item.full_name,
+        phone: item.phone,
+        companyName: item.company_name,
+        role: item.role,
+        avatar: item.avatar_url,
+        verified: item.verified,
+      }));
+    } catch (e) {
+      console.warn('Supabase fetchProfiles error:', e);
+      return null;
+    }
+  },
+
+  async fetchProfile(userId: string): Promise<AuthUserProfile | null> {
+    if (!isSupabaseConfigured || !supabase) return null;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return null;
+
+      return {
+        id: data.id,
+        email: data.email,
+        name: data.full_name,
+        phone: data.phone,
+        companyName: data.company_name,
+        role: data.role,
+        avatar: data.avatar_url,
+        verified: data.verified,
+      };
+    } catch (e) {
+      console.warn('Supabase fetchProfile error:', e);
+      return null;
+    }
+  },
+
+  async saveProfile(profile: Partial<AuthUserProfile> & { id: string; email: string }): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase) {
+      // Local profile caching
+      try {
+        const stored = localStorage.getItem('smartbridge_local_profiles');
+        const profilesMap = stored ? JSON.parse(stored) : {};
+        profilesMap[profile.id] = {
+          ...profile,
+          updated_at: new Date().toISOString(),
+        };
+        localStorage.setItem('smartbridge_local_profiles', JSON.stringify(profilesMap));
+      } catch (e) {
+        // ignore
+      }
+      return true;
+    }
+
+    try {
+      const payload = {
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.name || profile.email.split('@')[0],
+        phone: profile.phone,
+        company_name: profile.companyName,
+        role: profile.role || 'landlord',
+        avatar_url: profile.avatar,
+        verified: profile.verified ?? true,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.warn('Supabase saveProfile notice:', error.message);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.error('Supabase saveProfile error:', e);
       return false;
     }
   },

@@ -35,6 +35,8 @@ import {
 } from '../../types';
 import { DEMO_OWNERS } from '../../data/ownerData';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail, isSupabaseConfigured } from '../../lib/supabase';
+import { GoogleAccountPickerModal } from '../auth/GoogleAccountPickerModal';
+import { OwnerProfileEditor } from './OwnerProfileEditor';
 
 // Reusable Google SVG Icon
 const GoogleIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
@@ -115,20 +117,21 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
     : [];
 
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGooglePickerOpen, setIsGooglePickerOpen] = useState(false);
 
-  const handleGoogleLogin = async () => {
+  const handleSelectGoogleAccount = async (account: { email: string; name: string; avatar?: string; companyName?: string }) => {
     setIsGoogleLoading(true);
     setAuthError(null);
     try {
-      const res = await signInWithGoogle('lister');
+      const res = await signInWithGoogle('lister', account);
       if (res.success && res.user) {
         const ownerProfile: OwnerAccount = {
           id: res.user.id,
           name: res.user.name,
           email: res.user.email,
           phone: res.user.phone || '+234 803 555 0192',
-          companyName: res.user.companyName || 'Verified Property Lister',
-          avatar: res.user.avatar,
+          companyName: account.companyName || res.user.companyName || 'Verified Property Lister',
+          avatar: res.user.avatar || account.avatar,
           isVerifiedLandlord: true,
           joinedAt: new Date().toISOString().split('T')[0],
         };
@@ -141,6 +144,10 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
     } finally {
       setIsGoogleLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    setIsGooglePickerOpen(true);
   };
 
   const handleCustomLogin = async (e: React.FormEvent) => {
@@ -484,6 +491,13 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
 
                 <div className="flex items-center gap-3 self-start lg:self-auto">
                   <button
+                    onClick={() => setActiveTab('profile')}
+                    className="bg-white hover:bg-slate-50 text-[#003527] font-semibold text-xs sm:text-sm px-3.5 py-2.5 sm:py-3 rounded-lg border border-[#bfc9c3]/60 hover:border-[#003527] transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  >
+                    <User className="w-4 h-4 text-[#003527]" />
+                    <span>Edit Profile</span>
+                  </button>
+                  <button
                     onClick={() => {
                       onClose();
                       onOpenListProperty();
@@ -593,6 +607,21 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                   <ShieldCheck className="w-4 h-4" />
                   Inspection & Title Audit Status
                   {activeTab === 'audits' && (
+                    <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className={`pb-3 text-xs sm:text-sm font-bold transition-colors relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                    activeTab === 'profile'
+                      ? 'text-[#003527]'
+                      : 'text-[#707974] hover:text-[#003527]'
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  Profile & Contact Settings
+                  {activeTab === 'profile' && (
                     <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
                   )}
                 </button>
@@ -897,10 +926,30 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* TAB 4: PROFILE & CREDENTIALS SETTINGS */}
+              {activeTab === 'profile' && (
+                <div className="space-y-4">
+                  <OwnerProfileEditor
+                    currentOwner={currentOwner}
+                    onUpdateProfile={(updated) => {
+                      onLogin(updated);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* Google Account Selector Modal */}
+      <GoogleAccountPickerModal
+        isOpen={isGooglePickerOpen}
+        onClose={() => setIsGooglePickerOpen(false)}
+        intendedRole="lister"
+        onSelectAccount={handleSelectGoogleAccount}
+      />
     </div>
   );
 };

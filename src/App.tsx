@@ -160,15 +160,16 @@ export default function App() {
     // 5. Auth State Listener (Google OAuth callbacks & session restoration)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
+        const dbProfile = await supabaseDb.fetchProfile(session.user.id);
         const userMeta = session.user.user_metadata || {};
-        const isStaff = userMeta.role === 'admin' || session.user.email?.includes('admin');
+        const isStaff = userMeta.role === 'admin' || session.user.email?.includes('admin') || dbProfile?.role === 'admin';
         
         if (isStaff) {
           setCurrentAdminStaff({
             id: session.user.id,
-            name: userMeta.full_name || session.user.email?.split('@')[0] || 'Staff Admin',
+            name: dbProfile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Staff Admin',
             email: session.user.email || 'admin@smartbridge.ng',
             role: 'Operations Director',
             badge: 'Google Workspace Verified',
@@ -177,11 +178,11 @@ export default function App() {
         } else {
           setCurrentOwner({
             id: session.user.id,
-            name: userMeta.full_name || session.user.email?.split('@')[0] || 'Verified Lister',
+            name: dbProfile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Verified Lister',
             email: session.user.email || '',
-            phone: userMeta.phone || '+234 803 555 0192',
-            companyName: userMeta.company_name || 'Verified Property Lister',
-            avatar: userMeta.avatar_url,
+            phone: dbProfile?.phone || userMeta.phone || '+234 803 555 0192',
+            companyName: dbProfile?.companyName || userMeta.company_name || 'Verified Property Lister',
+            avatar: dbProfile?.avatar || userMeta.avatar_url,
             isVerifiedLandlord: true,
             joinedAt: new Date().toISOString().split('T')[0],
           });
