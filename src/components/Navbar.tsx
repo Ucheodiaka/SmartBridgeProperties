@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Building2, Menu, X, Heart, ShieldCheck, Shield } from 'lucide-react';
+import { Building2, Menu, X, Heart, ShieldCheck, Shield, UserCheck, KeyRound, Lock, User } from 'lucide-react';
+import { OwnerAccount, AdminStaffAccount } from '../types';
 
 interface NavbarProps {
   activeScreen: string;
@@ -8,7 +9,9 @@ interface NavbarProps {
   onOpenAboutProcess: () => void;
   savedCount: number;
   onOpenSaved: () => void;
-  onOpenAdmin?: () => void;
+  onOpenPortalGate: () => void;
+  currentOwner?: OwnerAccount | null;
+  currentAdminStaff?: AdminStaffAccount | null;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -18,7 +21,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAboutProcess,
   savedCount,
   onOpenSaved,
-  onOpenAdmin,
+  onOpenPortalGate,
+  currentOwner,
+  currentAdminStaff,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -34,9 +39,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     setMobileMenuOpen(false);
     if (id === 'about') {
       onOpenAboutProcess();
-    } else if (id === 'admin') {
-      if (onOpenAdmin) onOpenAdmin();
-      else onNavigate('admin');
     } else {
       onNavigate(id);
     }
@@ -111,19 +113,33 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Desktop & Tablet Action Controls */}
         <div className="hidden md:flex items-center gap-2 lg:gap-2.5 xl:gap-3 shrink-0">
-          {/* Admin Portal Entry Link */}
+          {/* SINGLE UNIFIED PORTAL ENTRY BUTTON */}
           <button
-            id="nav-admin-portal-button"
-            onClick={() => handleNavClick('admin')}
-            className={`px-2.5 lg:px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border whitespace-nowrap ${
-              activeScreen === 'admin'
+            id="nav-unified-portal-button"
+            onClick={onOpenPortalGate}
+            className={`px-3 lg:px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 border shadow-2xs whitespace-nowrap ${
+              currentOwner || currentAdminStaff
                 ? 'bg-[#003527] text-[#fed65b] border-[#003527]'
-                : 'text-[#003527] bg-[#003527]/5 border-[#003527]/20 hover:bg-[#003527]/10'
+                : 'text-[#003527] bg-[#fed65b]/20 border-[#735c00]/30 hover:bg-[#fed65b]/35'
             }`}
-            title="Open SmartBridge Admin Desk"
+            title="Access Lister, Host, or Admin Operations Desk"
           >
-            <Shield className="w-3.5 h-3.5 text-[#735c00]" />
-            <span className="hidden 2xl:inline">SmartBridge </span>Admin
+            {currentOwner ? (
+              <>
+                <UserCheck className="w-3.5 h-3.5 text-[#fed65b]" />
+                <span>Portal: {currentOwner.name.split(' ')[0]} (Host)</span>
+              </>
+            ) : currentAdminStaff ? (
+              <>
+                <ShieldCheck className="w-3.5 h-3.5 text-[#fed65b]" />
+                <span>Portal: {currentAdminStaff.name.split(' ')[0]} (Admin)</span>
+              </>
+            ) : (
+              <>
+                <KeyRound className="w-3.5 h-3.5 text-[#735c00]" />
+                <span>Portal Access</span>
+              </>
+            )}
           </button>
 
           {/* Saved wishlist button */}
@@ -163,15 +179,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         </div>
 
-        {/* Mobile Hamburger Button (visible under 768px) */}
+        {/* Mobile Action Buttons (visible under 768px) */}
         <div className="flex items-center gap-1.5 sm:gap-2 md:hidden">
+          {/* Mobile Portal Gate Button */}
           <button
-            id="nav-mobile-admin-button"
-            onClick={() => handleNavClick('admin')}
-            className="p-1.5 sm:p-2 rounded-lg text-[#003527] bg-[#003527]/10 text-xs font-bold flex items-center gap-1 cursor-pointer min-h-[36px]"
+            id="nav-mobile-portal-button"
+            onClick={onOpenPortalGate}
+            className="px-2.5 py-1.5 rounded-lg text-[#003527] bg-[#fed65b]/30 text-xs font-bold flex items-center gap-1 cursor-pointer min-h-[36px] border border-[#735c00]/30"
+            title="Portal Access (Lister & Admin)"
           >
-            <Shield className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Admin</span>
+            <KeyRound className="w-3.5 h-3.5 text-[#735c00]" />
+            <span>Portal</span>
           </button>
+
           <button
             id="nav-mobile-saved-button"
             onClick={onOpenSaved}
@@ -184,6 +204,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             )}
           </button>
+
           <button
             id="nav-mobile-menu-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -212,13 +233,29 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {item.label}
               </button>
             ))}
+
             <button
-              onClick={() => handleNavClick('admin')}
-              className="text-left py-2 px-3 rounded-lg text-sm sm:text-base font-bold text-[#003527] bg-[#003527]/10 flex items-center gap-2"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenPortalGate();
+              }}
+              className="text-left py-2.5 px-3.5 rounded-xl text-sm font-bold text-[#003527] bg-[#fed65b]/30 flex items-center justify-between border border-[#735c00]/30"
             >
-              <Shield className="w-4 h-4 text-[#735c00]" />
-              SmartBridge Admin Portal
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-[#735c00]" />
+                <span>
+                  {currentOwner
+                    ? `Lister Portal (${currentOwner.name.split(' ')[0]})`
+                    : currentAdminStaff
+                    ? `Admin Desk (${currentAdminStaff.name.split(' ')[0]})`
+                    : 'Portal Access (Lister & Admin)'}
+                </span>
+              </div>
+              <span className="text-[10px] bg-[#003527] text-white px-2 py-0.5 rounded-full font-bold">
+                Access
+              </span>
             </button>
+
             <div className="pt-3 border-t border-[#bfc9c3]/30 flex flex-col gap-2.5">
               <button
                 onClick={() => {
@@ -237,4 +274,5 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
+
 

@@ -22,6 +22,8 @@ import {
   Video,
   Film,
   Play,
+  MessageSquare,
+  Building2,
 } from 'lucide-react';
 import { Property } from '../types';
 import { PropertyDetailSkeleton } from './skeletons/PropertyDetailSkeleton';
@@ -30,6 +32,7 @@ interface PropertyDetailModalProps {
   property: Property;
   onClose: () => void;
   onScheduleInspection: (property: Property) => void;
+  onOpenInquiry?: (property: Property) => void;
   isSaved: boolean;
   onToggleSave: (id: string) => void;
   onShare: (property: Property) => void;
@@ -39,6 +42,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   property,
   onClose,
   onScheduleInspection,
+  onOpenInquiry,
   isSaved,
   onToggleSave,
   onShare,
@@ -450,6 +454,39 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             </div>
           )}
 
+          {/* Owner / Advertiser Verification Banner */}
+          <div className="bg-[#fbf9f8] p-4 sm:p-5 rounded-xl border border-[#bfc9c3]/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#003527] text-[#fed65b] flex items-center justify-center font-bold shrink-0">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-[#1b1c1c]">
+                    {property.ownerName || 'Verified Property Advertiser'}
+                  </span>
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                    <ShieldCheck className="w-3 h-3 text-emerald-700" /> Verified Landlord
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#707974] mt-0.5">
+                  Direct listing with SmartBridge title verification & escrow protection.
+                </p>
+              </div>
+            </div>
+
+            {onOpenInquiry && (
+              <button
+                type="button"
+                onClick={() => onOpenInquiry(property)}
+                className="w-full sm:w-auto bg-[#003527] text-[#fed65b] font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-lg hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-2xs border border-[#fed65b]/40"
+              >
+                <MessageSquare className="w-4 h-4 text-[#fed65b]" />
+                Inquire / Send Offer to Owner
+              </button>
+            )}
+          </div>
+
           {/* Assigned Local Agent Section */}
           <div className="bg-white p-6 rounded-2xl border border-[#bfc9c3]/30 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -470,14 +507,14 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <button
                 onClick={handleWhatsAppChat}
-                className="flex-1 sm:flex-none bg-[#25D366] text-white font-semibold text-xs md:text-sm px-5 py-3.5 rounded-[10px] hover:bg-[#20ba59] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                className="flex-1 sm:flex-none bg-[#25D366] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#20ba59] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
               >
                 <MessageCircle className="w-4 h-4" />
                 Chat on WhatsApp
               </button>
               <button
                 onClick={() => onScheduleInspection(property)}
-                className="flex-1 sm:flex-none bg-[#003527] text-white font-semibold text-xs md:text-sm px-5 py-3.5 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                className="flex-1 sm:flex-none bg-[#003527] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
               >
                 <Calendar className="w-4 h-4 text-[#fed65b]" />
                 Schedule Physical Viewing

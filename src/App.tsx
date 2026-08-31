@@ -1,7 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { PROPERTIES } from './data/properties';
 import { INITIAL_BOOKINGS, INITIAL_SUBMISSIONS, INITIAL_AGENTS } from './data/adminData';
-import { Property, FilterState, InspectionBooking, PropertySubmission, AgentInfo, AuditStatus, BookingStatus } from './types';
+import { DEMO_OWNERS, INITIAL_INQUIRIES } from './data/ownerData';
+import {
+  Property,
+  FilterState,
+  InspectionBooking,
+  PropertySubmission,
+  AgentInfo,
+  AuditStatus,
+  BookingStatus,
+  OwnerAccount,
+  PropertyInquiry,
+  InquiryStatus,
+  AdminStaffAccount,
+} from './types';
+import { DEMO_ADMIN_STAFF } from './data/adminStaffData';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { TrustStats } from './components/TrustStats';
@@ -13,9 +27,14 @@ import { PropertyDetailModal } from './components/PropertyDetailModal';
 import { AboutProcessModal } from './components/AboutProcessModal';
 import { ListPropertyModal } from './components/ListPropertyModal';
 import { ScheduleInspectionModal } from './components/ScheduleInspectionModal';
+import { PropertyInquiryModal } from './components/PropertyInquiryModal';
+import { OwnerPortalModal } from './components/owner/OwnerPortalModal';
+import { UnifiedPortalGateModal } from './components/auth/UnifiedPortalGateModal';
+import { AdminLoginModal } from './components/auth/AdminLoginModal';
 import { Footer } from './components/Footer';
 import { ToastContainer, ToastMessage } from './components/Toast';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { supabase, isSupabaseConfigured, supabaseDb } from './lib/supabase';
 
 export default function App() {
   const [properties, setProperties] = useState<Property[]>(() => {
@@ -45,12 +64,43 @@ export default function App() {
     }
   });
 
+  const [inquiries, setInquiries] = useState<PropertyInquiry[]>(() => {
+    try {
+      const stored = localStorage.getItem('smartbridge_inquiries');
+      return stored ? JSON.parse(stored) : INITIAL_INQUIRIES;
+    } catch {
+      return INITIAL_INQUIRIES;
+    }
+  });
+
+  const [currentOwner, setCurrentOwner] = useState<OwnerAccount | null>(() => {
+    try {
+      const stored = localStorage.getItem('smartbridge_current_owner');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [currentAdminStaff, setCurrentAdminStaff] = useState<AdminStaffAccount | null>(() => {
+    try {
+      const stored = localStorage.getItem('smartbridge_current_admin_staff');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [agents, setAgents] = useState<AgentInfo[]>(INITIAL_AGENTS);
 
   const [activeScreen, setActiveScreen] = useState<string>('home');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [inspectionTargetProperty, setInspectionTargetProperty] = useState<Property | null>(null);
+  const [inquiryTargetProperty, setInquiryTargetProperty] = useState<Property | null>(null);
   const [isListPropertyOpen, setIsListPropertyOpen] = useState(false);
+  const [isOwnerPortalOpen, setIsOwnerPortalOpen] = useState(false);
+  const [isPortalGateOpen, setIsPortalGateOpen] = useState(false);
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAboutProcessOpen, setIsAboutProcessOpen] = useState(false);
   const [savedIds, setSavedIds] = useState<string[]>(() => {
     try {
@@ -74,6 +124,78 @@ export default function App() {
     searchQuery: '',
     sortBy: 'featured',
   });
+
+  // Initial fetch from Supabase if configured
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    // 1. Fetch live properties from Supabase
+    supabaseDb.fetchProperties().then((cloudProps) => {
+      if (cloudProps && cloudProps.length > 0) {
+        setProperties(cloudProps);
+      }
+    });
+
+    // 2. Fetch live submissions
+    supabaseDb.fetchSubmissions().then((cloudSubs) => {
+      if (cloudSubs && cloudSubs.length > 0) {
+        setSubmissions(cloudSubs);
+      }
+    });
+
+    // 3. Fetch live inquiries
+    supabaseDb.fetchInquiries().then((cloudInqs) => {
+      if (cloudInqs && cloudInqs.length > 0) {
+        setInquiries(cloudInqs);
+      }
+    });
+
+    // 4. Fetch live inspection bookings
+    supabaseDb.fetchBookings().then((cloudBookings) => {
+      if (cloudBookings && cloudBookings.length > 0) {
+        setBookings(cloudBookings);
+      }
+    });
+
+    // 5. Auth State Listener (Google OAuth callbacks & session restoration)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const userMeta = session.user.user_metadata || {};
+        const isStaff = userMeta.role === 'admin' || session.user.email?.includes('admin');
+        
+        if (isStaff) {
+          setCurrentAdminStaff({
+            id: session.user.id,
+            name: userMeta.full_name || session.user.email?.split('@')[0] || 'Staff Admin',
+            email: session.user.email || 'admin@smartbridge.ng',
+            role: 'Operations Director',
+            badge: 'Google Workspace Verified',
+            pin: '1234',
+          });
+        } else {
+          setCurrentOwner({
+            id: session.user.id,
+            name: userMeta.full_name || session.user.email?.split('@')[0] || 'Verified Lister',
+            email: session.user.email || '',
+            phone: userMeta.phone || '+234 803 555 0192',
+            companyName: userMeta.company_name || 'Verified Property Lister',
+            avatar: userMeta.avatar_url,
+            isVerifiedLandlord: true,
+            joinedAt: new Date().toISOString().split('T')[0],
+          });
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentOwner(null);
+        setCurrentAdminStaff(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // LocalStorage synchronizations
   useEffect(() => {
@@ -99,6 +221,38 @@ export default function App() {
       console.error(e);
     }
   }, [submissions]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('smartbridge_inquiries', JSON.stringify(inquiries));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [inquiries]);
+
+  useEffect(() => {
+    try {
+      if (currentOwner) {
+        localStorage.setItem('smartbridge_current_owner', JSON.stringify(currentOwner));
+      } else {
+        localStorage.removeItem('smartbridge_current_owner');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [currentOwner]);
+
+  useEffect(() => {
+    try {
+      if (currentAdminStaff) {
+        localStorage.setItem('smartbridge_current_admin_staff', JSON.stringify(currentAdminStaff));
+      } else {
+        localStorage.removeItem('smartbridge_current_admin_staff');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [currentAdminStaff]);
 
   useEffect(() => {
     try {
@@ -165,10 +319,62 @@ export default function App() {
   const handleInspectionBookingConfirmed = (booking: InspectionBooking) => {
     setInspectionTargetProperty(null);
     setBookings((prev) => [booking, ...prev]);
+    supabaseDb.saveBooking(booking);
     addToast(
-      `Viewing confirmed for ${booking.preferredDate} at ${booking.preferredTime}! Our PH specialist will call ${booking.phone}.`,
+      `Viewing confirmed for ${booking.preferredDate} at ${booking.preferredTime}! Our specialist will call ${booking.phone}.`,
       'success'
     );
+  };
+
+  // Buyer Inquiry Submission Handler
+  const handleBuyerInquirySuccess = (newInquiry: PropertyInquiry) => {
+    setInquiries((prev) => [newInquiry, ...prev]);
+    setInquiryTargetProperty(null);
+    supabaseDb.saveInquiry(newInquiry);
+    addToast(
+      `Inquiry dispatched to ${newInquiry.ownerName || 'Property Advertiser'}! SmartBridge anti-fraud tracking enabled.`,
+      'success'
+    );
+  };
+
+  const handleUpdateInquiryStatus = (inquiryId: string, status: InquiryStatus) => {
+    setInquiries((prev) =>
+      prev.map((i) => {
+        if (i.id === inquiryId) {
+          const updated = { ...i, status };
+          supabaseDb.saveInquiry(updated);
+          return updated;
+        }
+        return i;
+      })
+    );
+    addToast(`Inquiry status updated to "${status}".`, 'info');
+  };
+
+  // Landlord Login / Logout
+  const handleOwnerLogin = (owner: OwnerAccount) => {
+    setCurrentOwner(owner);
+    addToast(`Signed in as ${owner.name} (${owner.companyName || 'Property Lister'}).`, 'success');
+  };
+
+  const handleOwnerLogout = () => {
+    setCurrentOwner(null);
+    addToast('Signed out of Property Lister & Host Portal.', 'info');
+  };
+
+  // Admin Staff Login / Logout
+  const handleAdminLogin = (staff: AdminStaffAccount) => {
+    setCurrentAdminStaff(staff);
+    setActiveScreen('admin');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    addToast(`Authenticated as ${staff.name} (${staff.role}). Admin Operations Desk unlocked.`, 'success');
+  };
+
+  const handleAdminLogout = () => {
+    setCurrentAdminStaff(null);
+    setActiveScreen('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    addToast('Operations Desk locked. Admin signed out successfully.', 'info');
   };
 
   const handleListPropertySuccess = (data: PropertySubmission) => {
@@ -176,13 +382,20 @@ export default function App() {
     const newSubmission: PropertySubmission = {
       ...data,
       id: `sub-${Date.now()}`,
+      ownerName: currentOwner?.name || data.ownerName || 'Property Advertiser',
+      ownerPhone: currentOwner?.phone || data.ownerPhone || '+234 803 000 0000',
+      ownerEmail: currentOwner?.email || data.ownerEmail || 'landlord@smartbridge.ng',
       status: 'pending_audit',
       submittedAt: new Date().toISOString(),
       floodAssessment: 'Standard Drainage Network',
       structuralScore: 94,
     };
     setSubmissions((prev) => [newSubmission, ...prev]);
-    addToast('Property listing submitted! Physical inspection audit queued at Operations Desk.', 'success');
+    supabaseDb.saveSubmission(newSubmission);
+    addToast(
+      'Property listing submitted with media! Physical inspection audit queued at Operations Desk.',
+      'success'
+    );
   };
 
   // Admin Management Handlers
@@ -192,8 +405,10 @@ export default function App() {
       if (existsIndex >= 0) {
         const updated = [...prev];
         updated[existsIndex] = savedProp;
+        supabaseDb.saveProperty(savedProp);
         return updated;
       }
+      supabaseDb.saveProperty(savedProp);
       return [savedProp, ...prev];
     });
     addToast(`Property "${savedProp.title}" published successfully!`, 'success');
@@ -201,6 +416,7 @@ export default function App() {
 
   const handleDeleteProperty = (propertyId: string) => {
     setProperties((prev) => prev.filter((p) => p.id !== propertyId));
+    supabaseDb.deleteProperty(propertyId);
     addToast('Property removed from catalog.', 'info');
   };
 
@@ -270,6 +486,8 @@ export default function App() {
       isVerified: true,
       isFeatured: false,
       status: 'active',
+      ownerName: submission.ownerName,
+      ownerEmail: submission.ownerEmail,
       images:
         submission.images && submission.images.length > 0
           ? submission.images
@@ -339,6 +557,13 @@ export default function App() {
 
   // If Admin Screen is active
   if (activeScreen === 'admin') {
+    // If not authenticated as admin staff, redirect home and open admin login modal
+    if (!currentAdminStaff) {
+      setActiveScreen('home');
+      setIsAdminLoginOpen(true);
+      return null;
+    }
+
     return (
       <div className="min-h-screen bg-[#FCF9F2] text-[#1b1c1c]">
         <AdminDashboard
@@ -346,6 +571,8 @@ export default function App() {
           bookings={bookings}
           submissions={submissions}
           agents={agents}
+          currentAdminStaff={currentAdminStaff}
+          onAdminLogout={handleAdminLogout}
           onBackToMarketplace={() => {
             setActiveScreen('home');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -368,6 +595,10 @@ export default function App() {
             onScheduleInspection={(prop) => {
               setSelectedProperty(null);
               setInspectionTargetProperty(prop);
+            }}
+            onOpenInquiry={(prop) => {
+              setSelectedProperty(null);
+              setInquiryTargetProperty(prop);
             }}
             isSaved={savedIds.includes(selectedProperty.id)}
             onToggleSave={handleToggleSave}
@@ -396,10 +627,9 @@ export default function App() {
           setActiveScreen('saved');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-        onOpenAdmin={() => {
-          setActiveScreen('admin');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onOpenPortalGate={() => setIsPortalGateOpen(true)}
+        currentOwner={currentOwner}
+        currentAdminStaff={currentAdminStaff}
       />
 
       {/* Main Screen Views */}
@@ -473,12 +703,26 @@ export default function App() {
             setSelectedProperty(null);
             setInspectionTargetProperty(prop);
           }}
+          onOpenInquiry={(prop) => {
+            setSelectedProperty(null);
+            setInquiryTargetProperty(prop);
+          }}
           isSaved={savedIds.includes(selectedProperty.id)}
           onToggleSave={handleToggleSave}
           onShare={handleShareProperty}
         />
       )}
 
+      {/* Buyer / Visitor Direct Inquiry & Offer Modal */}
+      {inquiryTargetProperty && (
+        <PropertyInquiryModal
+          property={inquiryTargetProperty}
+          onClose={() => setInquiryTargetProperty(null)}
+          onSubmitSuccess={handleBuyerInquirySuccess}
+        />
+      )}
+
+      {/* Buyer Inspection Viewing Scheduler */}
       {inspectionTargetProperty && (
         <ScheduleInspectionModal
           property={inspectionTargetProperty}
@@ -487,8 +731,49 @@ export default function App() {
         />
       )}
 
+      {/* Unified Portal Gateway Modal (Lister & Admin Access Gate) */}
+      <UnifiedPortalGateModal
+        isOpen={isPortalGateOpen}
+        onClose={() => setIsPortalGateOpen(false)}
+        currentOwner={currentOwner}
+        currentAdminStaff={currentAdminStaff}
+        onSelectListerPortal={() => setIsOwnerPortalOpen(true)}
+        onSelectAdminPortal={() => {
+          if (currentAdminStaff) {
+            setActiveScreen('admin');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            setIsAdminLoginOpen(true);
+          }
+        }}
+      />
+
+      {/* Admin Operations Desk Password & PIN Gate */}
+      <AdminLoginModal
+        isOpen={isAdminLoginOpen}
+        onClose={() => setIsAdminLoginOpen(false)}
+        onSuccessLogin={handleAdminLogin}
+      />
+
+      {/* Property Lister / Host Private Portal */}
+      {isOwnerPortalOpen && (
+        <OwnerPortalModal
+          currentOwner={currentOwner}
+          onLogin={handleOwnerLogin}
+          onLogout={handleOwnerLogout}
+          onClose={() => setIsOwnerPortalOpen(false)}
+          properties={properties}
+          submissions={submissions}
+          inquiries={inquiries}
+          onOpenListProperty={() => setIsListPropertyOpen(true)}
+          onUpdateInquiryStatus={handleUpdateInquiryStatus}
+        />
+      )}
+
+      {/* Property Listing Media Wizard */}
       {isListPropertyOpen && (
         <ListPropertyModal
+          currentOwner={currentOwner}
           onClose={() => setIsListPropertyOpen(false)}
           onSubmitSuccess={handleListPropertySuccess}
         />
@@ -516,4 +801,5 @@ export default function App() {
     </div>
   );
 }
+
 

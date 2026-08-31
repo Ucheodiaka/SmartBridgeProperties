@@ -71,7 +71,10 @@ export const PROPERTIES: Property[] = [
     coordinates: {
       lat: 4.8156,
       lng: 7.0094
-    }
+    },
+    ownerId: 'owner-1',
+    ownerName: 'Chief Boma Briggs',
+    ownerEmail: 'boma.briggs@oilserv-group.com',
   },
   {
     id: 'prop-2',
@@ -142,7 +145,10 @@ export const PROPERTIES: Property[] = [
     coordinates: {
       lat: 4.8021,
       lng: 7.0342
-    }
+    },
+    ownerId: 'owner-2',
+    ownerName: 'Alabo Tonye Graham',
+    ownerEmail: 'tonye.graham@grahamholdings.ng',
   },
   {
     id: 'prop-3',
@@ -210,7 +216,10 @@ export const PROPERTIES: Property[] = [
     coordinates: {
       lat: 4.8234,
       lng: 7.0512
-    }
+    },
+    ownerId: 'owner-3',
+    ownerName: 'Barrister (Mrs.) Gloria Dike',
+    ownerEmail: 'gloria.dike@dikelegal.com',
   },
   {
     id: 'prop-4',
@@ -277,7 +286,10 @@ export const PROPERTIES: Property[] = [
     coordinates: {
       lat: 4.7712,
       lng: 7.0145
-    }
+    },
+    ownerId: 'owner-1',
+    ownerName: 'Chief Boma Briggs',
+    ownerEmail: 'boma.briggs@oilserv-group.com',
   },
   {
     id: 'prop-5',

@@ -16,7 +16,7 @@ import {
   Shield,
   Sparkles,
 } from 'lucide-react';
-import { Property, InspectionBooking, PropertySubmission, AdminTab, AuditStatus, BookingStatus, AgentInfo } from '../../types';
+import { Property, InspectionBooking, PropertySubmission, AdminTab, AuditStatus, BookingStatus, AgentInfo, AdminStaffAccount } from '../../types';
 import { AdminOverview } from './AdminOverview';
 import { AdminPropertiesTable } from './AdminPropertiesTable';
 import { AdminVerificationQueue } from './AdminVerificationQueue';
@@ -30,6 +30,8 @@ interface AdminDashboardProps {
   bookings: InspectionBooking[];
   submissions: PropertySubmission[];
   agents: AgentInfo[];
+  currentAdminStaff?: AdminStaffAccount | null;
+  onAdminLogout?: () => void;
   onBackToMarketplace: () => void;
   onSaveProperty: (property: Property) => void;
   onDeleteProperty: (propertyId: string) => void;
@@ -46,6 +48,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   bookings,
   submissions,
   agents,
+  currentAdminStaff,
+  onAdminLogout,
   onBackToMarketplace,
   onSaveProperty,
   onDeleteProperty,
@@ -126,7 +130,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           {/* Quick Header Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {currentAdminStaff && (
+              <div className="hidden lg:flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10 text-right">
+                <div>
+                  <div className="text-xs font-bold text-white">{currentAdminStaff.name}</div>
+                  <div className="text-[10px] text-[#fed65b]">{currentAdminStaff.role}</div>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-[#fed65b] text-[#003527] font-bold text-xs flex items-center justify-center shrink-0">
+                  {currentAdminStaff.name.charAt(0)}
+                </div>
+              </div>
+            )}
+
             <button
               id="btn-admin-add-listing-header"
               onClick={handleOpenCreate}
@@ -134,6 +150,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             >
               <Plus className="w-4 h-4" /> New Listing
             </button>
+
+            {onAdminLogout && (
+              <button
+                id="btn-admin-logout"
+                onClick={onAdminLogout}
+                className="bg-red-500/20 hover:bg-red-500/30 text-red-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-red-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Lock Desk and Log Out"
+              >
+                <LogOut className="w-4 h-4 text-red-300" />
+                <span className="hidden sm:inline">Lock Desk</span>
+              </button>
+            )}
 
             {/* Back to Client Marketplace */}
             <button

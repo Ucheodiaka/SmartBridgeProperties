@@ -64,6 +64,9 @@ export interface Property {
     lng: number;
   };
   createdAt?: string;
+  ownerId?: string;
+  ownerEmail?: string;
+  ownerName?: string;
   status?: 'active' | 'pending_verification' | 'sold' | 'rented' | 'draft';
 }
 
@@ -126,5 +129,49 @@ export interface PropertySubmission {
   structuralScore?: number;
 }
 
+export interface OwnerAccount {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  companyName?: string;
+  avatar?: string;
+  isVerifiedLandlord: boolean;
+  joinedAt: string;
+}
+
+export type InquiryStatus = 'new' | 'contacted' | 'tour_scheduled' | 'closed';
+
+export interface PropertyInquiry {
+  id: string;
+  propertyId: string;
+  propertyTitle: string;
+  propertyLocation: string;
+  propertyPrice?: string;
+  ownerEmail: string;
+  ownerName?: string;
+  buyerName: string;
+  buyerPhone: string;
+  buyerEmail: string;
+  inquiryType: 'buy' | 'rent' | 'offer' | 'general';
+  offerAmount?: string;
+  proposedMoveIn?: string;
+  message: string;
+  status: InquiryStatus;
+  createdAt: string;
+  smartBridgeEscrowRequested?: boolean;
+}
+
 export type AdminTab = 'overview' | 'properties' | 'verification' | 'bookings' | 'analytics' | 'agents';
+
+export interface AdminStaffAccount {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Operations Director' | 'Lead Field Inspector' | 'Legal & Title Verifier' | 'Customer Support Desk';
+  avatar?: string;
+  pin: string;
+  badge?: string;
+}
+
 

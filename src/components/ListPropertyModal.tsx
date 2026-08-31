@@ -19,11 +19,12 @@ import {
   FileText,
   Eye,
 } from 'lucide-react';
-import { PropertyType, ListingType, PropertySubmission } from '../types';
+import { PropertyType, ListingType, PropertySubmission, OwnerAccount } from '../types';
 
 interface ListPropertyModalProps {
   onClose: () => void;
   onSubmitSuccess: (data: PropertySubmission) => void;
+  currentOwner?: OwnerAccount | null;
 }
 
 interface UploadedMediaItem {
@@ -70,6 +71,7 @@ const SAMPLE_PH_VIDEO = {
 export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
   onClose,
   onSubmitSuccess,
+  currentOwner,
 }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -80,9 +82,9 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     price: '',
     bedrooms: '4',
     bathrooms: '4',
-    ownerName: '',
-    ownerPhone: '',
-    ownerEmail: '',
+    ownerName: currentOwner?.name || '',
+    ownerPhone: currentOwner?.phone || '',
+    ownerEmail: currentOwner?.email || '',
     titleDocType: 'Certificate of Occupancy (C of O)',
     description: '',
   });
