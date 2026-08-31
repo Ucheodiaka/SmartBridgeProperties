@@ -1,0 +1,6 @@
+{
+  "name": "SmartBridge Properties",
+  "description": "Port Harcourt's trusted luxury real estate marketplace with verified physical inspections and transparent listings across Rivers State.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
