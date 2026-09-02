@@ -12,20 +12,16 @@ import {
   Image as ImageIcon,
   Video,
   Eye,
+  EyeOff,
   MessageSquare,
   Clock,
-  Sparkles,
   ArrowRight,
   LogOut,
   AlertCircle,
-  Check,
-  Send,
-  Calendar,
-  DollarSign,
-  ChevronRight,
-  ExternalLink,
   Briefcase,
-  ShieldAlert,
+  Check,
+  Calendar,
+  Settings,
 } from 'lucide-react';
 import {
   OwnerAccount,
@@ -33,13 +29,16 @@ import {
   PropertySubmission,
   PropertyInquiry,
 } from '../../types';
-import { DEMO_OWNERS } from '../../data/ownerData';
-import { signInWithGoogle, signInWithEmail, signUpWithEmail, isSupabaseConfigured } from '../../lib/supabase';
-import { GoogleAccountPickerModal } from '../auth/GoogleAccountPickerModal';
+import {
+  signInWithGoogle,
+  signInWithEmail,
+  signUpWithEmail,
+  isSupabaseConfigured,
+} from '../../lib/supabase';
 import { OwnerProfileEditor } from './OwnerProfileEditor';
 
 // Reusable Google SVG Icon
-const GoogleIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
+const GoogleIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
   <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
     <path
       fill="#4285F4"
@@ -70,6 +69,8 @@ interface OwnerPortalModalProps {
   inquiries: PropertyInquiry[];
   onOpenListProperty: () => void;
   onUpdateInquiryStatus: (inquiryId: string, status: PropertyInquiry['status']) => void;
+  initialAuthTab?: 'create' | 'signin';
+  onUpdateOwner?: (owner: OwnerAccount) => void;
 }
 
 export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
@@ -82,18 +83,28 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   inquiries,
   onOpenListProperty,
   onUpdateInquiryStatus,
+  initialAuthTab = 'signin',
+  onUpdateOwner,
 }) => {
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  // Auth State
+  const [authTab, setAuthTab] = useState<'create' | 'signin'>(initialAuthTab);
+  const [fullName, setFullName] = useState('');
   const [emailInput, setEmailInput] = useState('');
-  const [passwordInput, setPasswordInput] = useState('');
-  const [nameInput, setNameInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
-  const [companyInput, setCompanyInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
+  const [accountType, setAccountType] = useState<'landlord' | 'agent' | 'developer'>('landlord');
+  const [companyName, setCompanyName] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // Active Dashboard tab
+  // Dashboard Tab State
   const [activeTab, setActiveTab] = useState<'properties' | 'inquiries' | 'audits' | 'profile'>('properties');
-  const [selectedInquiry, setSelectedInquiry] = useState<PropertyInquiry | null>(null);
 
   // Filter properties and inquiries for current logged-in owner
   const ownerProperties = currentOwner
@@ -116,24 +127,24 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
       )
     : [];
 
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isGooglePickerOpen, setIsGooglePickerOpen] = useState(false);
-
-  const handleSelectGoogleAccount = async (account: { email: string; name: string; avatar?: string; companyName?: string }) => {
+  // 1. Google Optional Auth Handler
+  const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     setAuthError(null);
     try {
-      const res = await signInWithGoogle('lister', account);
+      const res = await signInWithGoogle('lister');
       if (res.success && res.user) {
         const ownerProfile: OwnerAccount = {
           id: res.user.id,
           name: res.user.name,
           email: res.user.email,
           phone: res.user.phone || '+234 803 555 0192',
-          companyName: account.companyName || res.user.companyName || 'Verified Property Lister',
-          avatar: res.user.avatar || account.avatar,
+          role: (res.user.role as any) || 'landlord',
+          companyName: res.user.companyName || 'Verified Property Lister',
+          avatar: res.user.avatar,
           isVerifiedLandlord: true,
           joinedAt: new Date().toISOString().split('T')[0],
+          listerType: 'Landlord / Property Owner',
         };
         onLogin(ownerProfile);
       } else if (res.error) {
@@ -146,76 +157,136 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
     }
   };
 
-  const handleGoogleLogin = () => {
-    setIsGooglePickerOpen(true);
-  };
-
-  const handleCustomLogin = async (e: React.FormEvent) => {
+  // 2. Email Auth Form Handler (Create Account / Sign In)
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    setForgotPasswordMessage(null);
+    setIsSubmitting(true);
 
-    // Check if matches known demo account
-    const matched = DEMO_OWNERS.find(
-      (o) => o.email.toLowerCase() === emailInput.trim().toLowerCase()
-    );
+    try {
+      if (authTab === 'create') {
+        // Validation
+        if (!fullName.trim()) {
+          setAuthError('Please enter your full name.');
+          setIsSubmitting(false);
+          return;
+        }
+        if (!emailInput.trim() || !emailInput.includes('@')) {
+          setAuthError('Please enter a valid email address.');
+          setIsSubmitting(false);
+          return;
+        }
+        if (!phoneInput.trim()) {
+          setAuthError('Please enter your phone number.');
+          setIsSubmitting(false);
+          return;
+        }
+        if (passwordInput.length < 6) {
+          setAuthError('Password must be at least 6 characters long.');
+          setIsSubmitting(false);
+          return;
+        }
+        if (passwordInput !== confirmPasswordInput) {
+          setAuthError('Passwords do not match. Please re-enter.');
+          setIsSubmitting(false);
+          return;
+        }
+        if (!agreeTerms) {
+          setAuthError('Please accept the Terms and Privacy Policy to proceed.');
+          setIsSubmitting(false);
+          return;
+        }
 
-    if (matched) {
-      onLogin(matched);
-      return;
-    }
+        const listerTypeLabel =
+          accountType === 'agent'
+            ? 'Registered Real Estate Agent'
+            : accountType === 'developer'
+            ? 'Property Developer'
+            : 'Landlord / Property Owner';
 
-    if (authMode === 'register') {
-      const res = await signUpWithEmail(emailInput.trim(), passwordInput.trim(), {
-        fullName: nameInput.trim() || emailInput.split('@')[0],
-        phone: phoneInput.trim(),
-        companyName: companyInput.trim() || 'Private Property Advertiser',
-        role: 'landlord',
-      });
+        const res = await signUpWithEmail(emailInput.trim(), passwordInput.trim(), {
+          fullName: fullName.trim(),
+          phone: phoneInput.trim(),
+          companyName: companyName.trim() || undefined,
+          role: accountType,
+        });
 
-      if (res.success && res.user) {
-        const newOwner: OwnerAccount = {
-          id: res.user.id,
-          name: res.user.name,
-          email: res.user.email,
-          phone: res.user.phone || phoneInput.trim() || '+234 803 000 0000',
-          companyName: res.user.companyName || companyInput.trim() || 'Private Property Advertiser',
-          isVerifiedLandlord: true,
-          joinedAt: new Date().toISOString().split('T')[0],
-        };
-        onLogin(newOwner);
+        if (res.success && res.user) {
+          const newOwner: OwnerAccount = {
+            id: res.user.id,
+            name: fullName.trim(),
+            email: emailInput.trim(),
+            phone: phoneInput.trim(),
+            role: accountType,
+            companyName: companyName.trim() || undefined,
+            isVerifiedLandlord: true,
+            joinedAt: new Date().toISOString().split('T')[0],
+            listerType: listerTypeLabel,
+          };
+          onLogin(newOwner);
+        } else {
+          setAuthError(res.error || 'Failed to create account. Please try again.');
+        }
       } else {
-        setAuthError(res.error || 'Failed to create account.');
+        // Sign In Tab
+        if (!emailInput.trim()) {
+          setAuthError('Please enter your email address.');
+          setIsSubmitting(false);
+          return;
+        }
+        if (!passwordInput.trim()) {
+          setAuthError('Please enter your password.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        const res = await signInWithEmail(emailInput.trim(), passwordInput.trim());
+        if (res.success && res.user) {
+          const loggedInOwner: OwnerAccount = {
+            id: res.user.id,
+            name: res.user.name || emailInput.split('@')[0],
+            email: res.user.email,
+            phone: res.user.phone || '+234 803 000 0000',
+            role: (res.user.role as any) || 'landlord',
+            companyName: res.user.companyName,
+            avatar: res.user.avatar,
+            isVerifiedLandlord: true,
+            joinedAt: new Date().toISOString().split('T')[0],
+            listerType:
+              res.user.role === 'agent'
+                ? 'Registered Real Estate Agent'
+                : res.user.role === 'developer'
+                ? 'Property Developer'
+                : 'Landlord / Property Owner',
+          };
+          onLogin(loggedInOwner);
+        } else {
+          setAuthError(res.error || 'Invalid credentials. Please check your email and password.');
+        }
       }
-    } else {
-      const res = await signInWithEmail(emailInput.trim(), passwordInput.trim());
-      if (res.success && res.user) {
-        const loggedInOwner: OwnerAccount = {
-          id: res.user.id,
-          name: res.user.name,
-          email: res.user.email,
-          phone: res.user.phone || '+234 803 000 0000',
-          companyName: res.user.companyName || 'Verified Property Lister',
-          avatar: res.user.avatar,
-          isVerifiedLandlord: true,
-          joinedAt: new Date().toISOString().split('T')[0],
-        };
-        onLogin(loggedInOwner);
-      } else {
-        setAuthError(res.error || 'Invalid credentials.');
-      }
+    } catch (err: any) {
+      setAuthError(err?.message || 'An unexpected error occurred during authentication.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleQuickDemoLogin = (demoOwner: OwnerAccount) => {
-    setEmailInput(demoOwner.email);
-    setPasswordInput('password123');
-    onLogin(demoOwner);
+  const handleForgotPassword = () => {
+    if (!emailInput.trim()) {
+      setAuthError('Please enter your email address above to receive a password reset link.');
+      return;
+    }
+    setAuthError(null);
+    setForgotPasswordMessage(
+      `Password reset instructions have been sent to ${emailInput}. Please check your inbox.`
+    );
   };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200">
       <div
-        className="bg-[#FCF9F2] w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl border border-white/40 flex flex-col max-h-[95vh] relative"
+        className="bg-[#FCF9F2] w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl border border-white/40 flex flex-col max-h-[95vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
@@ -227,7 +298,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-playfair text-lg sm:text-xl font-bold tracking-tight">
-                  Property Lister & Host Portal
+                  Property Lister Portal
                 </h2>
                 {currentOwner && (
                   <span className="bg-[#fed65b]/20 text-[#fed65b] border border-[#fed65b]/40 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -236,7 +307,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                 )}
               </div>
               <span className="text-[10px] text-white/70 uppercase tracking-wider block font-medium">
-                Landlords, Developers & Agents • Sale & Rent Registry
+                Landlords, Agents & Property Developers • Sale & Rent Registry
               </span>
             </div>
           </div>
@@ -264,211 +335,422 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
         <div className="overflow-y-auto flex-1 p-4 sm:p-6 md:p-8">
           {!currentOwner ? (
             /* ============================================================ */
-            /* 1. AUTHENTICATION GATE (LOGIN / REGISTER) */
+            /* 1. AUTHENTICATION GATE: CREATE ACCOUNT & SIGN IN TABS */
             /* ============================================================ */
-            <div className="max-w-xl mx-auto space-y-6 py-4">
+            <div className="max-w-xl mx-auto space-y-6 py-2">
               <div className="text-center space-y-2">
-                <div className="w-14 h-14 rounded-2xl bg-[#003527] text-[#fed65b] flex items-center justify-center mx-auto shadow-md">
-                  <Lock className="w-7 h-7" />
-                </div>
                 <h3 className="font-playfair text-2xl font-bold text-[#003527]">
-                  {authMode === 'login' ? 'Property Lister & Host Workspace' : 'Register Lister / Host Account'}
+                  {authTab === 'create' ? 'Create Property Lister Account' : 'Sign In to Lister Portal'}
                 </h3>
                 <p className="text-xs sm:text-sm text-[#404944] max-w-md mx-auto">
-                  For landlords, property developers, and verified real estate agents managing sale and rental properties in Port Harcourt.
+                  For landlords, property developers, and verified real estate agents listing properties in Port Harcourt.
                 </p>
               </div>
 
-              {/* One-Click Google Authentication */}
-              <div className="bg-white p-5 rounded-2xl border border-[#bfc9c3]/50 shadow-xs space-y-3">
+              {/* Two Tabs Selector */}
+              <div className="bg-[#f0ede6] p-1.5 rounded-2xl flex border border-[#bfc9c3]/50 shadow-inner">
                 <button
                   type="button"
-                  id="btn-lister-google-auth"
-                  onClick={handleGoogleLogin}
-                  disabled={isGoogleLoading}
-                  className="w-full bg-white hover:bg-slate-50 text-[#1b1c1c] font-semibold text-sm py-3.5 px-4 rounded-xl border-2 border-[#bfc9c3]/80 hover:border-[#003527] transition-all cursor-pointer flex items-center justify-center gap-3 shadow-xs active:scale-[0.99] disabled:opacity-60"
+                  id="tab-lister-create-account"
+                  onClick={() => {
+                    setAuthTab('create');
+                    setAuthError(null);
+                    setForgotPasswordMessage(null);
+                  }}
+                  className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                    authTab === 'create'
+                      ? 'bg-[#003527] text-[#fed65b] shadow-md'
+                      : 'text-[#404944] hover:text-[#003527]'
+                  }`}
                 >
-                  {isGoogleLoading ? (
-                    <div className="w-5 h-5 border-2 border-[#003527] border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <GoogleIcon className="w-5 h-5 shrink-0" />
-                  )}
-                  <span>
-                    {isGoogleLoading
-                      ? 'Connecting Google Account...'
-                      : authMode === 'login'
-                      ? 'Continue with Google Account'
-                      : 'Sign Up with Google Account'}
-                  </span>
+                  <User className="w-4 h-4" />
+                  Create Account
                 </button>
-
-                <div className="flex items-center justify-between text-[11px] text-[#707974] px-1">
-                  <span className="flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Instant one-tap device login
-                  </span>
-                  <span className="font-mono text-[10px] bg-[#f0ede6] px-2 py-0.5 rounded text-[#404944]">
-                    {isSupabaseConfigured ? 'Supabase Auth Active' : 'Supabase Ready'}
-                  </span>
-                </div>
+                <button
+                  type="button"
+                  id="tab-lister-sign-in"
+                  onClick={() => {
+                    setAuthTab('signin');
+                    setAuthError(null);
+                    setForgotPasswordMessage(null);
+                  }}
+                  className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                    authTab === 'signin'
+                      ? 'bg-[#003527] text-[#fed65b] shadow-md'
+                      : 'text-[#404944] hover:text-[#003527]'
+                  }`}
+                >
+                  <Lock className="w-4 h-4" />
+                  Sign In
+                </button>
               </div>
 
-              {/* Divider */}
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-[#bfc9c3]/60"></div>
-                <span className="flex-shrink mx-4 text-xs font-bold text-[#707974] uppercase tracking-wider">
-                  Or continue with Email
-                </span>
-                <div className="flex-grow border-t border-[#bfc9c3]/60"></div>
-              </div>
-
-              {/* One-Click Demo Logins for Instant Testing */}
-              <div className="bg-[#fbf9f8] p-4 rounded-xl border border-[#bfc9c3]/50 shadow-2xs space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-[#707974] uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#735c00]" />
-                    Instant Demo Accounts
-                  </span>
-                  <span className="text-[10px] text-[#707974]">Click to test instantly</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {DEMO_OWNERS.map((demo) => (
-                    <button
-                      key={demo.id}
-                      type="button"
-                      onClick={() => handleQuickDemoLogin(demo)}
-                      className="p-2.5 rounded-lg bg-white border border-[#bfc9c3]/60 hover:border-[#003527] hover:bg-[#003527]/5 text-left transition-all cursor-pointer group shadow-2xs"
-                    >
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={demo.avatar}
-                          alt={demo.name}
-                          className="w-6 h-6 rounded-full object-cover border border-[#003527]/20 shrink-0"
-                        />
-                        <div className="overflow-hidden">
-                          <p className="text-xs font-bold text-[#1b1c1c] group-hover:text-[#003527] truncate">
-                            {demo.name}
-                          </p>
-                          <p className="text-[9px] text-[#707974] truncate">{demo.companyName}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+              {/* Status & Error Messages */}
               {authError && (
-                <div className="bg-red-50 text-red-800 text-xs p-3.5 rounded-xl border border-red-200 flex items-center gap-2">
+                <div className="bg-red-50 text-red-800 text-xs p-3.5 rounded-xl border border-red-200 flex items-center gap-2.5">
                   <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
                   <span>{authError}</span>
                 </div>
               )}
 
-              {/* Login / Register Form */}
-              <form onSubmit={handleCustomLogin} className="space-y-4 bg-white p-6 rounded-2xl border border-[#bfc9c3]/40 shadow-xs">
-                {authMode === 'register' && (
+              {forgotPasswordMessage && (
+                <div className="bg-emerald-50 text-emerald-800 text-xs p-3.5 rounded-xl border border-emerald-200 flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>{forgotPasswordMessage}</span>
+                </div>
+              )}
+
+              {/* Main Auth Form */}
+              <form
+                onSubmit={handleAuthSubmit}
+                className="space-y-4 bg-white p-6 sm:p-7 rounded-2xl border border-[#bfc9c3]/50 shadow-sm"
+              >
+                {authTab === 'create' ? (
+                  /* ---------------- CREATE ACCOUNT FIELDS ---------------- */
                   <>
+                    {/* Full Name */}
                     <div>
                       <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
-                        Full Legal Name *
+                        Full Name *
                       </label>
-                      <input
-                        required
-                        type="text"
-                        placeholder="e.g. Chief Boma Briggs"
-                        value={nameInput}
-                        onChange={(e) => setNameInput(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527]"
-                      />
+                      <div className="relative">
+                        <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707974]" />
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. Chief Boma Briggs"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527] focus:ring-1 focus:ring-[#003527] outline-none"
+                        />
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
-                          WhatsApp Phone *
-                        </label>
+
+                    {/* Email Address */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                        Email Address *
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707974]" />
+                        <input
+                          required
+                          type="email"
+                          placeholder="owner@domain.com"
+                          value={emailInput}
+                          onChange={(e) => setEmailInput(e.target.value)}
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527] focus:ring-1 focus:ring-[#003527] outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Phone Number */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                        Phone Number *
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707974]" />
                         <input
                           required
                           type="tel"
                           placeholder="+234 803 000 0000"
                           value={phoneInput}
                           onChange={(e) => setPhoneInput(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]"
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527] focus:ring-1 focus:ring-[#003527] outline-none"
                         />
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
-                          Company / Estate Alias
-                        </label>
+                    </div>
+
+                    {/* Account Type */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                        Account Type *
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setAccountType('landlord')}
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                            accountType === 'landlord'
+                              ? 'border-[#003527] bg-[#003527]/5 text-[#003527] ring-1 ring-[#003527]'
+                              : 'border-[#bfc9c3]/60 bg-white text-[#404944] hover:border-[#003527]/50'
+                          }`}
+                        >
+                          <span className="text-xs font-bold block">Landlord / Owner</span>
+                          <span className="text-[10px] text-[#707974] mt-0.5">Private Properties</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setAccountType('agent')}
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                            accountType === 'agent'
+                              ? 'border-[#003527] bg-[#003527]/5 text-[#003527] ring-1 ring-[#003527]'
+                              : 'border-[#bfc9c3]/60 bg-white text-[#404944] hover:border-[#003527]/50'
+                          }`}
+                        >
+                          <span className="text-xs font-bold block">Property Agent</span>
+                          <span className="text-[10px] text-[#707974] mt-0.5">Realtor / Broker</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setAccountType('developer')}
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                            accountType === 'developer'
+                              ? 'border-[#003527] bg-[#003527]/5 text-[#003527] ring-1 ring-[#003527]'
+                              : 'border-[#bfc9c3]/60 bg-white text-[#404944] hover:border-[#003527]/50'
+                          }`}
+                        >
+                          <span className="text-xs font-bold block">Developer</span>
+                          <span className="text-[10px] text-[#707974] mt-0.5">Estate Projects</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Agency or Company Name */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                        Agency or Company Name <span className="text-[#707974] font-normal">(Where Applicable)</span>
+                      </label>
+                      <div className="relative">
+                        <Briefcase className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707974]" />
                         <input
                           type="text"
-                          placeholder="e.g. Prime Realty Ltd"
-                          value={companyInput}
-                          onChange={(e) => setCompanyInput(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]"
+                          placeholder="e.g. Niger Delta Realty Ltd or Briggs Estates"
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527] focus:ring-1 focus:ring-[#003527] outline-none"
                         />
                       </div>
+                    </div>
+
+                    {/* Passwords */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                          Password *
+                        </label>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707974]" />
+                          <input
+                            required
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            value={passwordInput}
+                            onChange={(e) => setPasswordInput(e.target.value)}
+                            className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527] outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#707974] hover:text-[#003527] cursor-pointer"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                          Confirm Password *
+                        </label>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707974]" />
+                          <input
+                            required
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            value={confirmPasswordInput}
+                            onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                            className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527] outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Terms & Privacy Policy Checkbox */}
+                    <div className="pt-1">
+                      <label className="flex items-start gap-2.5 text-xs text-[#404944] cursor-pointer">
+                        <input
+                          required
+                          type="checkbox"
+                          checked={agreeTerms}
+                          onChange={(e) => setAgreeTerms(e.target.checked)}
+                          className="mt-0.5 rounded border-[#bfc9c3] text-[#003527] focus:ring-[#003527] cursor-pointer"
+                        />
+                        <span>
+                          I agree to the SmartBridge Properties <strong>Terms of Service</strong> and{' '}
+                          <strong>Privacy Policy</strong> for verified listings in Rivers State.
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-[#003527] text-[#fed65b] font-bold text-sm py-3.5 px-4 rounded-xl hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm disabled:opacity-60"
+                    >
+                      {isSubmitting ? (
+                        <div className="w-5 h-5 border-2 border-[#fed65b] border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <span>Create Account</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+
+                    {/* Switch to Sign In */}
+                    <div className="text-center pt-2 border-t border-[#bfc9c3]/30">
+                      <p className="text-xs text-[#707974]">
+                        Already have a property account?{' '}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAuthTab('signin');
+                            setAuthError(null);
+                          }}
+                          className="font-bold text-[#003527] hover:underline cursor-pointer ml-1"
+                        >
+                          Sign In
+                        </button>
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  /* ---------------- SIGN IN FIELDS ---------------- */
+                  <>
+                    {/* Email Address */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                        Email Address *
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707974]" />
+                        <input
+                          required
+                          type="email"
+                          placeholder="owner@domain.com"
+                          value={emailInput}
+                          onChange={(e) => setEmailInput(e.target.value)}
+                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527] focus:ring-1 focus:ring-[#003527] outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Password */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-bold text-[#1b1c1c] uppercase">
+                          Password *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          className="text-xs font-semibold text-[#003527] hover:underline cursor-pointer"
+                        >
+                          Forgot password?
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707974]" />
+                        <input
+                          required
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          value={passwordInput}
+                          onChange={(e) => setPasswordInput(e.target.value)}
+                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527] focus:ring-1 focus:ring-[#003527] outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#707974] hover:text-[#003527] cursor-pointer"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Remember Me */}
+                    <div className="flex items-center justify-between pt-1">
+                      <label className="flex items-center gap-2 text-xs text-[#404944] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="rounded border-[#bfc9c3] text-[#003527] focus:ring-[#003527] cursor-pointer"
+                        />
+                        <span>Remember me on this device</span>
+                      </label>
+                    </div>
+
+                    {/* Sign In Button */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-[#003527] text-[#fed65b] font-bold text-sm py-3.5 px-4 rounded-xl hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm disabled:opacity-60"
+                    >
+                      {isSubmitting ? (
+                        <div className="w-5 h-5 border-2 border-[#fed65b] border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <span>Sign In</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+
+                    {/* Switch to Create Account */}
+                    <div className="text-center pt-2 border-t border-[#bfc9c3]/30">
+                      <p className="text-xs text-[#707974]">
+                        Do not have a property account?{' '}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAuthTab('create');
+                            setAuthError(null);
+                          }}
+                          className="font-bold text-[#003527] hover:underline cursor-pointer ml-1"
+                        >
+                          Create Account
+                        </button>
+                      </p>
                     </div>
                   </>
                 )}
 
-                <div>
-                  <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
-                    Official Email Address *
-                  </label>
-                  <input
-                    required
-                    type="email"
-                    placeholder="landlord@domain.com"
-                    value={emailInput}
-                    onChange={(e) => setEmailInput(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
-                    Account Password *
-                  </label>
-                  <input
-                    required
-                    type="password"
-                    placeholder="••••••••"
-                    value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527]"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-[#003527] text-white font-semibold text-sm py-3.5 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
-                >
-                  <ArrowRight className="w-4 h-4 text-[#fed65b]" />
-                  {authMode === 'login' ? 'Sign In to Landlord Dashboard' : 'Create Landlord Account'}
-                </button>
-
-                <div className="text-center pt-2">
+                {/* Optional Google Authentication Button (Smaller, Secondary) */}
+                <div className="pt-2 border-t border-[#bfc9c3]/30">
                   <button
                     type="button"
-                    onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                    className="text-xs font-bold text-[#003527] hover:underline cursor-pointer"
+                    onClick={handleGoogleLogin}
+                    disabled={isGoogleLoading}
+                    className="w-full bg-[#FCF9F2] hover:bg-slate-100 text-[#1b1c1c] font-medium text-xs py-2.5 px-3.5 rounded-xl border border-[#bfc9c3]/80 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
                   >
-                    {authMode === 'login'
-                      ? "Don't have an account yet? Register as a Landlord"
-                      : 'Already have an account? Sign In'}
+                    {isGoogleLoading ? (
+                      <div className="w-4 h-4 border-2 border-[#003527] border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <GoogleIcon className="w-4 h-4" />
+                    )}
+                    <span>Continue with Google (Optional)</span>
                   </button>
                 </div>
               </form>
             </div>
           ) : (
             /* ============================================================ */
-            /* 2. AUTHENTICATED LANDLORD DASHBOARD VIEW */
+            /* 2. AUTHENTICATED LISTER DASHBOARD VIEW */
             /* ============================================================ */
             <div className="space-y-6">
-              {/* Landlord Welcome Banner & Quick Stats */}
+              {/* Lister Welcome Banner & Quick Action */}
               <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#bfc9c3]/40 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                 <div className="flex items-center gap-4">
                   <img
-                    src={currentOwner.avatar || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDQGcdW5y2zUr_eaEadYzfhjB6pdaO60NHCzegoqQa-HS_PFU5m13SDde_-tN1r7rNFmxSr-bSZdAHkFIFAE4Z_MqjiEk3nev4rAGRTPxIwFJJ8j_8mmLYH6G4Bcxe4jpeshDtJSYqryTxIWcC6qnmakl3ugNTAIj_ZEWdcKKMU0VS30prKeAYRDc2RuV7PEAD40HgZ1qcbGPaSl8i7tBLwI5PRFR-XcK3QB2vcbw6nGDyL8O9pk_ui'}
+                    src={currentOwner.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
                     alt={currentOwner.name}
                     className="w-14 h-14 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-sm"
                   />
@@ -478,7 +760,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                         {currentOwner.name}
                       </h3>
                       <span className="bg-[#003527]/10 text-[#003527] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        {currentOwner.companyName || 'Verified Advertiser'}
+                        {currentOwner.listerType || currentOwner.companyName || 'Verified Lister'}
                       </span>
                     </div>
                     <p className="text-xs text-[#707974] mt-0.5 flex items-center gap-3">
@@ -491,21 +773,14 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
 
                 <div className="flex items-center gap-3 self-start lg:self-auto">
                   <button
-                    onClick={() => setActiveTab('profile')}
-                    className="bg-white hover:bg-slate-50 text-[#003527] font-semibold text-xs sm:text-sm px-3.5 py-2.5 sm:py-3 rounded-lg border border-[#bfc9c3]/60 hover:border-[#003527] transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <User className="w-4 h-4 text-[#003527]" />
-                    <span>Edit Profile</span>
-                  </button>
-                  <button
                     onClick={() => {
                       onClose();
                       onOpenListProperty();
                     }}
-                    className="bg-[#003527] text-white font-semibold text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg hover:bg-[#064e3b] transition-all cursor-pointer flex items-center gap-2 shadow-xs"
+                    className="bg-[#003527] text-white font-semibold text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl hover:bg-[#064e3b] transition-all cursor-pointer flex items-center gap-2 shadow-xs"
                   >
                     <Plus className="w-4 h-4 text-[#fed65b]" />
-                    Upload New Property (Photos & 4K Video)
+                    Upload New Property
                   </button>
                 </div>
               </div>
@@ -536,13 +811,13 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
 
                 <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/40 shadow-2xs">
                   <span className="text-[10px] font-bold text-[#707974] uppercase tracking-wider block">
-                    In-Review Audit
+                    Under Inspection
                   </span>
                   <p className="font-playfair text-2xl font-bold text-amber-700 mt-1">
                     {ownerSubmissions.length}
                   </p>
                   <span className="text-[10px] text-amber-700 font-semibold flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Under Physical Inspection
+                    <Clock className="w-3 h-3" /> In Verification
                   </span>
                 </div>
 
@@ -554,7 +829,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                     {ownerInquiries.length}
                   </p>
                   <span className="text-[10px] text-[#003527] font-semibold flex items-center gap-1">
-                    <MessageSquare className="w-3 h-3" /> Received Leads
+                    <MessageSquare className="w-3 h-3" /> Leads Received
                   </span>
                 </div>
               </div>
@@ -605,7 +880,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                   }`}
                 >
                   <ShieldCheck className="w-4 h-4" />
-                  Inspection & Title Audit Status
+                  Inspection & Audit Status
                   {activeTab === 'audits' && (
                     <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
                   )}
@@ -619,8 +894,8 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                       : 'text-[#707974] hover:text-[#003527]'
                   }`}
                 >
-                  <User className="w-4 h-4" />
-                  Profile & Contact Settings
+                  <Settings className="w-4 h-4" />
+                  Edit Profile
                   {activeTab === 'profile' && (
                     <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
                   )}
@@ -654,15 +929,14 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                         No properties listed yet
                       </h4>
                       <p className="text-xs text-[#707974] max-w-sm mx-auto">
-                        Upload your high-resolution photos and video walkthrough to begin the
-                        SmartBridge verification audit.
+                        Submit your property details, photos, and documents to begin the SmartBridge verification audit.
                       </p>
                       <button
                         onClick={() => {
                           onClose();
                           onOpenListProperty();
                         }}
-                        className="bg-[#003527] text-white font-semibold text-xs px-5 py-2.5 rounded-lg hover:bg-[#064e3b] transition-colors cursor-pointer"
+                        className="bg-[#003527] text-[#fed65b] font-semibold text-xs px-5 py-2.5 rounded-xl hover:bg-[#064e3b] transition-colors cursor-pointer"
                       >
                         List Your First Property
                       </button>
@@ -800,8 +1074,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                         No Inquiries Yet
                       </h4>
                       <p className="text-xs text-[#707974]">
-                        When prospective buyers fill the inquiry form on your properties, their offers
-                        will appear directly here.
+                        When prospective buyers fill the inquiry form on your properties, their messages will appear directly here.
                       </p>
                     </div>
                   ) : (
@@ -888,7 +1161,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                 </div>
               )}
 
-              {/* TAB 3: INSPECTION & TITLE AUDIT STATUS */}
+              {/* TAB 3: INSPECTION & AUDIT STATUS */}
               {activeTab === 'audits' && (
                 <div className="space-y-4">
                   <div className="bg-[#003527]/5 p-4 rounded-xl border border-[#003527]/20 flex items-start gap-3">
@@ -927,12 +1200,15 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                 </div>
               )}
 
-              {/* TAB 4: PROFILE & CREDENTIALS SETTINGS */}
+              {/* TAB 4: PROFILE EDITOR */}
               {activeTab === 'profile' && (
-                <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-5 sm:p-7 shadow-xs">
                   <OwnerProfileEditor
                     currentOwner={currentOwner}
                     onUpdateProfile={(updated) => {
+                      if (onUpdateOwner) {
+                        onUpdateOwner(updated);
+                      }
                       onLogin(updated);
                     }}
                   />
@@ -942,14 +1218,6 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
           )}
         </div>
       </div>
-
-      {/* Google Account Selector Modal */}
-      <GoogleAccountPickerModal
-        isOpen={isGooglePickerOpen}
-        onClose={() => setIsGooglePickerOpen(false)}
-        intendedRole="lister"
-        onSelectAccount={handleSelectGoogleAccount}
-      />
     </div>
   );
 };

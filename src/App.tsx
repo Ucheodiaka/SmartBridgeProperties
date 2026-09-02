@@ -15,7 +15,6 @@ import {
   InquiryStatus,
   AdminStaffAccount,
 } from './types';
-import { DEMO_ADMIN_STAFF } from './data/adminStaffData';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { TrustStats } from './components/TrustStats';
@@ -157,32 +156,32 @@ export default function App() {
       }
     });
 
-    // 5. Auth State Listener (Google OAuth callbacks & session restoration)
+    // 5. Auth State Listener & Profile Verification
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        const dbProfile = await supabaseDb.fetchProfile(session.user.id);
         const userMeta = session.user.user_metadata || {};
-        const isStaff = userMeta.role === 'admin' || session.user.email?.includes('admin') || dbProfile?.role === 'admin';
-        
-        if (isStaff) {
+        const profile = await supabaseDb.fetchProfile(session.user.id);
+        const role = profile?.role || userMeta.role;
+
+        if (role === 'admin') {
           setCurrentAdminStaff({
             id: session.user.id,
-            name: dbProfile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Staff Admin',
+            name: profile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Staff Admin',
             email: session.user.email || 'admin@smartbridge.ng',
             role: 'Operations Director',
-            badge: 'Google Workspace Verified',
-            pin: '1234',
+            badge: 'Verified Staff Admin',
+            pin: '••••',
           });
         } else {
           setCurrentOwner({
             id: session.user.id,
-            name: dbProfile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Verified Lister',
+            name: profile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Verified Lister',
             email: session.user.email || '',
-            phone: dbProfile?.phone || userMeta.phone || '+234 803 555 0192',
-            companyName: dbProfile?.companyName || userMeta.company_name || 'Verified Property Lister',
-            avatar: dbProfile?.avatar || userMeta.avatar_url,
+            phone: profile?.phone || userMeta.phone || '+234 803 555 0192',
+            companyName: profile?.companyName || userMeta.company_name || 'Verified Property Lister',
+            avatar: profile?.avatar || userMeta.avatar_url,
             isVerifiedLandlord: true,
             joinedAt: new Date().toISOString().split('T')[0],
           });
@@ -197,6 +196,34 @@ export default function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Synchronize URL location with application view
+  useEffect(() => {
+    const handleUrlRoute = () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+
+      if (path === '/admin/login' || hash === '#admin-login') {
+        if (currentAdminStaff) {
+          setActiveScreen('admin');
+          window.history.replaceState(null, '', '/admin/dashboard');
+        } else {
+          setIsAdminLoginOpen(true);
+        }
+      } else if (path === '/admin/dashboard' || path === '/admin' || hash === '#admin') {
+        if (currentAdminStaff) {
+          setActiveScreen('admin');
+        } else {
+          setActiveScreen('home');
+          setIsAdminLoginOpen(true);
+        }
+      }
+    };
+
+    handleUrlRoute();
+    window.addEventListener('popstate', handleUrlRoute);
+    return () => window.removeEventListener('popstate', handleUrlRoute);
+  }, [currentAdminStaff]);
 
   // LocalStorage synchronizations
   useEffect(() => {
@@ -297,16 +324,28 @@ export default function App() {
     if (screen === 'for-rent') {
       setFilterState((prev) => ({ ...prev, type: 'rent' }));
       setActiveScreen('properties');
+      window.history.pushState(null, '', '/#for-rent');
     } else if (screen === 'for-sale') {
       setFilterState((prev) => ({ ...prev, type: 'sale' }));
       setActiveScreen('properties');
+      window.history.pushState(null, '', '/#for-sale');
     } else if (screen === 'properties') {
       setFilterState((prev) => ({ ...prev, type: 'all' }));
       setActiveScreen('properties');
+      window.history.pushState(null, '', '/#properties');
     } else if (screen === 'about') {
       setIsAboutProcessOpen(true);
+    } else if (screen === 'admin' || screen === 'admin/login') {
+      if (currentAdminStaff) {
+        setActiveScreen('admin');
+        window.history.pushState(null, '', '/admin/dashboard');
+      } else {
+        setIsAdminLoginOpen(true);
+        window.history.pushState(null, '', '/admin/login');
+      }
     } else {
       setActiveScreen(screen);
+      window.history.pushState(null, '', `/#${screen}`);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -367,6 +406,7 @@ export default function App() {
   const handleAdminLogin = (staff: AdminStaffAccount) => {
     setCurrentAdminStaff(staff);
     setActiveScreen('admin');
+    window.history.pushState(null, '', '/admin/dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     addToast(`Authenticated as ${staff.name} (${staff.role}). Admin Operations Desk unlocked.`, 'success');
   };
@@ -374,6 +414,7 @@ export default function App() {
   const handleAdminLogout = () => {
     setCurrentAdminStaff(null);
     setActiveScreen('home');
+    window.history.pushState(null, '', '/');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     addToast('Operations Desk locked. Admin signed out successfully.', 'info');
   };
@@ -742,17 +783,24 @@ export default function App() {
         onSelectAdminPortal={() => {
           if (currentAdminStaff) {
             setActiveScreen('admin');
+            window.history.pushState(null, '', '/admin/dashboard');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else {
             setIsAdminLoginOpen(true);
+            window.history.pushState(null, '', '/admin/login');
           }
         }}
       />
 
-      {/* Admin Operations Desk Password & PIN Gate */}
+      {/* Admin Operations Desk Supabase Authentication Modal */}
       <AdminLoginModal
         isOpen={isAdminLoginOpen}
-        onClose={() => setIsAdminLoginOpen(false)}
+        onClose={() => {
+          setIsAdminLoginOpen(false);
+          if (window.location.pathname === '/admin/login') {
+            window.history.pushState(null, '', '/');
+          }
+        }}
         onSuccessLogin={handleAdminLogin}
       />
 
@@ -768,6 +816,7 @@ export default function App() {
           inquiries={inquiries}
           onOpenListProperty={() => setIsListPropertyOpen(true)}
           onUpdateInquiryStatus={handleUpdateInquiryStatus}
+          onUpdateOwner={(updated) => setCurrentOwner(updated)}
         />
       )}
 

@@ -129,16 +129,19 @@ export interface PropertySubmission {
   structuralScore?: number;
 }
 
+export type UserRole = 'landlord' | 'agent' | 'developer' | 'admin';
+
 export interface OwnerAccount {
   id: string;
   name: string;
   email: string;
   phone: string;
+  role?: 'landlord' | 'agent' | 'developer';
   companyName?: string;
   avatar?: string;
   isVerifiedLandlord: boolean;
   joinedAt: string;
-  listerType?: 'Landlord / Property Owner' | 'Registered Real Estate Agent' | 'Property Developer' | 'Short-let Host';
+  listerType?: 'Landlord / Property Owner' | 'Registered Real Estate Agent' | 'Property Developer';
   address?: string;
   bio?: string;
 }

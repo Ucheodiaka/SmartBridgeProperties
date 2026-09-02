@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
-import { X, Calendar, Clock, MapPin, CheckCircle2, ShieldCheck, User, Phone, Mail } from 'lucide-react';
+import {
+  X,
+  Calendar,
+  Clock,
+  MapPin,
+  CheckCircle2,
+  ShieldCheck,
+  User,
+  Phone,
+  Mail,
+  AlertCircle,
+} from 'lucide-react';
 import { Property, InspectionBooking } from '../types';
+import { supabaseDb } from '../lib/supabase';
 
 interface ScheduleInspectionModalProps {
   property: Property;
@@ -23,36 +35,60 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
   });
 
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    const booking: InspectionBooking = {
+      id: `book-${Date.now()}`,
+      propertyId: property.id,
+      propertyTitle: property.title,
+      ...formData,
+      status: 'confirmed',
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      await supabaseDb.saveBooking(booking);
+    } catch (err) {
+      console.warn('Inspection local fallback handled:', err);
+    }
+
+    setIsSubmitting(false);
     setIsSuccess(true);
     setTimeout(() => {
-      onBookingConfirmed({
-        propertyId: property.id,
-        propertyTitle: property.title,
-        ...formData,
-      });
+      onBookingConfirmed(booking);
     }, 1200);
   };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200">
       <div
-        className="bg-[#FCF9F2] w-full max-w-lg rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-white/40 flex flex-col relative max-h-[95vh] sm:max-h-[90vh]"
+        className="bg-[#FCF9F2] w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-white/40 flex flex-col relative max-h-[95vh] sm:max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Bar */}
-        <div className="bg-[#fbf9f8] px-4 sm:px-6 py-4 sm:py-5 border-b border-[#bfc9c3]/30 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#003527]" />
-            <h2 className="font-playfair text-lg sm:text-xl font-bold text-[#003527]">
-              Schedule Physical Viewing
-            </h2>
+        <div className="bg-[#003527] text-white px-5 sm:px-6 py-4 border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#fed65b] text-[#003527] flex items-center justify-center font-bold shadow-xs">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-playfair text-lg sm:text-xl font-bold tracking-tight text-white">
+                Schedule Physical Viewing
+              </h2>
+              <span className="text-[10px] text-white/70 uppercase tracking-wider block font-medium">
+                Verified Rivers State On-Site Inspection
+              </span>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 rounded-lg bg-[#003527] text-white hover:bg-[#064e3b] transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
+            className="p-1.5 sm:p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
           >
             <X className="w-4 h-4" />
           </button>
@@ -69,15 +105,23 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                 Inspection Booked!
               </h3>
               <p className="text-xs md:text-sm text-[#404944] leading-relaxed">
-                Your physical inspection of <strong>{property.title}</strong> is booked for <strong>{formData.preferredDate} at {formData.preferredTime}</strong>.
+                Your physical inspection of <strong>{property.title}</strong> is booked for{' '}
+                <strong>
+                  {formData.preferredDate} at {formData.preferredTime}
+                </strong>
+                .
               </p>
-              <p className="text-xs text-[#707974]">
-                Assigned Specialist: <strong>{property.agent.name}</strong> ({property.agent.phone})
-              </p>
+              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 text-left flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                <span>
+                  A SmartBridge field verification specialist will accompany you on-site at{' '}
+                  <strong>{property.location}</strong> to walk through the property and inspect title documents.
+                </span>
+              </div>
               <div className="pt-2">
                 <button
                   onClick={onClose}
-                  className="bg-[#003527] text-white font-semibold px-6 py-2.5 rounded-lg text-xs cursor-pointer"
+                  className="bg-[#003527] text-[#fed65b] font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer shadow-xs hover:bg-[#064e3b] transition-colors"
                 >
                   Done
                 </button>
@@ -86,7 +130,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Property Summary Pill */}
-              <div className="p-3.5 rounded-xl bg-white border border-[#bfc9c3]/30 flex items-center gap-3">
+              <div className="p-3.5 rounded-xl bg-white border border-[#bfc9c3]/50 flex items-center gap-3">
                 <img
                   src={property.images[0]}
                   alt={property.title}
@@ -99,6 +143,13 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                   </p>
                 </div>
               </div>
+
+              {errorMessage && (
+                <div className="bg-red-50 text-red-800 text-xs p-3 rounded-xl border border-red-200 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
 
               {/* Input Fields */}
               <div>
@@ -113,7 +164,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                     placeholder="e.g. Dr. Emeka Nwankwo"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c]"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c] focus:border-[#003527] outline-none"
                   />
                 </div>
               </div>
@@ -121,17 +172,17 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-[#1b1c1c] mb-1 uppercase">
-                    Phone Number *
+                    WhatsApp Phone Number *
                   </label>
                   <div className="relative">
                     <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#707974]" />
                     <input
                       required
                       type="tel"
-                      placeholder="+234..."
+                      placeholder="+234 803 000 0000"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c]"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c] focus:border-[#003527] outline-none"
                     />
                   </div>
                 </div>
@@ -147,7 +198,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                       placeholder="name@email.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c]"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c] focus:border-[#003527] outline-none"
                     />
                   </div>
                 </div>
@@ -163,7 +214,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                     type="date"
                     value={formData.preferredDate}
                     onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c] focus:border-[#003527] outline-none"
                   />
                 </div>
 
@@ -174,7 +225,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                   <select
                     value={formData.preferredTime}
                     onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c] focus:border-[#003527] outline-none"
                   >
                     <option value="09:00 AM">09:00 AM (Morning)</option>
                     <option value="11:00 AM">11:00 AM (Mid-Day)</option>
@@ -186,23 +237,30 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
 
               <div>
                 <label className="block text-xs font-bold text-[#1b1c1c] mb-1 uppercase">
-                  Special Notes or Requirements
+                  Special Notes or Inspection Questions
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. Inquiring about generator servicing and parking capacity"
+                  placeholder="e.g. Inquiring about dedicated transformer and estate drainage"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c] focus:border-[#003527] outline-none"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-[#003527] text-white font-semibold text-xs py-3.5 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs mt-2"
+                disabled={isSubmitting}
+                className="w-full bg-[#003527] text-[#fed65b] font-bold text-xs py-3.5 rounded-xl hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs mt-2 disabled:opacity-60"
               >
-                <Calendar className="w-4 h-4 text-[#fed65b]" />
-                Confirm Inspection Appointment
+                {isSubmitting ? (
+                  <div className="w-4 h-4 border-2 border-[#fed65b] border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Calendar className="w-4 h-4" />
+                    <span>Confirm Inspection Appointment</span>
+                  </>
+                )}
               </button>
             </form>
           )}
