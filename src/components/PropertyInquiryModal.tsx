@@ -37,7 +37,6 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
     offerAmount: property.priceDisplay || '',
     proposedMoveIn: '',
     message: `Hello, I am interested in this property "${property.title}" located at ${property.location}. Please provide availability and inspection schedule.`,
-    smartBridgeEscrowRequested: true,
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -66,7 +65,6 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
       message: formData.message,
       status: 'new',
       createdAt: new Date().toISOString(),
-      smartBridgeEscrowRequested: formData.smartBridgeEscrowRequested,
     };
 
     try {
@@ -250,24 +248,6 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-[#bfc9c3] bg-white text-xs text-[#1b1c1c] focus:border-[#003527] outline-none"
-                />
-              </div>
-
-              {/* Escrow Badge */}
-              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
-                  <span className="text-xs text-emerald-900 font-semibold">
-                    SmartBridge Concierge & Escrow Protection Included
-                  </span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={formData.smartBridgeEscrowRequested}
-                  onChange={(e) =>
-                    setFormData({ ...formData, smartBridgeEscrowRequested: e.target.checked })
-                  }
-                  className="rounded border-emerald-400 text-[#003527] focus:ring-[#003527]"
                 />
               </div>
 

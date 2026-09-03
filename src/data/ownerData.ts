@@ -51,7 +51,6 @@ export const INITIAL_INQUIRIES: PropertyInquiry[] = [
     message: 'Good day Chief. We are interested in outright purchase for our executive residence. Cash ready upon verification of Deed of Conveyance and Ministry of Lands clearance.',
     status: 'new',
     createdAt: '2026-08-30T15:20:00Z',
-    smartBridgeEscrowRequested: true,
   },
   {
     id: 'inq-302',
@@ -70,7 +69,6 @@ export const INITIAL_INQUIRIES: PropertyInquiry[] = [
     message: 'Hello, I am based in London and returning to Port Harcourt in December. Would like to arrange private inspection through my local surveyor via SmartBridge.',
     status: 'tour_scheduled',
     createdAt: '2026-08-29T11:05:00Z',
-    smartBridgeEscrowRequested: true,
   },
   {
     id: 'inq-303',
@@ -89,6 +87,5 @@ export const INITIAL_INQUIRIES: PropertyInquiry[] = [
     message: 'Hello, looking for a 2-year upfront tenancy. Please confirm service charge and 24/7 power schedule.',
     status: 'contacted',
     createdAt: '2026-08-31T06:10:00Z',
-    smartBridgeEscrowRequested: false,
   },
 ];

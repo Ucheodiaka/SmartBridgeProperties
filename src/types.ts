@@ -67,7 +67,7 @@ export interface Property {
   ownerId?: string;
   ownerEmail?: string;
   ownerName?: string;
-  status?: 'active' | 'pending_verification' | 'sold' | 'rented' | 'draft';
+  status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'unpublished' | 'sold' | 'rented';
 }
 
 export interface FilterState {
@@ -101,10 +101,12 @@ export interface InspectionBooking {
   assignedSpecialist?: string;
 }
 
-export type AuditStatus = 'pending_audit' | 'in_progress' | 'approved' | 'rejected';
+export type PropertyStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'unpublished' | 'sold' | 'rented';
+export type AuditStatus = PropertyStatus;
 
 export interface PropertySubmission {
   id?: string;
+  ownerId?: string;
   title: string;
   propertyType: PropertyType;
   listingType: ListingType;
@@ -121,7 +123,7 @@ export interface PropertySubmission {
   images?: string[];
   videos?: string[];
   videoUrl?: string;
-  status?: AuditStatus;
+  status?: PropertyStatus;
   submittedAt?: string;
   assignedInspector?: string;
   auditNotes?: string;
@@ -165,7 +167,6 @@ export interface PropertyInquiry {
   message: string;
   status: InquiryStatus;
   createdAt: string;
-  smartBridgeEscrowRequested?: boolean;
 }
 
 export type AdminTab = 'overview' | 'properties' | 'verification' | 'bookings' | 'analytics' | 'agents';
