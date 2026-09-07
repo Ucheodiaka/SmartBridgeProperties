@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/src/lib/supabase';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -32,6 +33,7 @@ export const AdminVerificationQueue: React.FC<AdminVerificationQueueProps> = ({
   onApproveAndPublish,
 }) => {
   const [selectedSubId, setSelectedSubId] = useState<string | null>(submissions[0]?.id || null);
+  const [signedImageUrls, setSignedImageUrls] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [auditScoreInput, setAuditScoreInput] = useState<number>(95);
   const [inspectorNotes, setInspectorNotes] = useState<string>('Title verified clean at Rivers State Ministry of Lands. Structural integrity test passed with 100% compliance.');
@@ -54,6 +56,54 @@ export const AdminVerificationQueue: React.FC<AdminVerificationQueueProps> = ({
   });
 
   const selectedSubmission = submissions.find((s) => s.id === selectedSubId) || filteredSubmissions[0];
+
+  useEffect(() => {
+  let isActive = true;
+
+  const loadSignedImages = async () => {
+    setSignedImageUrls({});
+
+    const imagePaths = selectedSubmission?.images || [];
+
+    if (!supabase || imagePaths.length === 0) {
+      return;
+    }
+
+    const signedEntries = await Promise.all(
+      imagePaths.map(async (imagePath) => {
+        // Older records may already contain a complete URL.
+        if (/^https?:\/\//i.test(imagePath)) {
+          return [imagePath, imagePath] as const;
+        }
+
+        const { data, error } = await supabase.storage
+          .from('property-submissions')
+          .createSignedUrl(imagePath, 3600);
+
+        if (error) {
+          console.error('Unable to create signed media URL:', error);
+          return [imagePath, ''] as const;
+        }
+
+        return [imagePath, data.signedUrl] as const;
+      })
+    );
+
+    if (isActive) {
+      setSignedImageUrls(
+        Object.fromEntries(
+          signedEntries.filter(([, signedUrl]) => Boolean(signedUrl))
+        )
+      );
+    }
+  };
+
+  loadSignedImages();
+
+  return () => {
+    isActive = false;
+  };
+}, [selectedSubmission]);
 
   const handleApprove = () => {
     if (selectedSubmission) {
@@ -241,11 +291,18 @@ export const AdminVerificationQueue: React.FC<AdminVerificationQueueProps> = ({
                           key={i}
                           className="aspect-[4/3] rounded-lg overflow-hidden border border-[#bfc9c3]/50 bg-black/5 relative group"
                         >
-                          <img
-                            src={imgUrl}
-                            alt={`Audit Media ${i + 1}`}
-                            className="w-full h-full object-cover"
-                          />
+                          {signedImageUrls[imgUrl] ? (
+                            <img
+                              src={signedImageUrls[imgUrl]}
+                              alt={`Audit Media ${i + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs text-[#707974]">
+                              Loading image…
+                            </div>
+                          )}
+                         
                           {i === 0 && (
                             <span className="absolute top-1 left-1 bg-[#003527] text-[#fed65b] text-[8px] font-bold px-1 rounded-xs">
                               Cover
