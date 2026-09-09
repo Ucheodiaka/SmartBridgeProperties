@@ -331,8 +331,8 @@ function formatDateForSQL(dateStr?: string): string {
 
 export const supabaseDb = {
   // 1. PROPERTIES (reads from public_properties view for safe visitor access)
-  async fetchProperties(asPublic = true): Promise<Property[] | null> {
-    if (!isSupabaseConfigured || !supabase) return null;
+  async fetchProperties(asPublic = true): Promise<Property[]> {
+    if (!isSupabaseConfigured || !supabase) return [];
     try {
       // Direct safe public view query for visitors; base table only for authenticated dashboard operations
       const targetTable = asPublic ? 'public_properties' : 'properties';
@@ -342,7 +342,7 @@ export const supabaseDb = {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (!data || data.length === 0) return null;
+      if (!data || data.length === 0) return [];
 
       return data.map((item) => ({
         id: item.id,
@@ -377,7 +377,7 @@ export const supabaseDb = {
       }));
     } catch (e) {
       console.warn('Supabase fetchProperties error:', e);
-      return null;
+      return [];
     }
   },
 
@@ -445,8 +445,8 @@ export const supabaseDb = {
   },
 
   // 2. SUBMISSIONS (requires owner_id referencing auth.users)
-  async fetchSubmissions(): Promise<PropertySubmission[] | null> {
-    if (!isSupabaseConfigured || !supabase) return null;
+  async fetchSubmissions(): Promise<PropertySubmission[]> {
+    if (!isSupabaseConfigured || !supabase) return [];
     try {
       const { data, error } = await supabase
         .from('property_submissions')
@@ -454,7 +454,7 @@ export const supabaseDb = {
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      if (!data || data.length === 0) return null;
+      if (!data || data.length === 0) return [];
 
       return data.map((item) => ({
         id: item.id,
@@ -484,7 +484,7 @@ export const supabaseDb = {
       }));
     } catch (e) {
       console.warn('Supabase fetchSubmissions error:', e);
-      return null;
+      return [];
     }
   },
 
@@ -547,9 +547,49 @@ const currentUserId = authData.user.id;
     }
   },
 
+  async updateSubmissionStatus(
+    submissionId: string,
+    status: PropertyStatus,
+    auditNotes?: string,
+    approvedPropertyId?: string
+  ): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(submissionId)) return false;
+    try {
+      const payload: Record<string, unknown> = { status };
+      if (auditNotes !== undefined) payload.audit_notes = auditNotes;
+      if (approvedPropertyId !== undefined) payload.approved_property_id = approvedPropertyId;
+
+      const { error } = await supabase
+        .from('property_submissions')
+        .update(payload)
+        .eq('id', submissionId);
+
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      console.error('Supabase updateSubmissionStatus error:', e);
+      return false;
+    }
+  },
+
+  async deleteSubmission(submissionId: string): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(submissionId)) return false;
+    try {
+      const { error } = await supabase
+        .from('property_submissions')
+        .delete()
+        .eq('id', submissionId);
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      console.error('Supabase deleteSubmission error:', e);
+      return false;
+    }
+  },
+
   // 3. INQUIRIES
-  async fetchInquiries(): Promise<PropertyInquiry[] | null> {
-    if (!isSupabaseConfigured || !supabase) return null;
+  async fetchInquiries(): Promise<PropertyInquiry[]> {
+    if (!isSupabaseConfigured || !supabase) return [];
     try {
       const { data, error } = await supabase
         .from('property_inquiries')
@@ -557,7 +597,7 @@ const currentUserId = authData.user.id;
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (!data || data.length === 0) return null;
+      if (!data || data.length === 0) return [];
 
       return data.map((item) => ({
         id: item.id,
@@ -579,7 +619,7 @@ const currentUserId = authData.user.id;
       }));
     } catch (e) {
       console.warn('Supabase fetchInquiries error:', e);
-      return null;
+      return [];
     }
   },
 
@@ -619,8 +659,8 @@ const currentUserId = authData.user.id;
   },
 
   // 4. BOOKINGS
-  async fetchBookings(): Promise<InspectionBooking[] | null> {
-    if (!isSupabaseConfigured || !supabase) return null;
+  async fetchBookings(): Promise<InspectionBooking[]> {
+    if (!isSupabaseConfigured || !supabase) return [];
     try {
       const { data, error } = await supabase
         .from('inspection_bookings')
@@ -628,7 +668,7 @@ const currentUserId = authData.user.id;
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (!data || data.length === 0) return null;
+      if (!data || data.length === 0) return [];
 
       return data.map((item) => ({
         id: item.id,
@@ -648,7 +688,7 @@ const currentUserId = authData.user.id;
       }));
     } catch (e) {
       console.warn('Supabase fetchBookings error:', e);
-      return null;
+      return [];
     }
   },
 
@@ -816,6 +856,38 @@ const currentUserId = authData.user.id;
       return publicUrlData.publicUrl;
     } catch (e) {
       console.warn('Supabase uploadApprovedPropertyImage error:', e);
+      return null;
+    }
+  },
+
+  async promoteSubmissionImage(storagePath: string): Promise<string | null> {
+    if (!isSupabaseConfigured || !supabase) return null;
+
+    // Already-public URLs can be retained as-is.
+    if (/^https?:\/\//i.test(storagePath)) return storagePath;
+
+    try {
+      const { data: sourceFile, error: downloadError } = await supabase.storage
+        .from('property-submissions')
+        .download(storagePath);
+      if (downloadError) throw downloadError;
+
+      const originalName = storagePath.split('/').pop() || 'property-image.jpg';
+      const extension = originalName.includes('.') ? originalName.split('.').pop() : 'jpg';
+      const destinationPath = `approved/${crypto.randomUUID()}.${extension}`;
+
+      const { data: uploaded, error: uploadError } = await supabase.storage
+        .from('property-images')
+        .upload(destinationPath, sourceFile, {
+          cacheControl: '31536000',
+          upsert: false,
+          contentType: sourceFile.type || undefined,
+        });
+      if (uploadError) throw uploadError;
+
+      return supabase.storage.from('property-images').getPublicUrl(uploaded.path).data.publicUrl;
+    } catch (e) {
+      console.error('Supabase promoteSubmissionImage error:', e);
       return null;
     }
   },

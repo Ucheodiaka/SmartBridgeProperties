@@ -67,18 +67,16 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
       createdAt: new Date().toISOString(),
     };
 
-    try {
-      // Persist to Supabase if database available
-      await supabaseDb.saveInquiry(newInquiry);
-    } catch (err: any) {
-      console.warn('Inquiry local fallback handled:', err);
+    const saved = await supabaseDb.saveInquiry(newInquiry);
+    setIsSubmitting(false);
+
+    if (!saved) {
+      setErrorMessage('Your enquiry could not be saved. Please try again.');
+      return;
     }
 
-    setIsSubmitting(false);
     setSubmitted(true);
-    setTimeout(() => {
-      onSubmitSuccess(newInquiry);
-    }, 1200);
+    setTimeout(() => onSubmitSuccess(newInquiry), 1200);
   };
 
   return (

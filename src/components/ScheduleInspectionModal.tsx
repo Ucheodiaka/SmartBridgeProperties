@@ -52,17 +52,16 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
       createdAt: new Date().toISOString(),
     };
 
-    try {
-      await supabaseDb.saveBooking(booking);
-    } catch (err) {
-      console.warn('Inspection local fallback handled:', err);
+    const saved = await supabaseDb.saveBooking(booking);
+    setIsSubmitting(false);
+
+    if (!saved) {
+      setErrorMessage('Your inspection request could not be saved. Please try again.');
+      return;
     }
 
-    setIsSubmitting(false);
     setIsSuccess(true);
-    setTimeout(() => {
-      onBookingConfirmed(booking);
-    }, 1200);
+    setTimeout(() => onBookingConfirmed(booking), 1200);
   };
 
   return (

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PROPERTIES } from './data/properties';
-import { INITIAL_BOOKINGS, INITIAL_SUBMISSIONS, INITIAL_AGENTS } from './data/adminData';
-import { DEMO_OWNERS, INITIAL_INQUIRIES } from './data/ownerData';
+import { INITIAL_AGENTS } from './data/adminData';
 import {
   Property,
   FilterState,
@@ -36,59 +34,13 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { supabase, isSupabaseConfigured, supabaseDb } from './lib/supabase';
 
 export default function App() {
-  const [properties, setProperties] = useState<Property[]>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_properties');
-      return stored ? JSON.parse(stored) : PROPERTIES;
-    } catch {
-      return PROPERTIES;
-    }
-  });
-
-  const [bookings, setBookings] = useState<InspectionBooking[]>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_bookings');
-      return stored ? JSON.parse(stored) : INITIAL_BOOKINGS;
-    } catch {
-      return INITIAL_BOOKINGS;
-    }
-  });
-
-  const [submissions, setSubmissions] = useState<PropertySubmission[]>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_submissions');
-      return stored ? JSON.parse(stored) : INITIAL_SUBMISSIONS;
-    } catch {
-      return INITIAL_SUBMISSIONS;
-    }
-  });
-
-  const [inquiries, setInquiries] = useState<PropertyInquiry[]>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_inquiries');
-      return stored ? JSON.parse(stored) : INITIAL_INQUIRIES;
-    } catch {
-      return INITIAL_INQUIRIES;
-    }
-  });
-
-  const [currentOwner, setCurrentOwner] = useState<OwnerAccount | null>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_current_owner');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [currentAdminStaff, setCurrentAdminStaff] = useState<AdminStaffAccount | null>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_current_admin_staff');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
+  // Supabase is the single source of truth for all operational data.
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [bookings, setBookings] = useState<InspectionBooking[]>([]);
+  const [submissions, setSubmissions] = useState<PropertySubmission[]>([]);
+  const [inquiries, setInquiries] = useState<PropertyInquiry[]>([]);
+  const [currentOwner, setCurrentOwner] = useState<OwnerAccount | null>(null);
+  const [currentAdminStaff, setCurrentAdminStaff] = useState<AdminStaffAccount | null>(null);
 
   const [agents, setAgents] = useState<AgentInfo[]>(INITIAL_AGENTS);
 
@@ -128,74 +80,87 @@ export default function App() {
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
 
-    // 1. Fetch live properties from Supabase
+    // Public visitors only receive approved properties from the safe view.
     supabaseDb.fetchProperties().then((cloudProps) => {
-      if (cloudProps && cloudProps.length > 0) {
-        setProperties(cloudProps);
-      }
+      setProperties(cloudProps);
     });
 
-    // 2. Fetch live submissions
-    supabaseDb.fetchSubmissions().then((cloudSubs) => {
-      if (cloudSubs && cloudSubs.length > 0) {
-        setSubmissions(cloudSubs);
-      }
-    });
-
-    // 3. Fetch live inquiries
-    supabaseDb.fetchInquiries().then((cloudInqs) => {
-      if (cloudInqs && cloudInqs.length > 0) {
-        setInquiries(cloudInqs);
-      }
-    });
-
-    // 4. Fetch live inspection bookings
-    supabaseDb.fetchBookings().then((cloudBookings) => {
-      if (cloudBookings && cloudBookings.length > 0) {
-        setBookings(cloudBookings);
-      }
-    });
-
-    // 5. Auth State Listener & Profile Verification
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const userMeta = session.user.user_metadata || {};
-        const profile = await supabaseDb.fetchProfile(session.user.id);
-        const role = profile?.role || userMeta.role;
-
-        if (role === 'admin') {
-          setCurrentAdminStaff({
-            id: session.user.id,
-            name: profile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Staff Admin',
-            email: session.user.email || 'admin@smartbridge.ng',
-            role: 'Operations Director',
-            badge: 'Verified Staff Admin',
-            pin: '••••',
-          });
-        } else {
-          setCurrentOwner({
-            id: session.user.id,
-            name: profile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Verified Lister',
-            email: session.user.email || '',
-            phone: profile?.phone || userMeta.phone || '+234 803 555 0192',
-            companyName: profile?.companyName || userMeta.company_name || 'Verified Property Lister',
-            avatar: profile?.avatar || userMeta.avatar_url,
-            isVerifiedLandlord: true,
-            joinedAt: new Date().toISOString().split('T')[0],
-          });
-        }
-      } else if (event === 'SIGNED_OUT') {
+    const applySession = async (session: any) => {
+      if (!session?.user) {
         setCurrentOwner(null);
         setCurrentAdminStaff(null);
+        return;
       }
+
+      const userMeta = session.user.user_metadata || {};
+      const profile = await supabaseDb.fetchProfile(session.user.id);
+      const role = profile?.role || userMeta.role;
+
+      if (role === 'admin') {
+        setCurrentOwner(null);
+        setCurrentAdminStaff({
+          id: session.user.id,
+          name: profile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Staff Admin',
+          email: session.user.email || '',
+          role: 'Operations Director',
+          badge: 'Authorised Administrator',
+          pin: '••••',
+        });
+      } else {
+        setCurrentAdminStaff(null);
+        setCurrentOwner({
+          id: session.user.id,
+          name: profile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Property Lister',
+          email: session.user.email || '',
+          phone: profile?.phone || userMeta.phone || '',
+          companyName: profile?.companyName || userMeta.company_name || '',
+          avatar: profile?.avatar || userMeta.avatar_url,
+          isVerifiedLandlord: Boolean(profile?.verified),
+          joinedAt: profile ? undefined : new Date().toISOString().split('T')[0],
+        });
+      }
+    };
+
+    supabase.auth.getSession().then(({ data }) => applySession(data.session));
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void applySession(session);
     });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Load private operational data only after Supabase has identified the user.
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    if (currentAdminStaff) {
+      void Promise.all([
+        supabaseDb.fetchSubmissions(),
+        supabaseDb.fetchInquiries(),
+        supabaseDb.fetchBookings(),
+        supabaseDb.fetchProperties(false),
+      ]).then(([cloudSubs, cloudInqs, cloudBookings, cloudProps]) => {
+        setSubmissions(cloudSubs);
+        setInquiries(cloudInqs);
+        setBookings(cloudBookings);
+        setProperties(cloudProps);
+      });
+    } else if (currentOwner) {
+      void supabaseDb.fetchSubmissions().then(setSubmissions);
+      setInquiries([]);
+      setBookings([]);
+    } else {
+      setSubmissions([]);
+      setInquiries([]);
+      setBookings([]);
+      void supabaseDb.fetchProperties().then(setProperties);
+    }
+  }, [currentAdminStaff, currentOwner]);
 
   // Synchronize URL location with application view
   useEffect(() => {
@@ -223,63 +188,6 @@ export default function App() {
     handleUrlRoute();
     window.addEventListener('popstate', handleUrlRoute);
     return () => window.removeEventListener('popstate', handleUrlRoute);
-  }, [currentAdminStaff]);
-
-  // LocalStorage synchronizations
-  useEffect(() => {
-    try {
-      localStorage.setItem('smartbridge_properties', JSON.stringify(properties));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [properties]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('smartbridge_bookings', JSON.stringify(bookings));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [bookings]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('smartbridge_submissions', JSON.stringify(submissions));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [submissions]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('smartbridge_inquiries', JSON.stringify(inquiries));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [inquiries]);
-
-  useEffect(() => {
-    try {
-      if (currentOwner) {
-        localStorage.setItem('smartbridge_current_owner', JSON.stringify(currentOwner));
-      } else {
-        localStorage.removeItem('smartbridge_current_owner');
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, [currentOwner]);
-
-  useEffect(() => {
-    try {
-      if (currentAdminStaff) {
-        localStorage.setItem('smartbridge_current_admin_staff', JSON.stringify(currentAdminStaff));
-      } else {
-        localStorage.removeItem('smartbridge_current_admin_staff');
-      }
-    } catch (e) {
-      console.error(e);
-    }
   }, [currentAdminStaff]);
 
   useEffect(() => {
@@ -359,7 +267,6 @@ export default function App() {
   const handleInspectionBookingConfirmed = (booking: InspectionBooking) => {
     setInspectionTargetProperty(null);
     setBookings((prev) => [booking, ...prev]);
-    supabaseDb.saveBooking(booking);
     addToast(
       `Viewing confirmed for ${booking.preferredDate} at ${booking.preferredTime}! Our specialist will call ${booking.phone}.`,
       'success'
@@ -370,7 +277,6 @@ export default function App() {
   const handleBuyerInquirySuccess = (newInquiry: PropertyInquiry) => {
     setInquiries((prev) => [newInquiry, ...prev]);
     setInquiryTargetProperty(null);
-    supabaseDb.saveInquiry(newInquiry);
     addToast(
       `Inquiry dispatched to ${newInquiry.ownerName || 'Property Advertiser'}! SmartBridge anti-fraud tracking enabled.`,
       'success'
@@ -397,7 +303,8 @@ export default function App() {
     addToast(`Signed in as ${owner.name} (${owner.companyName || 'Property Lister'}).`, 'success');
   };
 
-  const handleOwnerLogout = () => {
+  const handleOwnerLogout = async () => {
+    await supabase?.auth.signOut();
     setCurrentOwner(null);
     addToast('Signed out of Property Lister & Host Portal.', 'info');
   };
@@ -411,7 +318,8 @@ export default function App() {
     addToast(`Authenticated as ${staff.name} (${staff.role}). Admin Operations Desk unlocked.`, 'success');
   };
 
-  const handleAdminLogout = () => {
+  const handleAdminLogout = async () => {
+    await supabase?.auth.signOut();
     setCurrentAdminStaff(null);
     setActiveScreen('home');
     window.history.pushState(null, '', '/');
@@ -419,47 +327,33 @@ export default function App() {
     addToast('Operations Desk locked. Admin signed out successfully.', 'info');
   };
 
-  const handleListPropertySuccess = (data: PropertySubmission) => {
+  const handleListPropertySuccess = async (_data: PropertySubmission) => {
     setIsListPropertyOpen(false);
-    const newSubmission: PropertySubmission = {
-      ...data,
-      id: `sub-${Date.now()}`,
-      ownerName: currentOwner?.name || data.ownerName || 'Property Advertiser',
-      ownerPhone: currentOwner?.phone || data.ownerPhone || '+234 803 000 0000',
-      ownerEmail: currentOwner?.email || data.ownerEmail || 'landlord@smartbridge.ng',
-      ownerId: currentOwner?.id || data.ownerId,
-      status: 'pending',
-      submittedAt: new Date().toISOString(),
-      floodAssessment: 'Standard Drainage Network',
-      structuralScore: 94,
-    };
-    setSubmissions((prev) => [newSubmission, ...prev]);
-    supabaseDb.saveSubmission(newSubmission);
+    setSubmissions(await supabaseDb.fetchSubmissions());
     addToast(
-      'Property listing submitted with media! Physical inspection audit queued at Operations Desk.',
+      'Property listing submitted for administrator review.',
       'success'
     );
   };
 
   // Admin Management Handlers
-  const handleSaveProperty = (savedProp: Property) => {
-    setProperties((prev) => {
-      const existsIndex = prev.findIndex((p) => p.id === savedProp.id);
-      if (existsIndex >= 0) {
-        const updated = [...prev];
-        updated[existsIndex] = savedProp;
-        supabaseDb.saveProperty(savedProp);
-        return updated;
-      }
-      supabaseDb.saveProperty(savedProp);
-      return [savedProp, ...prev];
-    });
-    addToast(`Property "${savedProp.title}" published successfully!`, 'success');
+  const handleSaveProperty = async (savedProp: Property) => {
+    const saved = await supabaseDb.saveProperty(savedProp);
+    if (!saved) {
+      addToast(`Property "${savedProp.title}" could not be saved.`, 'info');
+      return;
+    }
+    setProperties(await supabaseDb.fetchProperties(false));
+    addToast(`Property "${savedProp.title}" saved successfully.`, 'success');
   };
 
-  const handleDeleteProperty = (propertyId: string) => {
-    setProperties((prev) => prev.filter((p) => p.id !== propertyId));
-    supabaseDb.deleteProperty(propertyId);
+  const handleDeleteProperty = async (propertyId: string) => {
+    const deleted = await supabaseDb.deleteProperty(propertyId);
+    if (!deleted) {
+      addToast('Property could not be removed.', 'info');
+      return;
+    }
+    setProperties(await supabaseDb.fetchProperties(false));
     addToast('Property removed from catalog.', 'info');
   };
 
@@ -489,20 +383,31 @@ export default function App() {
     );
   };
 
-  const handleUpdateSubmissionStatus = (submissionId: string, status: AuditStatus, notes?: string) => {
-    setSubmissions((prev) =>
-      prev.map((s) => {
-        if (s.id === submissionId) {
-          return { ...s, status, auditNotes: notes || s.auditNotes };
-        }
-        return s;
-      })
-    );
+  const handleUpdateSubmissionStatus = async (submissionId: string, status: AuditStatus, notes?: string) => {
+    const updated = await supabaseDb.updateSubmissionStatus(submissionId, status, notes);
+    if (!updated) {
+      addToast('Submission status could not be updated.', 'info');
+      return;
+    }
+    setSubmissions(await supabaseDb.fetchSubmissions());
     addToast(`Submission status updated to ${status}.`, 'info');
   };
 
-  const handleApproveAndPublishSubmission = (submission: PropertySubmission, auditScore: number) => {
-    const assignedAgent = INITIAL_AGENTS[0];
+  const handleApproveAndPublishSubmission = async (submission: PropertySubmission, _auditScore: number) => {
+    if (!submission.id) {
+      addToast('This submission has no valid database ID.', 'info');
+      return;
+    }
+
+    const promotedImages = (
+      await Promise.all((submission.images || []).map((path) => supabaseDb.promoteSubmissionImage(path)))
+    ).filter((url): url is string => Boolean(url));
+
+    if (promotedImages.length === 0) {
+      addToast('The submitted images could not be promoted for public display.', 'info');
+      return;
+    }
+
     const priceNum = typeof submission.price === 'number' ? submission.price : parseInt(String(submission.price).replace(/[^0-9]/g, ''), 10) || 80000000;
     const formattedPrice = new Intl.NumberFormat('en-NG', {
       style: 'currency',
@@ -511,7 +416,7 @@ export default function App() {
     }).format(priceNum);
 
     const newLiveProperty: Property = {
-      id: `prop-${Date.now()}`,
+      id: crypto.randomUUID(),
       title: submission.title,
       slug: submission.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       location: submission.location as any,
@@ -522,59 +427,46 @@ export default function App() {
       pricePeriod: submission.listingType === 'rent' ? '/yr' : undefined,
       type: submission.listingType,
       propertyType: submission.propertyType,
-      bedrooms: Number(submission.bedrooms) || 4,
-      bathrooms: Number(submission.bathrooms) || 4,
-      parkingSpaces: 3,
-      sizeSqFt: 3600,
+      bedrooms: Number(submission.bedrooms) || 0,
+      bathrooms: Number(submission.bathrooms) || 0,
+      parkingSpaces: 0,
+      sizeSqFt: 0,
       isVerified: true,
       isFeatured: false,
       status: 'approved',
       ownerId: submission.ownerId,
       ownerName: submission.ownerName,
       ownerEmail: submission.ownerEmail,
-      images:
-        submission.images && submission.images.length > 0
-          ? submission.images
-          : [
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuBnM3MYULmJ4ZEJl9XEr61oKVlBvSTqv3aqb1s6jID-b8Npnv_qcaRB9ko4FrkCv1DvYqNK1TyE6tdjPD0B4ZS2Gs8O2ZyAM8_YuCNHmV-_o2ax9ggP6AJ1o98KsYr6U4JVPQw4GklZnFyXZLRQVjSjIc8Ze_n3-etnAVPRqsgHJ4tFjqBkm0C2EOAVSYYwWoX6cRJk-evBjH86EWmjefI5olKsClrdgeLRQeVejHh_Z8nhO_EWtHOR',
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuCjrQosth7RHP5almX6ejQjrP7s9Tk8409-bH6taZWnmcCz4KXYefv3XMhSUvXBunHiE7wYxw4m_5BKrz6MCL7zuABKVgmCYeYAzoB3oga9ljul6yPpgfE9I--_n8ESfGy31QrW-mjtRDzKoDYHC9pov0fzyaYLXV-zXP_ZIH-YBK3NNbu8XzFkqUMeq1vTaz_1jsfmyKRu-WKr1_fRG43wPDhqE-ow8SzmCflhPcKhJBpYirHSK_rE',
-            ],
+      images: promotedImages,
       videos: submission.videos || (submission.videoUrl ? [submission.videoUrl] : []),
       videoUrl: submission.videoUrl || submission.videos?.[0],
-      description: submission.description || `Exquisite verified property in ${submission.location}, Port Harcourt. Title: ${submission.titleDocType}.`,
-      features: ['All Rooms Ensuite with Water Heaters', 'Fitted Kitchen with Heat Extractor', 'Dedicated Inverter Wiring', '24/7 Security Patrol'],
-      amenities: ['CCTV Surveillance', 'Industrial Borehole Water Plant', 'Interlocked Access Road'],
-      inspectionReport: {
-        inspectedDate: 'Recent Physical Audit',
-        inspectorName: submission.assignedInspector || 'Engr. Tamara Briggs, FNSE',
-        inspectorId: 'SB-INSP-041',
-        overallScore: auditScore,
-        titleDocumentType: (submission.titleDocType as any) || 'C of O',
-        titleVerified: true,
-        floodRisk: 'Zero Risk (Elevated)',
-        powerGridStability: 'Dedicated 33kVA Feeder Line + Backup',
-        securityRating: 'Grade A+ (Gated Estate Patrol)',
-        checklist: [
-          { name: 'Certificate of Occupancy & Registry Search', status: 'passed', notes: 'Verified clean at Rivers State Ministry of Lands.' },
-          { name: 'Structural Integrity & Concrete Strength', status: 'passed', notes: 'Structural engineering audit test passed with zero crack index.' },
-          { name: 'Electrical Wiring & Surge Earthing', status: 'passed', notes: 'Copper surge arresters and earthing tests passed.' },
-          { name: 'Topographical Elevation & Storm Drainage', status: 'passed', notes: 'Elevated plot with gravity stormwater drainage channel.' }
-        ]
-      },
-      agent: {
-        name: assignedAgent.name,
-        role: assignedAgent.role,
-        phone: assignedAgent.phone,
-        whatsapp: assignedAgent.whatsapp,
-        avatar: assignedAgent.avatar,
-        badge: assignedAgent.badge,
-      }
+      description: submission.description || '',
+      features: [],
+      amenities: [],
+      inspectionReport: undefined,
+      agent: undefined,
     };
 
-    setProperties((prev) => [newLiveProperty, ...prev]);
-    if (submission.id) {
-      handleUpdateSubmissionStatus(submission.id, 'approved', 'Audit approved and published to public marketplace.');
+    const propertySaved = await supabaseDb.saveProperty(newLiveProperty);
+    if (!propertySaved) {
+      addToast('Approval failed because the public property could not be saved.', 'info');
+      return;
     }
+
+    const submissionUpdated = await supabaseDb.updateSubmissionStatus(
+      submission.id,
+      'approved',
+      'Approved and published by an authorised administrator.',
+      newLiveProperty.id
+    );
+    if (!submissionUpdated) {
+      await supabaseDb.deleteProperty(newLiveProperty.id);
+      addToast('Approval was rolled back because the submission status could not be updated.', 'info');
+      return;
+    }
+
+    setProperties(await supabaseDb.fetchProperties(false));
+    setSubmissions(await supabaseDb.fetchSubmissions());
     addToast(`Listing "${submission.title}" approved and published to live marketplace!`, 'success');
   };
 
@@ -853,5 +745,3 @@ export default function App() {
     </div>
   );
 }
-
-

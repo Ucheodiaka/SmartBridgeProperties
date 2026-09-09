@@ -35,21 +35,21 @@ export const AdminVerificationQueue: React.FC<AdminVerificationQueueProps> = ({
   const [selectedSubId, setSelectedSubId] = useState<string | null>(submissions[0]?.id || null);
   const [signedImageUrls, setSignedImageUrls] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
-  const [auditScoreInput, setAuditScoreInput] = useState<number>(95);
-  const [inspectorNotes, setInspectorNotes] = useState<string>('Title verified clean at Rivers State Ministry of Lands. Structural integrity test passed with 100% compliance.');
-  const [selectedInspector, setSelectedInspector] = useState('Engr. Tamara Briggs, FNSE');
+  const [auditScoreInput, setAuditScoreInput] = useState<number>(0);
+  const [inspectorNotes, setInspectorNotes] = useState<string>('');
+  const [selectedInspector, setSelectedInspector] = useState('');
 
   // Checklist State for active audit
   const [checklist, setChecklist] = useState({
-    titleSearch: true,
-    structural: true,
-    electrical: true,
-    floodDrainage: true,
-    plumbing: true,
+    titleSearch: false,
+    structural: false,
+    electrical: false,
+    floodDrainage: false,
+    plumbing: false,
   });
 
   const filteredSubmissions = submissions.filter((s) => {
-    if (activeTab === 'pending') return s.status === 'pending_audit' || s.status === 'in_progress';
+    if (activeTab === 'pending') return s.status === 'pending' || s.status === 'draft';
     if (activeTab === 'approved') return s.status === 'approved';
     if (activeTab === 'rejected') return s.status === 'rejected';
     return true;
