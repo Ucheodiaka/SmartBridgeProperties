@@ -123,26 +123,16 @@ export default function App() {
       }
     });
 
-    // 2. Fetch live submissions
-    supabaseDb.fetchSubmissions().then((cloudSubs) => {
-      if (cloudSubs && cloudSubs.length > 0) {
-        setSubmissions(cloudSubs);
-      }
-    });
-
-    // 3. Fetch live inquiries
-    supabaseDb.fetchInquiries().then((cloudInqs) => {
-      if (cloudInqs && cloudInqs.length > 0) {
-        setInquiries(cloudInqs);
-      }
-    });
-
-    // 4. Fetch live inspection bookings
-    supabaseDb.fetchBookings().then((cloudBookings) => {
-      if (cloudBookings && cloudBookings.length > 0) {
-        setBookings(cloudBookings);
-      }
-    });
+    const refreshProtectedData = async () => {
+      const [cloudSubs, cloudInqs, cloudBookings] = await Promise.all([
+        supabaseDb.fetchSubmissions(),
+        supabaseDb.fetchInquiries(),
+        supabaseDb.fetchBookings(),
+      ]);
+      if (cloudSubs) setSubmissions(cloudSubs);
+      if (cloudInqs) setInquiries(cloudInqs);
+      if (cloudBookings) setBookings(cloudBookings);
+    };
 
     const applyVerifiedUser = async (user: NonNullable<Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user']> | null) => {
       setCurrentOwner(null);
@@ -152,6 +142,10 @@ export default function App() {
 
       const profile = await supabaseDb.fetchProfile(user.id);
       if (!profile?.role) return;
+
+      // Protected rows are fetched only after Supabase has established the
+      // authenticated role, making database status the authoritative state.
+      await refreshProtectedData();
 
       if (profile.role === 'admin') {
         setCurrentAdminStaff({
@@ -402,18 +396,16 @@ export default function App() {
     setIsListPropertyOpen(false);
     const newSubmission: PropertySubmission = {
       ...data,
-      id: `sub-${Date.now()}`,
       ownerName: currentOwner?.name || data.ownerName || 'Property Advertiser',
       ownerPhone: currentOwner?.phone || data.ownerPhone || '+234 803 000 0000',
       ownerEmail: currentOwner?.email || data.ownerEmail || 'landlord@smartbridge.ng',
       ownerId: currentOwner?.id || data.ownerId,
       status: 'pending',
-      submittedAt: new Date().toISOString(),
+      submittedAt: data.submittedAt || new Date().toISOString(),
       floodAssessment: 'Standard Drainage Network',
       structuralScore: 94,
     };
-    setSubmissions((prev) => [newSubmission, ...prev]);
-    supabaseDb.saveSubmission(newSubmission);
+    setSubmissions((prev) => [newSubmission, ...prev.filter((item) => item.id !== newSubmission.id)]);
     addToast(
       'Property listing submitted with media! Physical inspection audit queued at Operations Desk.',
       'success'
@@ -468,11 +460,16 @@ export default function App() {
     );
   };
 
-  const handleUpdateSubmissionStatus = (submissionId: string, status: AuditStatus, notes?: string) => {
+  const handleUpdateSubmissionStatus = async (submissionId: string, status: AuditStatus, notes?: string) => {
+    const savedSubmission = await supabaseDb.updateSubmissionStatus(submissionId, status, notes);
+    if (!savedSubmission) {
+      addToast('The submission status could not be saved. Please try again.', 'info');
+      return;
+    }
     setSubmissions((prev) =>
       prev.map((s) => {
         if (s.id === submissionId) {
-          return { ...s, status, auditNotes: notes || s.auditNotes };
+          return { ...s, ...savedSubmission };
         }
         return s;
       })
@@ -480,7 +477,7 @@ export default function App() {
     addToast(`Submission status updated to ${status}.`, 'info');
   };
 
-  const handleApproveAndPublishSubmission = (submission: PropertySubmission, auditScore: number) => {
+  const handleApproveAndPublishSubmission = async (submission: PropertySubmission, auditScore: number) => {
     const assignedAgent = INITIAL_AGENTS[0];
     const priceNum = typeof submission.price === 'number' ? submission.price : parseInt(String(submission.price).replace(/[^0-9]/g, ''), 10) || 80000000;
     const formattedPrice = new Intl.NumberFormat('en-NG', {
@@ -550,9 +547,14 @@ export default function App() {
       }
     };
 
-    setProperties((prev) => [newLiveProperty, ...prev]);
+    const propertySaved = await supabaseDb.saveProperty(newLiveProperty);
+    if (!propertySaved) {
+      addToast('The approved property could not be published. Please try again.', 'info');
+      return;
+    }
+    setProperties((prev) => [newLiveProperty, ...prev.filter((item) => item.id !== newLiveProperty.id)]);
     if (submission.id) {
-      handleUpdateSubmissionStatus(submission.id, 'approved', 'Audit approved and published to public marketplace.');
+      await handleUpdateSubmissionStatus(submission.id, 'approved', 'Audit approved and published to public marketplace.');
     }
     addToast(`Listing "${submission.title}" approved and published to live marketplace!`, 'success');
   };
@@ -832,4 +834,3 @@ export default function App() {
     </div>
   );
 }
-
