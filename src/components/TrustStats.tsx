@@ -1,30 +1,30 @@
 import React from 'react';
-import { ShieldCheck, Award, Eye, Clock } from 'lucide-react';
+import { Building2, Clock, KeyRound, MapPin } from 'lucide-react';
 
 export const TrustStats: React.FC = () => {
   const stats = [
     {
-      number: '500+',
-      label: 'Listings Reviewed',
-      subtext: 'Rigorous title & condition audits',
-      icon: ShieldCheck,
+      number: 'Buy',
+      label: 'Properties For Sale',
+      subtext: 'Find a home or investment property',
+      icon: Building2,
     },
     {
-      number: 'Top',
-      label: 'PH Specialists',
-      subtext: 'Local Port Harcourt engineers',
-      icon: Award,
+      number: 'Rent',
+      label: 'Rental Properties',
+      subtext: 'Explore homes available for rent',
+      icon: KeyRound,
     },
     {
-      number: '100%',
-      label: 'Direct Inspection',
-      subtext: 'Every home visited in-person',
-      icon: Eye,
+      number: 'PH',
+      label: 'Local Marketplace',
+      subtext: 'Focused on Port Harcourt neighbourhoods',
+      icon: MapPin,
     },
     {
       number: '24/7',
-      label: 'Local Support',
-      subtext: 'Direct on-ground assistance',
+      label: 'Online Access',
+      subtext: 'Browse available properties anytime',
       icon: Clock,
     },
   ];
