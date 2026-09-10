@@ -314,18 +314,6 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('inspection')}
-            className={`py-3 sm:py-3.5 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'inspection'
-                ? 'border-[#003527] text-[#003527] font-bold'
-                : 'border-transparent text-[#707974] hover:text-[#003527]'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-[#735c00]" />
-            Inspection Audit & Legal
-          </button>
-          <button
-            type="button"
             onClick={() => setActiveTab('media')}
             className={`py-3 sm:py-3.5 border-b-2 transition-all cursor-pointer ${
               activeTab === 'media'
@@ -553,7 +541,7 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
                     />
                     <div>
                       <span className="text-sm font-semibold text-[#1b1c1c] block">SmartBridge Verified</span>
-                      <span className="text-xs text-[#707974]">Displays the golden verification badge & audit report</span>
+                      <span className="text-xs text-[#707974]">Displays the approved listing badge</span>
                     </div>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer">
@@ -570,22 +558,6 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
                   </label>
                 </div>
 
-                <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944] mb-2">
-                    Assigned Portfolio Advisor / Agent
-                  </label>
-                  <select
-                    value={selectedAgentId}
-                    onChange={(e) => setSelectedAgentId(e.target.value)}
-                    className="w-full bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg px-3.5 py-2.5 text-sm text-[#1b1c1c] font-medium focus:outline-none focus:border-[#003527]"
-                  >
-                    {INITIAL_AGENTS.map((agent) => (
-                      <option key={agent.id} value={agent.id}>
-                        {agent.name} — {agent.role}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
 
               {/* Description */}
