@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Shield, Droplet, ArrowRight } from 'lucide-react';
+import { ArrowRight, Home, MapPin } from 'lucide-react';
 import { NEIGHBORHOODS } from '../data/properties';
 
 interface NeighborhoodExplorerProps {
@@ -20,7 +20,7 @@ export const NeighborhoodExplorer: React.FC<NeighborhoodExplorerProps> = ({
             Explore Port Harcourt Neighborhoods
           </h2>
           <p className="text-sm sm:text-base text-[#404944] mt-1 sm:mt-2 max-w-2xl">
-            Detailed security ratings, infrastructure metrics, and average property valuations across Rivers State.
+            Discover popular residential areas and explore available homes across Port Harcourt.
           </p>
         </div>
       </div>
@@ -54,18 +54,12 @@ export const NeighborhoodExplorer: React.FC<NeighborhoodExplorerProps> = ({
               <div className="space-y-2.5 pt-3 border-t border-[#bfc9c3]/30 text-xs">
                 <div className="flex justify-between items-center">
                   <span className="text-[#707974] flex items-center gap-1">
-                    <Shield className="w-3.5 h-3.5 text-[#003527]" /> Security
+                    <MapPin className="w-3.5 h-3.5 text-[#003527]" /> Location
                   </span>
-                  <span className="font-bold text-[#003527]">{nh.securityRating}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#707974] flex items-center gap-1">
-                    <Droplet className="w-3.5 h-3.5 text-[#2b6954]" /> Flood Index
-                  </span>
-                  <span className="font-semibold text-[#1b1c1c]">{nh.floodRating}</span>
+                  <span className="font-bold text-[#003527]">Port Harcourt</span>
                 </div>
                 <div className="flex justify-between items-center pt-1">
-                  <span className="text-[#707974]">Avg. Rent:</span>
+                  <span className="text-[#707974] flex items-center gap-1"><Home className="w-3.5 h-3.5" /> Avg. Rent</span>
                   <span className="font-bold text-[#745c00]">{nh.avgRentPrice}</span>
                 </div>
               </div>
