@@ -2,27 +2,15 @@ import React, { useState } from 'react';
 import {
   LayoutDashboard,
   Building2,
-  ShieldCheck,
-  CalendarCheck,
   TrendingUp,
-  Users,
   LogOut,
   Plus,
   ArrowLeft,
-  Bell,
-  Search,
-  ExternalLink,
-  ChevronRight,
-  Shield,
-  Sparkles,
 } from 'lucide-react';
 import { Property, InspectionBooking, PropertySubmission, AdminTab, AuditStatus, BookingStatus, AgentInfo, AdminStaffAccount } from '../../types';
 import { AdminOverview } from './AdminOverview';
 import { AdminPropertiesTable } from './AdminPropertiesTable';
-import { AdminVerificationQueue } from './AdminVerificationQueue';
-import { AdminBookingsManager } from './AdminBookingsManager';
 import { AdminAnalytics } from './AdminAnalytics';
-import { AdminAgentsManager } from './AdminAgentsManager';
 import { AdminPropertyEditorModal } from './AdminPropertyEditorModal';
 
 interface AdminDashboardProps {
@@ -64,12 +52,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [editorModalOpen, setEditorModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
 
-  const pendingSubmissionsCount = submissions.filter(
-    (s) => s.status === 'pending_audit' || s.status === 'in_progress'
-  ).length;
-
-  const pendingBookingsCount = bookings.filter((b) => b.status === 'pending').length;
-
   const handleOpenCreate = () => {
     setEditingProperty(null);
     setEditorModalOpen(true);
@@ -88,20 +70,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       icon: Building2,
       count: properties.length,
     },
-    {
-      id: 'verification' as AdminTab,
-      label: 'Audit & Title Verification',
-      icon: ShieldCheck,
-      badge: pendingSubmissionsCount > 0 ? pendingSubmissionsCount : undefined,
-    },
-    {
-      id: 'bookings' as AdminTab,
-      label: 'Inspection Bookings',
-      icon: CalendarCheck,
-      badge: pendingBookingsCount > 0 ? pendingBookingsCount : undefined,
-    },
     { id: 'analytics' as AdminTab, label: 'Market Analytics', icon: TrendingUp },
-    { id: 'agents' as AdminTab, label: 'Advisors & Inspectors', icon: Users },
   ];
 
   return (
@@ -156,10 +125,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 id="btn-admin-logout"
                 onClick={onAdminLogout}
                 className="bg-red-500/20 hover:bg-red-500/30 text-red-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-red-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
-                title="Lock Desk and Log Out"
+                title="Log Out"
               >
                 <LogOut className="w-4 h-4 text-red-300" />
-                <span className="hidden sm:inline">Lock Desk</span>
+                <span className="hidden sm:inline">Log Out</span>
               </button>
             )}
 
@@ -199,11 +168,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {tab.count}
                   </span>
                 )}
-                {tab.badge !== undefined && (
-                  <span className="text-[10px] bg-[#fed65b] text-[#003527] px-1.5 py-0.2 rounded-full font-bold animate-pulse">
-                    {tab.badge}
-                  </span>
-                )}
               </button>
             );
           })}
@@ -215,7 +179,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {activeTab === 'overview' && (
           <AdminOverview
             properties={properties}
-            bookings={bookings}
             submissions={submissions}
             onNavigateTab={setActiveTab}
             onOpenCreateProperty={handleOpenCreate}
@@ -235,32 +198,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           />
         )}
 
-        {activeTab === 'verification' && (
-          <AdminVerificationQueue
-            submissions={submissions}
-            onUpdateSubmissionStatus={onUpdateSubmissionStatus}
-            onApproveAndPublish={onApproveAndPublishSubmission}
-          />
-        )}
-
-        {activeTab === 'bookings' && (
-          <AdminBookingsManager
-            bookings={bookings}
-            onUpdateBookingStatus={onUpdateBookingStatus}
-          />
-        )}
-
         {activeTab === 'analytics' && (
-          <AdminAnalytics
-            properties={properties}
-            bookings={bookings}
-          />
-        )}
-
-        {activeTab === 'agents' && (
-          <AdminAgentsManager
-            agents={agents}
-          />
+          <AdminAnalytics properties={properties} />
         )}
       </main>
 
