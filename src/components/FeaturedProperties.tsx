@@ -21,7 +21,8 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
   onToggleSave,
   isLoading = false,
 }) => {
-  const featured = properties.filter((p) => p.isFeatured).slice(0, 3);
+  const markedFeatured = properties.filter((p) => p.isFeatured).slice(0, 3);
+  const featured = markedFeatured.length > 0 ? markedFeatured : properties.slice(0, 3);
 
   return (
     <section className="py-12 sm:py-16 md:py-24 lg:py-28 px-4 sm:px-6 md:px-12 lg:px-16 max-w-[1280px] mx-auto">
@@ -30,13 +31,13 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#735c00] uppercase tracking-wider mb-1.5 sm:mb-2">
             <Sparkles className="w-4 h-4 text-[#d4af37]" />
-            Handpicked Portfolio
+            Available Portfolio
           </div>
           <h2 className="font-playfair text-2xl sm:text-3xl md:text-4xl font-bold text-[#1b1c1c] tracking-tight">
             Featured Properties
           </h2>
           <p className="text-sm sm:text-base text-[#404944] mt-1 sm:mt-2 font-normal">
-            Curated listings meeting The Port Harcourt Standard.
+            Explore selected properties currently available in Port Harcourt.
           </p>
         </div>
 
@@ -58,7 +59,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
             <PropertyCardSkeleton />
             <PropertyCardSkeleton />
           </>
-        ) : (
+        ) : featured.length > 0 ? (
           featured.map((property) => (
             <PropertyCard
               key={property.id}
@@ -68,6 +69,11 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
               onToggleSave={onToggleSave}
             />
           ))
+        ) : (
+          <div className="sm:col-span-2 lg:col-span-3 rounded-2xl border border-[#bfc9c3]/40 bg-white px-6 py-10 text-center">
+            <p className="font-playfair text-xl font-bold text-[#003527]">New properties are coming soon</p>
+            <p className="text-sm text-[#707974] mt-2">Please check the full property page for the latest available listings.</p>
+          </div>
         )}
       </div>
 
