@@ -89,8 +89,6 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
       'Bedrooms',
       'Bathrooms',
       'Verified',
-      'Audit Score',
-      'Agent',
     ];
     const rows = filteredProperties.map((p) => [
       p.id,
@@ -103,8 +101,6 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
       p.bedrooms,
       p.bathrooms,
       p.isVerified ? 'YES' : 'NO',
-      p.inspectionReport?.overallScore || 0,
-      `"${p.agent?.name || ''}"`,
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
@@ -127,7 +123,7 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
               Property Inventory Registry
             </h1>
             <p className="text-xs text-[#707974] mt-0.5">
-              Manage listings, inspection audit scores, title records, and pricing across Port Harcourt
+              Manage listing details, pricing, availability, and marketplace visibility across Port Harcourt
             </p>
           </div>
 
@@ -196,9 +192,9 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
             onChange={(e) => setVerifiedFilter(e.target.value as any)}
             className="bg-[#fbf9f8] border border-[#bfc9c3] rounded-xl px-3 py-2 text-xs text-[#1b1c1c] font-medium focus:outline-none focus:border-[#003527]"
           >
-            <option value="all">All Verification Statuses</option>
-            <option value="verified">Verified Only</option>
-            <option value="unverified">Pending Audit</option>
+            <option value="all">All Listing Statuses</option>
+            <option value="verified">Approved Only</option>
+            <option value="unverified">Pending Review</option>
           </select>
         </div>
       </div>
@@ -212,16 +208,14 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
                 <th className="py-3.5 px-4">Property</th>
                 <th className="py-3.5 px-4">Type & Area</th>
                 <th className="py-3.5 px-4">Price</th>
-                <th className="py-3.5 px-4">Audit Score</th>
                 <th className="py-3.5 px-4">Badges</th>
-                <th className="py-3.5 px-4">Assigned Agent</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#bfc9c3]/30 text-xs">
               {filteredProperties.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#707974]">
+                  <td colSpan={5} className="py-12 text-center text-[#707974]">
                     <Building2 className="w-10 h-10 mx-auto text-[#bfc9c3] mb-2" />
                     No properties match your filter criteria.
                   </td>
@@ -292,23 +286,6 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
                       </div>
                     </td>
 
-                    {/* Audit Score & Title */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-[#003527] text-[#fed65b] font-playfair font-bold text-xs flex items-center justify-center shadow-xs">
-                          {property.inspectionReport?.overallScore || 90}
-                        </div>
-                        <div>
-                          <span className="text-[11px] font-semibold text-[#1b1c1c] block">
-                            {property.inspectionReport?.titleDocumentType || 'C of O'}
-                          </span>
-                          <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-0.5">
-                            <CheckCircle2 className="w-2.5 h-2.5" /> Registry Verified
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-
                     {/* Badges / Toggles */}
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col gap-1.5">
@@ -338,20 +315,6 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
                           <Star className={`w-3 h-3 ${property.isFeatured ? 'fill-amber-500 text-amber-500' : ''}`} />
                           {property.isFeatured ? 'Featured' : 'Standard'}
                         </button>
-                      </div>
-                    </td>
-
-                    {/* Assigned Agent */}
-                    <td className="py-3.5 px-4 text-[#404944]">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={property.agent?.avatar}
-                          alt={property.agent?.name}
-                          className="w-6 h-6 rounded-full object-cover"
-                        />
-                        <span className="text-xs font-medium text-[#1b1c1c] truncate max-w-[100px]">
-                          {property.agent?.name?.split(' ')[0]}
-                        </span>
                       </div>
                     </td>
 
@@ -395,7 +358,7 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
             <strong className="text-[#003527]">{properties.length}</strong> registered listings
           </span>
           <span className="text-[11px] font-medium text-[#707974]">
-            SmartBridge Verified • Rivers State Physical Verification Standards
+            SmartBridge Property Registry
           </span>
         </div>
       </div>
