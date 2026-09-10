@@ -19,7 +19,6 @@ import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { TrustStats } from './components/TrustStats';
 import { FeaturedProperties } from './components/FeaturedProperties';
-import { TrustVerificationSection } from './components/TrustVerificationSection';
 import { NeighborhoodExplorer } from './components/NeighborhoodExplorer';
 import { PropertiesView } from './components/PropertiesView';
 import { PropertyDetailModal } from './components/PropertyDetailModal';
@@ -639,7 +638,7 @@ export default function App() {
               }}
             />
 
-            {/* 2. Trust Indicators (500+ Listings, Top Specialists, 100% Direct Inspection, 24/7) */}
+            {/* 2. Marketplace Highlights */}
             <TrustStats />
 
             {/* 3. Featured Properties */}
@@ -655,12 +654,7 @@ export default function App() {
               onToggleSave={handleToggleSave}
             />
 
-            {/* 4. Trust & Physical Verification Section */}
-            <TrustVerificationSection
-              onLearnMore={() => setIsAboutProcessOpen(true)}
-            />
-
-            {/* 5. Prime Port Harcourt Neighborhoods Explorer */}
+            {/* 4. Prime Port Harcourt Neighborhoods Explorer */}
             <NeighborhoodExplorer
               onSelectNeighborhood={handleSelectNeighborhood}
             />
