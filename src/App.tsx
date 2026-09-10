@@ -45,32 +45,11 @@ export default function App() {
     }
   });
 
-  const [bookings, setBookings] = useState<InspectionBooking[]>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_bookings');
-      return stored ? JSON.parse(stored) : INITIAL_BOOKINGS;
-    } catch {
-      return INITIAL_BOOKINGS;
-    }
-  });
-
-  const [submissions, setSubmissions] = useState<PropertySubmission[]>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_submissions');
-      return stored ? JSON.parse(stored) : INITIAL_SUBMISSIONS;
-    } catch {
-      return INITIAL_SUBMISSIONS;
-    }
-  });
-
-  const [inquiries, setInquiries] = useState<PropertyInquiry[]>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_inquiries');
-      return stored ? JSON.parse(stored) : INITIAL_INQUIRIES;
-    } catch {
-      return INITIAL_INQUIRIES;
-    }
-  });
+  // Protected records are never restored from browser storage. Supabase RLS
+  // and the current authenticated session are the only sources of truth.
+  const [bookings, setBookings] = useState<InspectionBooking[]>([]);
+  const [submissions, setSubmissions] = useState<PropertySubmission[]>([]);
+  const [inquiries, setInquiries] = useState<PropertyInquiry[]>([]);
 
   // Portal identity must only come from a verified Supabase session/profile.
   // Never restore authorization state from localStorage because it is user-editable.
@@ -182,7 +161,11 @@ export default function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      void applyVerifiedUser(session?.user ?? null).finally(() => setIsAuthLoading(false));
+      // Supabase recommends keeping this callback synchronous. Defer queries
+      // until after its internal auth lock has been released.
+      window.setTimeout(() => {
+        void applyVerifiedUser(session?.user ?? null).finally(() => setIsAuthLoading(false));
+      }, 0);
     });
 
     return () => {
@@ -230,28 +213,12 @@ export default function App() {
   }, [properties]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('smartbridge_bookings', JSON.stringify(bookings));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [bookings]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('smartbridge_submissions', JSON.stringify(submissions));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [submissions]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('smartbridge_inquiries', JSON.stringify(inquiries));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [inquiries]);
+    // Remove values written by older builds so stale approvals and duplicates
+    // cannot reappear after a refresh.
+    localStorage.removeItem('smartbridge_bookings');
+    localStorage.removeItem('smartbridge_submissions');
+    localStorage.removeItem('smartbridge_inquiries');
+  }, []);
 
   useEffect(() => {
     try {
