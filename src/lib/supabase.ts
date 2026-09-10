@@ -459,9 +459,25 @@ export const supabaseDb = {
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      if (!data || data.length === 0) return null;
+      if (!data || data.length === 0) return [];
 
-      return data.map((item) => ({
+      // Collapse historical double inserts produced by the former two-write
+      // submit flow. Records are considered duplicates only when the same
+      // owner, title and media were inserted within two seconds.
+      const uniqueRows = data.filter((item, index, rows) => {
+        const itemTime = new Date(item.submitted_at || item.created_at || 0).getTime();
+        return !rows.slice(0, index).some((previous) => {
+          const previousTime = new Date(previous.submitted_at || previous.created_at || 0).getTime();
+          return (
+            previous.owner_id === item.owner_id &&
+            previous.title?.trim().toLowerCase() === item.title?.trim().toLowerCase() &&
+            JSON.stringify(previous.images || []) === JSON.stringify(item.images || []) &&
+            Math.abs(previousTime - itemTime) <= 2000
+          );
+        });
+      });
+
+      return uniqueRows.map((item) => ({
         id: item.id,
         ownerId: item.owner_id,
         title: item.title,
@@ -493,8 +509,8 @@ export const supabaseDb = {
     }
   },
 
-  async saveSubmission(sub: PropertySubmission): Promise<boolean> {
-    if (!isSupabaseConfigured || !supabase) return false;
+  async saveSubmission(sub: PropertySubmission): Promise<PropertySubmission | null> {
+    if (!isSupabaseConfigured || !supabase) return null;
     try {
       // Strictly derive owner_id from authenticated user session
       const { data: authData, error: authError } =
@@ -503,13 +519,13 @@ export const supabaseDb = {
   console.error(
     'Cannot save submission: a signed-in property lister is required.'
   );
-  return false;
+  return null;
 }
 
 const currentUserId = authData.user.id;
       if (!currentUserId) {
         console.error('Cannot save submission: authenticated owner_id is required.');
-        return false;
+        return null;
       }
 
       // Safeguard: Listers cannot self-approve; default to pending or draft
@@ -543,12 +559,89 @@ const currentUserId = authData.user.id;
         payload.id = sub.id;
       }
 
-      const { error } = await supabase.from('property_submissions').upsert(payload);
+      // A new listing is inserted exactly once here. The parent callback only
+      // updates React state; it must never write this record a second time.
+      const { data, error } = await supabase
+        .from('property_submissions')
+        .insert(payload)
+        .select('*')
+        .single();
       if (error) throw error;
-      return true;
+      return {
+        id: data.id,
+        ownerId: data.owner_id,
+        title: data.title,
+        propertyType: data.property_type,
+        listingType: data.listing_type || 'sale',
+        location: data.location,
+        address: data.address || data.location,
+        price: data.price,
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
+        ownerName: data.owner_name,
+        ownerPhone: data.owner_phone,
+        ownerEmail: data.owner_email,
+        description: data.description || '',
+        titleDocType: data.title_doc_type || 'C of O',
+        images: data.images || [],
+        videos: data.videos || [],
+        videoUrl: data.video_url,
+        status: data.status || 'pending',
+        submittedAt: data.submitted_at,
+      } as PropertySubmission;
     } catch (e) {
       console.error('Supabase saveSubmission error:', e);
-      return false;
+      return null;
+    }
+  },
+
+  async updateSubmissionStatus(
+    submissionId: string,
+    status: PropertyStatus,
+    notes?: string
+  ): Promise<PropertySubmission | null> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(submissionId)) return null;
+    try {
+      const { data, error } = await supabase
+        .from('property_submissions')
+        .update({
+          status,
+          audit_notes: notes || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', submissionId)
+        .select('*')
+        .single();
+      if (error) throw error;
+      return {
+        id: data.id,
+        ownerId: data.owner_id,
+        title: data.title,
+        propertyType: data.property_type,
+        listingType: data.listing_type || 'sale',
+        location: data.location,
+        address: data.address || data.location,
+        price: data.price,
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
+        ownerName: data.owner_name,
+        ownerPhone: data.owner_phone,
+        ownerEmail: data.owner_email,
+        description: data.description || '',
+        titleDocType: data.title_doc_type || 'C of O',
+        images: data.images || [],
+        videos: data.videos || [],
+        videoUrl: data.video_url,
+        status: data.status,
+        submittedAt: data.submitted_at,
+        assignedInspector: data.assigned_inspector,
+        auditNotes: data.audit_notes,
+        floodAssessment: data.flood_assessment,
+        structuralScore: data.structural_score ?? undefined,
+      } as PropertySubmission;
+    } catch (e) {
+      console.error('Supabase updateSubmissionStatus error:', e);
+      return null;
     }
   },
 

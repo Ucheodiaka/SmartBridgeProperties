@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   X,
   Building2,
@@ -34,6 +34,7 @@ import {
   signInWithEmail,
   signUpWithEmail,
   isSupabaseConfigured,
+  supabase,
 } from '../../lib/supabase';
 import { OwnerProfileEditor } from './OwnerProfileEditor';
 
@@ -117,9 +118,46 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
 
   const ownerSubmissions = currentOwner
     ? submissions.filter(
-        (s) => s.ownerEmail?.toLowerCase() === currentOwner.email.toLowerCase()
+        (s) =>
+          s.ownerId === currentOwner.id ||
+          s.ownerEmail?.toLowerCase() === currentOwner.email.toLowerCase()
       )
     : [];
+
+  const inReviewSubmissions = ownerSubmissions.filter((s) =>
+    ['draft', 'pending'].includes(s.status || 'pending')
+  );
+  const [signedImageUrls, setSignedImageUrls] = useState<Record<string, string>>({});
+  const privateImagePaths = useMemo(
+    () => Array.from(new Set(ownerSubmissions.flatMap((s) => s.images || []).filter((path) => !/^https?:\/\//i.test(path)))),
+    [ownerSubmissions]
+  );
+
+  useEffect(() => {
+    let active = true;
+    if (!supabase || privateImagePaths.length === 0) {
+      setSignedImageUrls({});
+      return;
+    }
+    Promise.all(
+      privateImagePaths.map(async (path) => {
+        const { data, error } = await supabase.storage
+          .from('property-submissions')
+          .createSignedUrl(path, 3600);
+        if (error || !data?.signedUrl) {
+          console.error('Unable to create signed submission image URL:', error);
+          return [path, ''] as const;
+        }
+        return [path, data.signedUrl] as const;
+      })
+    ).then((entries) => {
+      if (!active) return;
+      setSignedImageUrls(Object.fromEntries(entries.filter(([, url]) => Boolean(url))));
+    });
+    return () => {
+      active = false;
+    };
+  }, [privateImagePaths]);
 
   const ownerInquiries = currentOwner
     ? inquiries.filter(
@@ -792,7 +830,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                     My Total Listings
                   </span>
                   <p className="font-playfair text-2xl font-bold text-[#003527] mt-1">
-                    {ownerProperties.length + ownerSubmissions.length}
+                    {ownerProperties.length + ownerSubmissions.filter((s) => s.status !== 'approved').length}
                   </p>
                   <span className="text-[10px] text-[#707974]">Direct Port Harcourt Assets</span>
                 </div>
@@ -814,7 +852,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                     Under Inspection
                   </span>
                   <p className="font-playfair text-2xl font-bold text-amber-700 mt-1">
-                    {ownerSubmissions.length}
+                    {inReviewSubmissions.length}
                   </p>
                   <span className="text-[10px] text-amber-700 font-semibold flex items-center gap-1">
                     <Clock className="w-3 h-3" /> In Verification
@@ -942,18 +980,18 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                       {/* Active Verified Properties */}
                       {ownerProperties.map((property) => (
                         <div
                           key={property.id}
-                          className="bg-white rounded-2xl border border-[#bfc9c3]/40 overflow-hidden shadow-xs flex flex-col justify-between"
+                          className="bg-white rounded-2xl border border-[#bfc9c3]/40 overflow-hidden shadow-xs flex flex-col self-start w-full"
                         >
-                          <div className="relative aspect-video">
+                          <div className="relative h-52 sm:h-56 overflow-hidden bg-black/5 shrink-0">
                             <img
                               src={property.images[0]}
                               alt={property.title}
-                              className="w-full h-full object-cover"
+                              className="absolute inset-0 w-full h-full object-cover"
                             />
                             <div className="absolute top-2 left-2 flex gap-1.5">
                               <span className="bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-sm shadow-xs flex items-center gap-1">
@@ -999,17 +1037,21 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                       ))}
 
                       {/* Pending In-Review Submissions */}
-                      {ownerSubmissions.map((sub) => (
+                      {ownerSubmissions.map((sub) => {
+                        const isApproved = sub.status === 'approved';
+                        const coverPath = sub.images?.[0];
+                        const coverUrl = coverPath && (/^https?:\/\//i.test(coverPath) ? coverPath : signedImageUrls[coverPath]);
+                        return (
                         <div
                           key={sub.id || Math.random()}
-                          className="bg-amber-50/50 rounded-2xl border border-amber-300/60 overflow-hidden shadow-xs flex flex-col justify-between"
+                          className={`${isApproved ? 'bg-emerald-50/50 border-emerald-300/60' : 'bg-amber-50/50 border-amber-300/60'} rounded-2xl border overflow-hidden shadow-xs flex flex-col self-start w-full`}
                         >
-                          <div className="relative aspect-video bg-black/10">
-                            {sub.images && sub.images[0] ? (
+                          <div className="relative h-52 sm:h-56 overflow-hidden bg-black/10 shrink-0">
+                            {coverUrl ? (
                               <img
-                                src={sub.images[0]}
+                                src={coverUrl}
                                 alt={sub.title}
-                                className="w-full h-full object-cover"
+                                className="absolute inset-0 w-full h-full object-cover"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-amber-700">
@@ -1017,8 +1059,9 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                               </div>
                             )}
                             <div className="absolute top-2 left-2 flex gap-1.5">
-                              <span className="bg-amber-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-sm shadow-xs flex items-center gap-1">
-                                <Clock className="w-2.5 h-2.5" /> Under Admin Audit
+                              <span className={`${isApproved ? 'bg-emerald-700' : 'bg-amber-600'} text-white text-[9px] font-bold px-2 py-0.5 rounded-sm shadow-xs flex items-center gap-1`}>
+                                {isApproved ? <CheckCircle2 className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
+                                {isApproved ? 'Approved' : 'Under Admin Audit'}
                               </span>
                             </div>
                           </div>
@@ -1049,7 +1092,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                             </div>
                           </div>
                         </div>
-                      ))}
+                      );})}
                     </div>
                   )}
                 </div>

@@ -293,11 +293,11 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
         videoUrl: videoUrlInput.trim() || undefined,
       };
 
-      const saved = await supabaseDb.saveSubmission(submissionPayload);
+      const savedSubmission = await supabaseDb.saveSubmission(submissionPayload);
 
-      if (saved === true) {
+      if (savedSubmission) {
         setSubmitted(true);
-        onSubmitSuccess(submissionPayload);
+        onSubmitSuccess(savedSubmission);
       } else {
         setSubmissionError('Your property could not be submitted. Please check your connection and try again.');
       }
