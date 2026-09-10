@@ -980,18 +980,18 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                       {/* Active Verified Properties */}
                       {ownerProperties.map((property) => (
                         <div
                           key={property.id}
-                          className="bg-white rounded-2xl border border-[#bfc9c3]/40 overflow-hidden shadow-xs flex flex-col justify-between"
+                          className="bg-white rounded-2xl border border-[#bfc9c3]/40 overflow-hidden shadow-xs flex flex-col self-start w-full"
                         >
-                          <div className="relative aspect-video">
+                          <div className="relative h-52 sm:h-56 overflow-hidden bg-black/5 shrink-0">
                             <img
                               src={property.images[0]}
                               alt={property.title}
-                              className="w-full h-full object-cover"
+                              className="absolute inset-0 w-full h-full object-cover"
                             />
                             <div className="absolute top-2 left-2 flex gap-1.5">
                               <span className="bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-sm shadow-xs flex items-center gap-1">
@@ -1044,14 +1044,14 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                         return (
                         <div
                           key={sub.id || Math.random()}
-                          className={`${isApproved ? 'bg-emerald-50/50 border-emerald-300/60' : 'bg-amber-50/50 border-amber-300/60'} rounded-2xl border overflow-hidden shadow-xs flex flex-col justify-between`}
+                          className={`${isApproved ? 'bg-emerald-50/50 border-emerald-300/60' : 'bg-amber-50/50 border-amber-300/60'} rounded-2xl border overflow-hidden shadow-xs flex flex-col self-start w-full`}
                         >
-                          <div className="relative aspect-video bg-black/10">
+                          <div className="relative h-52 sm:h-56 overflow-hidden bg-black/10 shrink-0">
                             {coverUrl ? (
                               <img
                                 src={coverUrl}
                                 alt={sub.title}
-                                className="w-full h-full object-cover"
+                                className="absolute inset-0 w-full h-full object-cover"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-amber-700">
