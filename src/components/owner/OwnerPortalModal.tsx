@@ -139,15 +139,21 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
       setSignedImageUrls({});
       return;
     }
-    supabase.storage
-      .from('property-submissions')
-      .createSignedUrls(privateImagePaths, 3600)
-      .then(({ data, error }) => {
-        if (!active || error || !data) return;
-        setSignedImageUrls(
-          Object.fromEntries(data.filter((item) => item.signedUrl).map((item) => [item.path, item.signedUrl]))
-        );
-      });
+    Promise.all(
+      privateImagePaths.map(async (path) => {
+        const { data, error } = await supabase.storage
+          .from('property-submissions')
+          .createSignedUrl(path, 3600);
+        if (error || !data?.signedUrl) {
+          console.error('Unable to create signed submission image URL:', error);
+          return [path, ''] as const;
+        }
+        return [path, data.signedUrl] as const;
+      })
+    ).then((entries) => {
+      if (!active) return;
+      setSignedImageUrls(Object.fromEntries(entries.filter(([, url]) => Boolean(url))));
+    });
     return () => {
       active = false;
     };
