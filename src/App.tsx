@@ -33,7 +33,7 @@ import { AdminLoginModal } from './components/auth/AdminLoginModal';
 import { Footer } from './components/Footer';
 import { ToastContainer, ToastMessage } from './components/Toast';
 import { AdminDashboard } from './components/admin/AdminDashboard';
-import { supabase, isSupabaseConfigured, supabaseDb } from './lib/supabase';
+import { supabase, isSupabaseConfigured, supabaseDb, signOut as signOutFromSupabase } from './lib/supabase';
 
 export default function App() {
   const [properties, setProperties] = useState<Property[]>(() => {
@@ -72,23 +72,11 @@ export default function App() {
     }
   });
 
-  const [currentOwner, setCurrentOwner] = useState<OwnerAccount | null>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_current_owner');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [currentAdminStaff, setCurrentAdminStaff] = useState<AdminStaffAccount | null>(() => {
-    try {
-      const stored = localStorage.getItem('smartbridge_current_admin_staff');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
+  // Portal identity must only come from a verified Supabase session/profile.
+  // Never restore authorization state from localStorage because it is user-editable.
+  const [currentOwner, setCurrentOwner] = useState<OwnerAccount | null>(null);
+  const [currentAdminStaff, setCurrentAdminStaff] = useState<AdminStaffAccount | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(isSupabaseConfigured);
 
   const [agents, setAgents] = useState<AgentInfo[]>(INITIAL_AGENTS);
 
@@ -156,40 +144,51 @@ export default function App() {
       }
     });
 
-    // 5. Auth State Listener & Profile Verification
+    const applyVerifiedUser = async (user: NonNullable<Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user']> | null) => {
+      setCurrentOwner(null);
+      setCurrentAdminStaff(null);
+
+      if (!user) return;
+
+      const profile = await supabaseDb.fetchProfile(user.id);
+      if (!profile?.role) return;
+
+      if (profile.role === 'admin') {
+        setCurrentAdminStaff({
+          id: user.id,
+          name: profile.name || user.email?.split('@')[0] || 'Staff Admin',
+          email: user.email || 'admin@smartbridge.ng',
+          role: 'Operations Director',
+          badge: 'Verified Staff Admin',
+          pin: '••••',
+        });
+        return;
+      }
+
+      if (['landlord', 'agent', 'developer'].includes(profile.role)) {
+        setCurrentOwner({
+          id: user.id,
+          name: profile.name || user.email?.split('@')[0] || 'Verified Lister',
+          email: user.email || '',
+          phone: profile.phone || '',
+          companyName: profile.companyName || 'Property Lister',
+          avatar: profile.avatar,
+          isVerifiedLandlord: Boolean(profile.verified),
+          joinedAt: new Date().toISOString().split('T')[0],
+        });
+      }
+    };
+
+    // Restore and validate the persisted Supabase session before evaluating routes.
+    supabase.auth.getUser().then(({ data, error }) => {
+      return applyVerifiedUser(error ? null : data.user);
+    }).finally(() => setIsAuthLoading(false));
+
+    // 5. Auth State Listener & database-backed profile verification
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const userMeta = session.user.user_metadata || {};
-        const profile = await supabaseDb.fetchProfile(session.user.id);
-        const role = profile?.role || userMeta.role;
-
-        if (role === 'admin') {
-          setCurrentAdminStaff({
-            id: session.user.id,
-            name: profile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Staff Admin',
-            email: session.user.email || 'admin@smartbridge.ng',
-            role: 'Operations Director',
-            badge: 'Verified Staff Admin',
-            pin: '••••',
-          });
-        } else {
-          setCurrentOwner({
-            id: session.user.id,
-            name: profile?.name || userMeta.full_name || session.user.email?.split('@')[0] || 'Verified Lister',
-            email: session.user.email || '',
-            phone: profile?.phone || userMeta.phone || '+234 803 555 0192',
-            companyName: profile?.companyName || userMeta.company_name || 'Verified Property Lister',
-            avatar: profile?.avatar || userMeta.avatar_url,
-            isVerifiedLandlord: true,
-            joinedAt: new Date().toISOString().split('T')[0],
-          });
-        }
-      } else if (event === 'SIGNED_OUT') {
-        setCurrentOwner(null);
-        setCurrentAdminStaff(null);
-      }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void applyVerifiedUser(session?.user ?? null).finally(() => setIsAuthLoading(false));
     });
 
     return () => {
@@ -202,6 +201,8 @@ export default function App() {
     const handleUrlRoute = () => {
       const path = window.location.pathname;
       const hash = window.location.hash;
+
+      if (isAuthLoading) return;
 
       if (path === '/admin/login' || hash === '#admin-login') {
         if (currentAdminStaff) {
@@ -223,7 +224,7 @@ export default function App() {
     handleUrlRoute();
     window.addEventListener('popstate', handleUrlRoute);
     return () => window.removeEventListener('popstate', handleUrlRoute);
-  }, [currentAdminStaff]);
+  }, [currentAdminStaff, isAuthLoading]);
 
   // LocalStorage synchronizations
   useEffect(() => {
@@ -257,30 +258,6 @@ export default function App() {
       console.error(e);
     }
   }, [inquiries]);
-
-  useEffect(() => {
-    try {
-      if (currentOwner) {
-        localStorage.setItem('smartbridge_current_owner', JSON.stringify(currentOwner));
-      } else {
-        localStorage.removeItem('smartbridge_current_owner');
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, [currentOwner]);
-
-  useEffect(() => {
-    try {
-      if (currentAdminStaff) {
-        localStorage.setItem('smartbridge_current_admin_staff', JSON.stringify(currentAdminStaff));
-      } else {
-        localStorage.removeItem('smartbridge_current_admin_staff');
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, [currentAdminStaff]);
 
   useEffect(() => {
     try {
@@ -397,7 +374,8 @@ export default function App() {
     addToast(`Signed in as ${owner.name} (${owner.companyName || 'Property Lister'}).`, 'success');
   };
 
-  const handleOwnerLogout = () => {
+  const handleOwnerLogout = async () => {
+    await signOutFromSupabase();
     setCurrentOwner(null);
     addToast('Signed out of Property Lister & Host Portal.', 'info');
   };
@@ -411,7 +389,8 @@ export default function App() {
     addToast(`Authenticated as ${staff.name} (${staff.role}). Admin Operations Desk unlocked.`, 'success');
   };
 
-  const handleAdminLogout = () => {
+  const handleAdminLogout = async () => {
+    await signOutFromSupabase();
     setCurrentAdminStaff(null);
     setActiveScreen('home');
     window.history.pushState(null, '', '/');
@@ -853,5 +832,4 @@ export default function App() {
     </div>
   );
 }
-
 

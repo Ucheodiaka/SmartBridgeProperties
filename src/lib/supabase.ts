@@ -107,12 +107,17 @@ export async function signInWithEmail(
     // Fetch the existing database profile without overwriting during login
     const profile = await supabaseDb.fetchProfile(authUser.id);
 
+    if (!profile?.role || !['landlord', 'agent', 'developer'].includes(profile.role)) {
+      await supabase.auth.signOut();
+      throw new Error('Please use the administrator portal for this account.');
+    }
+
     const userProfile: AuthUserProfile = {
       id: authUser.id,
       email: authUser.email || email,
       name: profile?.name || authUser.user_metadata?.full_name || email.split('@')[0],
       avatar: profile?.avatar || authUser.user_metadata?.avatar_url,
-      role: profile?.role || 'landlord',
+      role: profile.role,
       companyName: profile?.companyName || authUser.user_metadata?.company_name,
       phone: profile?.phone || authUser.user_metadata?.phone,
       verified: profile?.verified ?? false,
