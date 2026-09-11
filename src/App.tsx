@@ -13,6 +13,7 @@ import {
   OwnerAccount,
   PropertyInquiry,
   InquiryStatus,
+  LeadFollowUpUpdate,
   AdminStaffAccount,
 } from './types';
 import { Navbar } from './components/Navbar';
@@ -329,6 +330,23 @@ export default function App() {
     addToast(`Lead status updated to "${status}".`, 'info');
   };
 
+  const handleUpdateLeadFollowUp = async (
+    inquiryId: string,
+    updates: LeadFollowUpUpdate
+  ): Promise<boolean> => {
+    const saved = await supabaseDb.updateLeadFollowUp(inquiryId, updates);
+    if (!saved) {
+      addToast('The follow-up details could not be saved. Please try again.', 'info');
+      return false;
+    }
+
+    setInquiries((prev) =>
+      prev.map((inquiry) => (inquiry.id === inquiryId ? { ...inquiry, ...updates } : inquiry))
+    );
+    addToast('Lead follow-up details saved.', 'success');
+    return true;
+  };
+
   // Landlord Login / Logout
   const handleOwnerLogin = (owner: OwnerAccount) => {
     setCurrentOwner(owner);
@@ -578,6 +596,7 @@ export default function App() {
           onApproveAndPublishSubmission={handleApproveAndPublishSubmission}
           onUpdateBookingStatus={handleUpdateBookingStatus}
           onUpdateInquiryStatus={handleUpdateInquiryStatus}
+          onUpdateLeadFollowUp={handleUpdateLeadFollowUp}
           onViewPropertyDetail={(prop) => setSelectedProperty(prop)}
         />
 
