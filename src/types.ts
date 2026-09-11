@@ -129,6 +129,7 @@ export interface PropertySubmission {
   auditNotes?: string;
   floodAssessment?: string;
   structuralScore?: number;
+  approvedPropertyId?: string;
 }
 
 export type UserRole = 'landlord' | 'agent' | 'developer' | 'admin';
@@ -184,7 +185,7 @@ export interface PropertyInquiry {
   lastContactedAt?: string;
 }
 
-export type AdminTab = 'overview' | 'properties' | 'leads' | 'verification' | 'bookings' | 'analytics' | 'agents';
+export type AdminTab = 'overview' | 'properties' | 'submissions' | 'leads' | 'verification' | 'bookings' | 'analytics' | 'agents';
 
 export interface AdminStaffAccount {
   id: string;

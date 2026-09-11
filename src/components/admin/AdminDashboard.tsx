@@ -4,6 +4,7 @@ import {
   Building2,
   TrendingUp,
   MessageSquare,
+  ClipboardList,
   LogOut,
   Plus,
   ArrowLeft,
@@ -13,6 +14,7 @@ import { AdminOverview } from './AdminOverview';
 import { AdminPropertiesTable } from './AdminPropertiesTable';
 import { AdminAnalytics } from './AdminAnalytics';
 import { AdminLeads } from './AdminLeads';
+import { AdminSubmissions } from './AdminSubmissions';
 import { AdminPropertyEditorModal } from './AdminPropertyEditorModal';
 
 interface AdminDashboardProps {
@@ -28,8 +30,8 @@ interface AdminDashboardProps {
   onDeleteProperty: (propertyId: string) => void;
   onToggleVerified: (propertyId: string) => void;
   onToggleFeatured: (propertyId: string) => void;
-  onUpdateSubmissionStatus: (submissionId: string, status: AuditStatus, notes?: string) => void;
-  onApproveAndPublishSubmission: (submission: PropertySubmission, auditScore: number) => void;
+  onUpdateSubmissionStatus: (submissionId: string, status: AuditStatus, notes?: string) => Promise<void>;
+  onApproveAndPublishSubmission: (submission: PropertySubmission, auditScore: number) => Promise<void>;
   onUpdateBookingStatus: (bookingId: string, status: BookingStatus, specialist?: string) => void;
   onUpdateInquiryStatus: (inquiryId: string, status: InquiryStatus) => void;
   onUpdateLeadFollowUp: (inquiryId: string, updates: LeadFollowUpUpdate) => Promise<boolean>;
@@ -77,6 +79,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       label: 'Properties Registry',
       icon: Building2,
       count: properties.length,
+    },
+    {
+      id: 'submissions' as AdminTab,
+      label: 'Submissions',
+      icon: ClipboardList,
+      count: submissions.filter((submission) => submission.status === 'pending').length,
     },
     {
       id: 'leads' as AdminTab,
@@ -209,6 +217,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onToggleVerified={onToggleVerified}
             onToggleFeatured={onToggleFeatured}
             onViewProperty={onViewPropertyDetail}
+          />
+        )}
+
+        {activeTab === 'submissions' && (
+          <AdminSubmissions
+            submissions={submissions}
+            onApprove={onApproveAndPublishSubmission}
+            onUpdateStatus={onUpdateSubmissionStatus}
           />
         )}
 

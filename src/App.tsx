@@ -463,85 +463,31 @@ export default function App() {
   };
 
   const handleApproveAndPublishSubmission = async (submission: PropertySubmission, auditScore: number) => {
-    const assignedAgent = INITIAL_AGENTS[0];
-    const priceNum = typeof submission.price === 'number' ? submission.price : parseInt(String(submission.price).replace(/[^0-9]/g, ''), 10) || 80000000;
-    const formattedPrice = new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-      maximumFractionDigits: 0,
-    }).format(priceNum);
-
-    const newLiveProperty: Property = {
-      id: `prop-${Date.now()}`,
-      title: submission.title,
-      slug: submission.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      location: submission.location as any,
-      neighborhood: (submission.location as any) || 'GRA Phase 2',
-      address: submission.address,
-      price: priceNum,
-      priceDisplay: formattedPrice,
-      pricePeriod: submission.listingType === 'rent' ? '/yr' : undefined,
-      type: submission.listingType,
-      propertyType: submission.propertyType,
-      bedrooms: Number(submission.bedrooms) || 4,
-      bathrooms: Number(submission.bathrooms) || 4,
-      parkingSpaces: 3,
-      sizeSqFt: 3600,
-      isVerified: true,
-      isFeatured: false,
-      status: 'approved',
-      ownerId: submission.ownerId,
-      ownerName: submission.ownerName,
-      ownerEmail: submission.ownerEmail,
-      images:
-        submission.images && submission.images.length > 0
-          ? submission.images
-          : [
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuBnM3MYULmJ4ZEJl9XEr61oKVlBvSTqv3aqb1s6jID-b8Npnv_qcaRB9ko4FrkCv1DvYqNK1TyE6tdjPD0B4ZS2Gs8O2ZyAM8_YuCNHmV-_o2ax9ggP6AJ1o98KsYr6U4JVPQw4GklZnFyXZLRQVjSjIc8Ze_n3-etnAVPRqsgHJ4tFjqBkm0C2EOAVSYYwWoX6cRJk-evBjH86EWmjefI5olKsClrdgeLRQeVejHh_Z8nhO_EWtHOR',
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuCjrQosth7RHP5almX6ejQjrP7s9Tk8409-bH6taZWnmcCz4KXYefv3XMhSUvXBunHiE7wYxw4m_5BKrz6MCL7zuABKVgmCYeYAzoB3oga9ljul6yPpgfE9I--_n8ESfGy31QrW-mjtRDzKoDYHC9pov0fzyaYLXV-zXP_ZIH-YBK3NNbu8XzFkqUMeq1vTaz_1jsfmyKRu-WKr1_fRG43wPDhqE-ow8SzmCflhPcKhJBpYirHSK_rE',
-            ],
-      videos: submission.videos || (submission.videoUrl ? [submission.videoUrl] : []),
-      videoUrl: submission.videoUrl || submission.videos?.[0],
-      description: submission.description || `Exquisite verified property in ${submission.location}, Port Harcourt. Title: ${submission.titleDocType}.`,
-      features: ['All Rooms Ensuite with Water Heaters', 'Fitted Kitchen with Heat Extractor', 'Dedicated Inverter Wiring', '24/7 Security Patrol'],
-      amenities: ['CCTV Surveillance', 'Industrial Borehole Water Plant', 'Interlocked Access Road'],
-      inspectionReport: {
-        inspectedDate: 'Recent Physical Audit',
-        inspectorName: submission.assignedInspector || 'Engr. Tamara Briggs, FNSE',
-        inspectorId: 'SB-INSP-041',
-        overallScore: auditScore,
-        titleDocumentType: (submission.titleDocType as any) || 'C of O',
-        titleVerified: true,
-        floodRisk: 'Zero Risk (Elevated)',
-        powerGridStability: 'Dedicated 33kVA Feeder Line + Backup',
-        securityRating: 'Grade A+ (Gated Estate Patrol)',
-        checklist: [
-          { name: 'Certificate of Occupancy & Registry Search', status: 'passed', notes: 'Verified clean at Rivers State Ministry of Lands.' },
-          { name: 'Structural Integrity & Concrete Strength', status: 'passed', notes: 'Structural engineering audit test passed with zero crack index.' },
-          { name: 'Electrical Wiring & Surge Earthing', status: 'passed', notes: 'Copper surge arresters and earthing tests passed.' },
-          { name: 'Topographical Elevation & Storm Drainage', status: 'passed', notes: 'Elevated plot with gravity stormwater drainage channel.' }
-        ]
-      },
-      agent: {
-        name: assignedAgent.name,
-        role: assignedAgent.role,
-        phone: assignedAgent.phone,
-        whatsapp: assignedAgent.whatsapp,
-        avatar: assignedAgent.avatar,
-        badge: assignedAgent.badge,
-      }
-    };
-
-    const propertySaved = await supabaseDb.saveProperty(newLiveProperty);
-    if (!propertySaved) {
-      addToast('The approved property could not be published. Please try again.', 'info');
+    if (!submission.id) {
+      addToast('This submission cannot be approved because its ID is missing.', 'info');
       return;
     }
-    setProperties((prev) => [newLiveProperty, ...prev.filter((item) => item.id !== newLiveProperty.id)]);
-    if (submission.id) {
-      await handleUpdateSubmissionStatus(submission.id, 'approved', 'Audit approved and published to public marketplace.');
+
+    const result = await supabaseDb.approveAndPublishSubmission(submission.id, auditScore);
+    if (!result) {
+      addToast('The property could not be approved safely. Please try again.', 'info');
+      return;
     }
-    addToast(`Listing "${submission.title}" approved and published to live marketplace!`, 'success');
+
+    setProperties((prev) => [
+      result.property,
+      ...prev.filter((item) => item.id !== result.property.id),
+    ]);
+    setSubmissions((prev) =>
+      prev.map((item) => (item.id === result.submission.id ? result.submission : item))
+    );
+
+    addToast(
+      result.alreadyApproved
+        ? `Listing "${submission.title}" was already approved. No duplicate was created.`
+        : `Listing "${submission.title}" approved and published to the live marketplace!`,
+      result.alreadyApproved ? 'info' : 'success'
+    );
   };
 
   const handleUpdateBookingStatus = (bookingId: string, status: BookingStatus, specialist?: string) => {
