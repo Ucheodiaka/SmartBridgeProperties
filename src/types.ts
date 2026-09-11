@@ -150,6 +150,15 @@ export interface OwnerAccount {
 
 export type InquiryStatus = 'new' | 'contacted' | 'tour_scheduled' | 'closed';
 
+export interface LeadFollowUpUpdate {
+  adminNotes?: string;
+  assignedStaffId?: string | null;
+  assignedStaffName?: string | null;
+  followUpAt?: string | null;
+  contactAttempts?: number;
+  lastContactedAt?: string | null;
+}
+
 export interface PropertyInquiry {
   id: string;
   propertyId: string;
@@ -167,6 +176,12 @@ export interface PropertyInquiry {
   message: string;
   status: InquiryStatus;
   createdAt: string;
+  adminNotes?: string;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  followUpAt?: string;
+  contactAttempts?: number;
+  lastContactedAt?: string;
 }
 
 export type AdminTab = 'overview' | 'properties' | 'leads' | 'verification' | 'bookings' | 'analytics' | 'agents';

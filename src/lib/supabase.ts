@@ -3,6 +3,7 @@ import {
   Property,
   PropertySubmission,
   PropertyInquiry,
+  LeadFollowUpUpdate,
   InspectionBooking,
   InquiryStatus,
   BookingStatus,
@@ -674,6 +675,12 @@ const currentUserId = authData.user.id;
         message: item.message,
         status: item.status as InquiryStatus,
         createdAt: item.created_at,
+        adminNotes: item.admin_notes || undefined,
+        assignedStaffId: item.assigned_staff_id || undefined,
+        assignedStaffName: item.assigned_staff_name || undefined,
+        followUpAt: item.follow_up_at || undefined,
+        contactAttempts: Number(item.contact_attempts || 0),
+        lastContactedAt: item.last_contacted_at || undefined,
       }));
     } catch (e) {
       console.warn('Supabase fetchInquiries error:', e);
@@ -735,6 +742,34 @@ const currentUserId = authData.user.id;
       return Boolean(data && data.length === 1);
     } catch (e) {
       console.error('Supabase updateInquiryStatus error:', e);
+      return false;
+    }
+  },
+
+
+  async updateLeadFollowUp(inquiryId: string, updates: LeadFollowUpUpdate): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(inquiryId)) return false;
+    try {
+      const payload: Record<string, any> = {};
+      if (updates.adminNotes !== undefined) payload.admin_notes = updates.adminNotes.trim() || null;
+      if (updates.assignedStaffId !== undefined) payload.assigned_staff_id = updates.assignedStaffId;
+      if (updates.assignedStaffName !== undefined) payload.assigned_staff_name = updates.assignedStaffName;
+      if (updates.followUpAt !== undefined) payload.follow_up_at = updates.followUpAt;
+      if (updates.contactAttempts !== undefined) payload.contact_attempts = Math.max(0, updates.contactAttempts);
+      if (updates.lastContactedAt !== undefined) payload.last_contacted_at = updates.lastContactedAt;
+
+      if (Object.keys(payload).length === 0) return true;
+
+      const { data, error } = await supabase
+        .from('property_inquiries')
+        .update(payload)
+        .eq('id', inquiryId)
+        .select('id');
+
+      if (error) throw error;
+      return Boolean(data && data.length === 1);
+    } catch (e) {
+      console.error('Supabase updateLeadFollowUp error:', e);
       return false;
     }
   },
