@@ -57,8 +57,8 @@ export interface Property {
   description: string;
   features: string[];
   amenities: string[];
-  inspectionReport: InspectionReport;
-  agent: AgentInfo;
+  inspectionReport?: InspectionReport;
+  agent?: AgentInfo;
   coordinates?: {
     lat: number;
     lng: number;
