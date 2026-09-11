@@ -438,6 +438,27 @@ export const supabaseDb = {
     }
   },
 
+  async updatePropertyAvailability(
+    propertyId: string,
+    status: Extract<PropertyStatus, 'approved' | 'unpublished' | 'sold' | 'rented'>
+  ): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(propertyId)) return false;
+
+    try {
+      const { data, error } = await supabase.rpc('update_property_availability', {
+        p_property_id: propertyId,
+        p_status: status,
+      });
+      if (error) throw error;
+
+      const result = Array.isArray(data) ? data[0] : data;
+      return result?.property_id === propertyId && result?.new_status === status;
+    } catch (e) {
+      console.error('Supabase updatePropertyAvailability error:', e);
+      return false;
+    }
+  },
+
   async deleteProperty(propertyId: string): Promise<boolean> {
     if (!isSupabaseConfigured || !supabase) return false;
     try {
