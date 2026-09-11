@@ -478,33 +478,61 @@ export const supabaseDb = {
         });
       });
 
-      return uniqueRows.map((item) => ({
-        id: item.id,
-        ownerId: item.owner_id,
-        title: item.title,
-        propertyType: item.property_type,
-        listingType: item.listing_type || 'sale',
-        location: item.location,
-        address: item.address || item.location,
-        price: item.price,
-        bedrooms: item.bedrooms,
-        bathrooms: item.bathrooms,
-        ownerName: item.owner_name,
-        ownerPhone: item.owner_phone,
-        ownerEmail: item.owner_email,
-        description: item.description || '',
-        titleDocType: item.title_doc_type || 'C of O',
-        images: item.images || [],
-        videos: item.videos || [],
-        videoUrl: item.video_url,
-        status: (item.status as PropertyStatus) || 'pending',
-        submittedAt: item.submitted_at,
-        assignedInspector: item.assigned_inspector,
-        auditNotes: item.audit_notes,
-        floodAssessment: item.flood_assessment,
-        structuralScore: item.structural_score ?? undefined,
-        approvedPropertyId: item.approved_property_id || undefined,
-      }));
+      const client = supabase;
+      const signPrivatePath = async (path?: string | null): Promise<string | undefined> => {
+        if (!path) return undefined;
+        if (/^https?:\/\//i.test(path)) return path;
+
+        const { data: signedData, error: signedError } = await client.storage
+          .from('property-submissions')
+          .createSignedUrl(path, 60 * 60);
+
+        if (signedError) {
+          console.warn('Could not create submission media preview:', signedError);
+          return undefined;
+        }
+        return signedData.signedUrl;
+      };
+
+      return Promise.all(
+        uniqueRows.map(async (item) => {
+          const images = (
+            await Promise.all((item.images || []).map((path: string) => signPrivatePath(path)))
+          ).filter((path): path is string => Boolean(path));
+          const videos = (
+            await Promise.all((item.videos || []).map((path: string) => signPrivatePath(path)))
+          ).filter((path): path is string => Boolean(path));
+          const videoUrl = await signPrivatePath(item.video_url);
+
+          return {
+            id: item.id,
+            ownerId: item.owner_id,
+            title: item.title,
+            propertyType: item.property_type,
+            listingType: item.listing_type || 'sale',
+            location: item.location,
+            address: item.address || item.location,
+            price: item.price,
+            bedrooms: item.bedrooms,
+            bathrooms: item.bathrooms,
+            ownerName: item.owner_name,
+            ownerPhone: item.owner_phone,
+            ownerEmail: item.owner_email,
+            description: item.description || '',
+            titleDocType: item.title_doc_type || 'C of O',
+            images,
+            videos,
+            videoUrl,
+            status: (item.status as PropertyStatus) || 'pending',
+            submittedAt: item.submitted_at,
+            assignedInspector: item.assigned_inspector,
+            auditNotes: item.audit_notes,
+            floodAssessment: item.flood_assessment,
+            structuralScore: item.structural_score ?? undefined,
+            approvedPropertyId: item.approved_property_id || undefined,
+          } as PropertySubmission;
+        })
+      );
     } catch (e) {
       console.warn('Supabase fetchSubmissions error:', e);
       return null;
@@ -608,6 +636,64 @@ const currentUserId = authData.user.id;
     if (!isSupabaseConfigured || !supabase || !isUUID(submissionId)) return null;
 
     try {
+      const { data: rawSubmission, error: submissionError } = await supabase
+        .from('property_submissions')
+        .select('images, videos, video_url')
+        .eq('id', submissionId)
+        .single();
+      if (submissionError) throw submissionError;
+
+      const promotePrivatePath = async (path?: string | null): Promise<string | null> => {
+        if (!path) return null;
+        if (/^https?:\/\//i.test(path) && !path.includes('/storage/v1/object/sign/property-submissions/')) {
+          return path;
+        }
+
+        const privatePath = /^https?:\/\//i.test(path)
+          ? decodeURIComponent(
+              path.split('/storage/v1/object/sign/property-submissions/')[1]?.split('?')[0] || ''
+            )
+          : path;
+        if (!privatePath) throw new Error('The submission media path is invalid.');
+
+        const { data: fileData, error: downloadError } = await supabase.storage
+          .from('property-submissions')
+          .download(privatePath);
+        if (downloadError) throw downloadError;
+
+        const fileName = privatePath.split('/').pop() || `${Date.now()}-property-media`;
+        const publicPath = `approved/${submissionId}/${fileName}`;
+        const { error: uploadError } = await supabase.storage
+          .from('property-images')
+          .upload(publicPath, fileData, {
+            contentType: fileData.type || undefined,
+            cacheControl: '31536000',
+            upsert: true,
+          });
+        if (uploadError) throw uploadError;
+
+        return supabase.storage.from('property-images').getPublicUrl(publicPath).data.publicUrl;
+      };
+
+      const publicImages = (
+        await Promise.all((rawSubmission.images || []).map((path: string) => promotePrivatePath(path)))
+      ).filter((path): path is string => Boolean(path));
+      const publicVideos = (
+        await Promise.all((rawSubmission.videos || []).map((path: string) => promotePrivatePath(path)))
+      ).filter((path): path is string => Boolean(path));
+      const publicVideoUrl = await promotePrivatePath(rawSubmission.video_url);
+
+      const { error: mediaUpdateError } = await supabase
+        .from('property_submissions')
+        .update({
+          images: publicImages,
+          videos: publicVideos,
+          video_url: publicVideoUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', submissionId);
+      if (mediaUpdateError) throw mediaUpdateError;
+
       const { data, error } = await supabase.rpc('approve_property_submission', {
         p_submission_id: submissionId,
         p_audit_score: Math.max(0, Math.min(100, Math.round(auditScore))),
