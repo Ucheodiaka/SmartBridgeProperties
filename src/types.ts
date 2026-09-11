@@ -129,6 +129,7 @@ export interface PropertySubmission {
   auditNotes?: string;
   floodAssessment?: string;
   structuralScore?: number;
+  approvedPropertyId?: string;
 }
 
 export type UserRole = 'landlord' | 'agent' | 'developer' | 'admin';
