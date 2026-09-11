@@ -47,6 +47,8 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
       id: `book-${Date.now()}`,
       propertyId: property.id,
       propertyTitle: property.title,
+      propertyLocation: property.location,
+      propertyPrice: property.priceDisplay,
       ...formData,
       status: 'pending',
       createdAt: new Date().toISOString(),
