@@ -759,10 +759,11 @@ const currentUserId = authData.user.id;
   async saveBooking(b: InspectionBooking): Promise<boolean> {
     if (!isSupabaseConfigured || !supabase) return false;
     try {
+      const propertyPrice = Number(String(b.propertyPrice || '').replace(/[^0-9.]/g, '')) || 0;
       const payload: Record<string, any> = {
         property_title: b.propertyTitle,
-        property_location: b.propertyLocation || null,
-        property_price: b.propertyPrice || null,
+        property_location: b.propertyLocation || '',
+        property_price: propertyPrice,
         name: (b.name || '').trim(),
         email: b.email || null,
         phone: (b.phone || '').trim(),
