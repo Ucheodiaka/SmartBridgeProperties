@@ -185,7 +185,7 @@ export interface PropertyInquiry {
   lastContactedAt?: string;
 }
 
-export type AdminTab = 'overview' | 'properties' | 'leads' | 'verification' | 'bookings' | 'analytics' | 'agents';
+export type AdminTab = 'overview' | 'properties' | 'submissions' | 'leads' | 'verification' | 'bookings' | 'analytics' | 'agents';
 
 export interface AdminStaffAccount {
   id: string;
