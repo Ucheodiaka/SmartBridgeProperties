@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   Calendar,
   Phone,
-  MessageCircle,
   Share2,
   Heart,
   ChevronLeft,
@@ -68,13 +67,6 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const prevImage = () => {
     setImageLoaded(false);
     setActiveImageIndex((prev) => (prev - 1 + property.images.length) % property.images.length);
-  };
-
-  const handleWhatsAppChat = () => {
-    const text = encodeURIComponent(
-      `Hello ${property.agent.name}, I am interested in inspecting "${property.title}" (${property.priceDisplay}${property.pricePeriod || ''}) in ${property.location} on SmartBridge Properties.`
-    );
-    window.open(`https://wa.me/${property.agent.whatsapp}?text=${text}`, '_blank');
   };
 
   if (isLoading) {
@@ -506,11 +498,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <button
-                onClick={handleWhatsAppChat}
-                className="flex-1 sm:flex-none bg-[#25D366] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#20ba59] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                onClick={() => onOpenInquiry?.(property)}
+                className="flex-1 sm:flex-none bg-[#003527] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
               >
-                <MessageCircle className="w-4 h-4" />
-                Chat on WhatsApp
+                <MessageSquare className="w-4 h-4 text-[#fed65b]" />
+                Contact SmartBridge
               </button>
               <button
                 onClick={() => onScheduleInspection(property)}
