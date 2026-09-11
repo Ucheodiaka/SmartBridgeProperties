@@ -3,20 +3,23 @@ import {
   LayoutDashboard,
   Building2,
   TrendingUp,
+  MessageSquare,
   LogOut,
   Plus,
   ArrowLeft,
 } from 'lucide-react';
-import { Property, InspectionBooking, PropertySubmission, AdminTab, AuditStatus, BookingStatus, AgentInfo, AdminStaffAccount } from '../../types';
+import { Property, InspectionBooking, PropertySubmission, PropertyInquiry, InquiryStatus, AdminTab, AuditStatus, BookingStatus, AgentInfo, AdminStaffAccount } from '../../types';
 import { AdminOverview } from './AdminOverview';
 import { AdminPropertiesTable } from './AdminPropertiesTable';
 import { AdminAnalytics } from './AdminAnalytics';
+import { AdminLeads } from './AdminLeads';
 import { AdminPropertyEditorModal } from './AdminPropertyEditorModal';
 
 interface AdminDashboardProps {
   properties: Property[];
   bookings: InspectionBooking[];
   submissions: PropertySubmission[];
+  inquiries: PropertyInquiry[];
   agents: AgentInfo[];
   currentAdminStaff?: AdminStaffAccount | null;
   onAdminLogout?: () => void;
@@ -28,6 +31,7 @@ interface AdminDashboardProps {
   onUpdateSubmissionStatus: (submissionId: string, status: AuditStatus, notes?: string) => void;
   onApproveAndPublishSubmission: (submission: PropertySubmission, auditScore: number) => void;
   onUpdateBookingStatus: (bookingId: string, status: BookingStatus, specialist?: string) => void;
+  onUpdateInquiryStatus: (inquiryId: string, status: InquiryStatus) => void;
   onViewPropertyDetail: (property: Property) => void;
 }
 
@@ -35,6 +39,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   properties,
   bookings,
   submissions,
+  inquiries,
   agents,
   currentAdminStaff,
   onAdminLogout,
@@ -46,6 +51,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateSubmissionStatus,
   onApproveAndPublishSubmission,
   onUpdateBookingStatus,
+  onUpdateInquiryStatus,
   onViewPropertyDetail,
 }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
@@ -69,6 +75,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       label: 'Properties Registry',
       icon: Building2,
       count: properties.length,
+    },
+    {
+      id: 'leads' as AdminTab,
+      label: 'Leads',
+      icon: MessageSquare,
+      count: inquiries.filter((inquiry) => inquiry.status === 'new').length,
     },
     { id: 'analytics' as AdminTab, label: 'Market Analytics', icon: TrendingUp },
   ];
@@ -196,6 +208,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onToggleFeatured={onToggleFeatured}
             onViewProperty={onViewPropertyDetail}
           />
+        )}
+
+        {activeTab === 'leads' && (
+          <AdminLeads inquiries={inquiries} onUpdateStatus={onUpdateInquiryStatus} />
         )}
 
         {activeTab === 'analytics' && (
