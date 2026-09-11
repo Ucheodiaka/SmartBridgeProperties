@@ -50,6 +50,12 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'overview' | 'inspection' | 'video'>('overview');
   const [imageLoaded, setImageLoaded] = useState(false);
+  const displayAgent = property.agent || {
+    name: 'SmartBridge Property Desk',
+    role: 'Property Enquiry Support',
+    avatar: property.images?.[0] || '',
+    badge: 'SmartBridge Managed',
+  };
 
   useEffect(() => {
     // Brief smooth skeleton hydration
@@ -246,20 +252,22 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
               )}
             </button>
-            <button
-              onClick={() => setActiveTab('inspection')}
-              className={`pb-2.5 sm:pb-3 text-xs sm:text-sm md:text-base font-bold transition-colors relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'inspection'
-                  ? 'text-[#003527]'
-                  : 'text-[#707974] hover:text-[#003527]'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-[#fed65b]" />
-              Inspection Report ({property.inspectionReport.overallScore}/100)
-              {activeTab === 'inspection' && (
-                <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
-              )}
-            </button>
+            {property.inspectionReport && (
+              <button
+                onClick={() => setActiveTab('inspection')}
+                className={`pb-2.5 sm:pb-3 text-xs sm:text-sm md:text-base font-bold transition-colors relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                  activeTab === 'inspection'
+                    ? 'text-[#003527]'
+                    : 'text-[#707974] hover:text-[#003527]'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-[#fed65b]" />
+                Inspection Report ({property.inspectionReport.overallScore}/100)
+                {activeTab === 'inspection' && property.inspectionReport && (
+                  <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
+                )}
+              </button>
+            )}
             {(property.videoUrl || (property.videos && property.videos.length > 0)) && (
               <button
                 onClick={() => setActiveTab('video')}
@@ -387,7 +395,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   Detailed Checklist Breakdown
                 </h4>
                 <div className="space-y-3">
-                  {property.inspectionReport.checklist.map((item, index) => (
+                  {(property.inspectionReport.checklist || []).map((item, index) => (
                     <div
                       key={index}
                       className="p-3.5 rounded-lg bg-[#fbf9f8] border border-[#bfc9c3]/20 flex items-start gap-3"
@@ -483,16 +491,16 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           <div className="bg-white p-6 rounded-2xl border border-[#bfc9c3]/30 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <img
-                src={property.agent.avatar}
-                alt={property.agent.name}
+                src={displayAgent.avatar}
+                alt={displayAgent.name}
                 className="w-14 h-14 rounded-full object-cover border-2 border-[#fed65b]"
               />
               <div>
                 <div className="inline-flex items-center gap-1 text-[10px] font-bold text-[#745c00] bg-[#fed65b]/30 px-2 py-0.5 rounded-full mb-1">
-                  {property.agent.badge}
+                  {displayAgent.badge}
                 </div>
-                <h4 className="font-bold text-base text-[#1b1c1c]">{property.agent.name}</h4>
-                <p className="text-xs text-[#707974]">{property.agent.role}</p>
+                <h4 className="font-bold text-base text-[#1b1c1c]">{displayAgent.name}</h4>
+                <p className="text-xs text-[#707974]">{displayAgent.role}</p>
               </div>
             </div>
 
