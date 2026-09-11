@@ -503,6 +503,7 @@ export const supabaseDb = {
         auditNotes: item.audit_notes,
         floodAssessment: item.flood_assessment,
         structuralScore: item.structural_score ?? undefined,
+        approvedPropertyId: item.approved_property_id || undefined,
       }));
     } catch (e) {
       console.warn('Supabase fetchSubmissions error:', e);
@@ -596,6 +597,48 @@ const currentUserId = authData.user.id;
     }
   },
 
+  async approveAndPublishSubmission(
+    submissionId: string,
+    auditScore: number
+  ): Promise<{
+    property: Property;
+    submission: PropertySubmission;
+    alreadyApproved: boolean;
+  } | null> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(submissionId)) return null;
+
+    try {
+      const { data, error } = await supabase.rpc('approve_property_submission', {
+        p_submission_id: submissionId,
+        p_audit_score: Math.max(0, Math.min(100, Math.round(auditScore))),
+      });
+      if (error) throw error;
+
+      const result = Array.isArray(data) ? data[0] : data;
+      const propertyId = result?.property_id;
+      if (!propertyId) throw new Error('Approval did not return a property ID.');
+
+      const [allProperties, allSubmissions] = await Promise.all([
+        this.fetchProperties(false),
+        this.fetchSubmissions(),
+      ]);
+      const property = allProperties?.find((item) => item.id === propertyId);
+      const submission = allSubmissions?.find((item) => item.id === submissionId);
+      if (!property || !submission) {
+        throw new Error('Approved records could not be reloaded.');
+      }
+
+      return {
+        property,
+        submission,
+        alreadyApproved: Boolean(result?.already_approved),
+      };
+    } catch (e) {
+      console.error('Supabase approveAndPublishSubmission error:', e);
+      return null;
+    }
+  },
+
   async updateSubmissionStatus(
     submissionId: string,
     status: PropertyStatus,
@@ -639,6 +682,7 @@ const currentUserId = authData.user.id;
         auditNotes: data.audit_notes,
         floodAssessment: data.flood_assessment,
         structuralScore: data.structural_score ?? undefined,
+        approvedPropertyId: data.approved_property_id || undefined,
       } as PropertySubmission;
     } catch (e) {
       console.error('Supabase updateSubmissionStatus error:', e);
