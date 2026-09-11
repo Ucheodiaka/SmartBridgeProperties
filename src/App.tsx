@@ -131,6 +131,14 @@ export default function App() {
       await refreshProtectedData();
 
       if (profile.role === 'admin') {
+        // Visitors initially load the approved-only public view. Once the
+        // session is verified as admin, reload the complete registry so
+        // unavailable properties remain manageable after refresh.
+        const adminProperties = await supabaseDb.fetchProperties(false);
+        if (adminProperties !== null) {
+          setProperties(adminProperties);
+        }
+
         setCurrentAdminStaff({
           id: user.id,
           name: profile.name || user.email?.split('@')[0] || 'Staff Admin',
