@@ -17,7 +17,9 @@ import {
   MapPin,
   Sparkles,
 } from 'lucide-react';
-import { Property, ListingType, PropertyType } from '../../types';
+import { Property, ListingType, PropertyType, PropertyStatus } from '../../types';
+
+type AvailabilityStatus = Extract<PropertyStatus, 'approved' | 'unpublished' | 'sold' | 'rented'>;
 
 interface AdminPropertiesTableProps {
   properties: Property[];
@@ -26,6 +28,7 @@ interface AdminPropertiesTableProps {
   onDeleteProperty: (propertyId: string) => void;
   onToggleVerified: (propertyId: string) => void;
   onToggleFeatured: (propertyId: string) => void;
+  onUpdateAvailability: (propertyId: string, status: AvailabilityStatus) => Promise<boolean>;
   onViewProperty: (property: Property) => void;
 }
 
@@ -36,12 +39,14 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
   onDeleteProperty,
   onToggleVerified,
   onToggleFeatured,
+  onUpdateAvailability,
   onViewProperty,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [listingTypeFilter, setListingTypeFilter] = useState<'all' | ListingType>('all');
   const [neighborhoodFilter, setNeighborhoodFilter] = useState<string>('all');
-  const [verifiedFilter, setVerifiedFilter] = useState<'all' | 'verified' | 'unverified'>('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | AvailabilityStatus>('all');
+  const [savingAvailabilityId, setSavingAvailabilityId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Filtered Properties
@@ -69,13 +74,27 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
         return false;
       }
 
-      // Verified
-      if (verifiedFilter === 'verified' && !p.isVerified) return false;
-      if (verifiedFilter === 'unverified' && p.isVerified) return false;
+      // Marketplace availability
+      if (availabilityFilter !== 'all' && (p.status || 'approved') !== availabilityFilter) {
+        return false;
+      }
 
       return true;
     });
-  }, [properties, searchTerm, listingTypeFilter, neighborhoodFilter, verifiedFilter]);
+  }, [properties, searchTerm, listingTypeFilter, neighborhoodFilter, availabilityFilter]);
+
+  const handleAvailabilityChange = async (
+    propertyId: string,
+    status: AvailabilityStatus
+  ) => {
+    if (savingAvailabilityId) return;
+    setSavingAvailabilityId(propertyId);
+    try {
+      await onUpdateAvailability(propertyId, status);
+    } finally {
+      setSavingAvailabilityId(null);
+    }
+  };
 
   const handleExportCSV = () => {
     const headers = [
@@ -89,6 +108,7 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
       'Bedrooms',
       'Bathrooms',
       'Verified',
+      'Availability',
     ];
     const rows = filteredProperties.map((p) => [
       p.id,
@@ -101,6 +121,7 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
       p.bedrooms,
       p.bathrooms,
       p.isVerified ? 'YES' : 'NO',
+      p.status || 'approved',
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
@@ -186,15 +207,17 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
             <option value="Ada George">Ada George</option>
           </select>
 
-          {/* Verification Status Filter */}
+          {/* Marketplace Availability Filter */}
           <select
-            value={verifiedFilter}
-            onChange={(e) => setVerifiedFilter(e.target.value as any)}
+            value={availabilityFilter}
+            onChange={(e) => setAvailabilityFilter(e.target.value as 'all' | AvailabilityStatus)}
             className="bg-[#fbf9f8] border border-[#bfc9c3] rounded-xl px-3 py-2 text-xs text-[#1b1c1c] font-medium focus:outline-none focus:border-[#003527]"
           >
-            <option value="all">All Listing Statuses</option>
-            <option value="verified">Approved Only</option>
-            <option value="unverified">Pending Review</option>
+            <option value="all">All Availability Statuses</option>
+            <option value="approved">Available</option>
+            <option value="sold">Sold</option>
+            <option value="rented">Rented</option>
+            <option value="unpublished">Unpublished</option>
           </select>
         </div>
       </div>
@@ -208,7 +231,7 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
                 <th className="py-3.5 px-4">Property</th>
                 <th className="py-3.5 px-4">Type & Area</th>
                 <th className="py-3.5 px-4">Price</th>
-                <th className="py-3.5 px-4">Badges</th>
+                <th className="py-3.5 px-4">Availability & Badges</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -289,6 +312,31 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
                     {/* Badges / Toggles */}
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col gap-1.5">
+                        <select
+                          value={property.status || 'approved'}
+                          disabled={savingAvailabilityId === property.id}
+                          onChange={(event) =>
+                            handleAvailabilityChange(
+                              property.id,
+                              event.target.value as AvailabilityStatus
+                            )
+                          }
+                          className={`rounded-md border px-2 py-1 text-[10px] font-bold focus:outline-none disabled:opacity-50 ${
+                            (property.status || 'approved') === 'approved'
+                              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                              : (property.status || 'approved') === 'sold'
+                                ? 'border-blue-200 bg-blue-50 text-blue-800'
+                                : (property.status || 'approved') === 'rented'
+                                  ? 'border-purple-200 bg-purple-50 text-purple-800'
+                                  : 'border-neutral-300 bg-neutral-100 text-neutral-700'
+                          }`}
+                          aria-label={`Change availability for ${property.title}`}
+                        >
+                          <option value="approved">Available</option>
+                          {property.type === 'sale' && <option value="sold">Sold</option>}
+                          {property.type === 'rent' && <option value="rented">Rented</option>}
+                          <option value="unpublished">Unpublished</option>
+                        </select>
                         <button
                           type="button"
                           onClick={() => onToggleVerified(property.id)}
