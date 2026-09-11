@@ -316,18 +316,17 @@ export default function App() {
     );
   };
 
-  const handleUpdateInquiryStatus = (inquiryId: string, status: InquiryStatus) => {
+  const handleUpdateInquiryStatus = async (inquiryId: string, status: InquiryStatus) => {
+    const saved = await supabaseDb.updateInquiryStatus(inquiryId, status);
+    if (!saved) {
+      addToast('The lead status could not be saved. Please try again.', 'info');
+      return;
+    }
+
     setInquiries((prev) =>
-      prev.map((i) => {
-        if (i.id === inquiryId) {
-          const updated = { ...i, status };
-          supabaseDb.saveInquiry(updated);
-          return updated;
-        }
-        return i;
-      })
+      prev.map((inquiry) => (inquiry.id === inquiryId ? { ...inquiry, status } : inquiry))
     );
-    addToast(`Inquiry status updated to "${status}".`, 'info');
+    addToast(`Lead status updated to "${status}".`, 'info');
   };
 
   // Landlord Login / Logout
@@ -563,6 +562,7 @@ export default function App() {
           properties={properties}
           bookings={bookings}
           submissions={submissions}
+          inquiries={inquiries}
           agents={agents}
           currentAdminStaff={currentAdminStaff}
           onAdminLogout={handleAdminLogout}
@@ -577,6 +577,7 @@ export default function App() {
           onUpdateSubmissionStatus={handleUpdateSubmissionStatus}
           onApproveAndPublishSubmission={handleApproveAndPublishSubmission}
           onUpdateBookingStatus={handleUpdateBookingStatus}
+          onUpdateInquiryStatus={handleUpdateInquiryStatus}
           onViewPropertyDetail={(prop) => setSelectedProperty(prop)}
         />
 
