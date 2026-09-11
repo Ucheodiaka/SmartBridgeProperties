@@ -722,6 +722,23 @@ const currentUserId = authData.user.id;
     }
   },
 
+  async updateInquiryStatus(inquiryId: string, status: InquiryStatus): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(inquiryId)) return false;
+    try {
+      const { data, error } = await supabase
+        .from('property_inquiries')
+        .update({ status })
+        .eq('id', inquiryId)
+        .select('id');
+
+      if (error) throw error;
+      return Boolean(data && data.length === 1);
+    } catch (e) {
+      console.error('Supabase updateInquiryStatus error:', e);
+      return false;
+    }
+  },
+
   // 4. BOOKINGS
   async fetchBookings(): Promise<InspectionBooking[] | null> {
     if (!isSupabaseConfigured || !supabase) return null;
