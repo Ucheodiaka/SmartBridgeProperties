@@ -445,6 +445,38 @@ export default function App() {
     );
   };
 
+  const handleUpdatePropertyAvailability = async (
+    propertyId: string,
+    status: Extract<AuditStatus, 'approved' | 'unpublished' | 'sold' | 'rented'>
+  ): Promise<boolean> => {
+    const saved = await supabaseDb.updatePropertyAvailability(propertyId, status);
+    if (!saved) {
+      addToast('The property availability could not be saved. Please try again.', 'info');
+      return false;
+    }
+
+    setProperties((prev) =>
+      prev.map((property) => (property.id === propertyId ? { ...property, status } : property))
+    );
+    setSubmissions((prev) =>
+      prev.map((submission) =>
+        submission.approvedPropertyId === propertyId ? { ...submission, status } : submission
+      )
+    );
+    setSelectedProperty((current) => (current?.id === propertyId ? null : current));
+
+    const label =
+      status === 'approved'
+        ? 'Available'
+        : status === 'unpublished'
+          ? 'Unpublished'
+          : status === 'sold'
+            ? 'Sold'
+            : 'Rented';
+    addToast(`Property status updated to ${label}.`, 'success');
+    return true;
+  };
+
   const handleUpdateSubmissionStatus = async (submissionId: string, status: AuditStatus, notes?: string) => {
     const savedSubmission = await supabaseDb.updateSubmissionStatus(submissionId, status, notes);
     if (!savedSubmission) {
@@ -512,6 +544,8 @@ export default function App() {
   };
 
   // If Admin Screen is active
+  const publicProperties = properties.filter((property) => property.status === 'approved');
+
   if (activeScreen === 'admin') {
     // If not authenticated as admin staff, redirect home and open admin login modal
     if (!currentAdminStaff) {
@@ -538,6 +572,7 @@ export default function App() {
           onDeleteProperty={handleDeleteProperty}
           onToggleVerified={handleToggleVerified}
           onToggleFeatured={handleToggleFeatured}
+          onUpdateAvailability={handleUpdatePropertyAvailability}
           onUpdateSubmissionStatus={handleUpdateSubmissionStatus}
           onApproveAndPublishSubmission={handleApproveAndPublishSubmission}
           onUpdateBookingStatus={handleUpdateBookingStatus}
@@ -611,7 +646,7 @@ export default function App() {
 
             {/* 3. Featured Properties */}
             <FeaturedProperties
-              properties={properties}
+              properties={publicProperties}
               onSelectProperty={(prop) => setSelectedProperty(prop)}
               onViewAll={() => {
                 setFilterState((prev) => ({ ...prev, type: 'all' }));
@@ -631,7 +666,7 @@ export default function App() {
 
         {(activeScreen === 'properties' || activeScreen === 'saved') && (
           <PropertiesView
-            properties={properties}
+            properties={publicProperties}
             initialFilters={filterState}
             onSelectProperty={(prop) => setSelectedProperty(prop)}
             savedIds={savedIds}
