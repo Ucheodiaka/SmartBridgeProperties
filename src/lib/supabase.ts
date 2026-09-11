@@ -669,8 +669,8 @@ const currentUserId = authData.user.id;
         buyerEmail: item.buyer_email,
         buyerPhone: item.buyer_phone,
         inquiryType: item.inquiry_type || 'general',
-        offerAmount: item.offer_amount,
-        proposedMoveIn: item.proposed_move_in,
+        offerAmount: item.offered_price ? String(item.offered_price) : undefined,
+        proposedMoveIn: item.timeline,
         message: item.message,
         status: item.status as InquiryStatus,
         createdAt: item.created_at,
@@ -684,16 +684,22 @@ const currentUserId = authData.user.id;
   async saveInquiry(inq: PropertyInquiry): Promise<boolean> {
     if (!isSupabaseConfigured || !supabase) return false;
     try {
+      const propertyPrice = Number(String(inq.propertyPrice || '').replace(/[^0-9.]/g, '')) || 0;
+      const offeredPrice = inq.offerAmount
+        ? Number(String(inq.offerAmount).replace(/[^0-9.]/g, '')) || null
+        : null;
+
       const payload: Record<string, any> = {
         property_title: inq.propertyTitle,
         property_location: inq.propertyLocation,
-        property_price: inq.propertyPrice || null,
+        property_price: propertyPrice,
+        owner_email: inq.ownerEmail || null,
         buyer_name: (inq.buyerName || '').trim(),
-        buyer_email: inq.buyerEmail || null,
+        buyer_email: (inq.buyerEmail || '').trim(),
         buyer_phone: (inq.buyerPhone || '').trim(),
         inquiry_type: inq.inquiryType || 'general',
-        offer_amount: inq.offerAmount || null,
-        proposed_move_in: inq.proposedMoveIn || null,
+        offered_price: offeredPrice,
+        timeline: inq.proposedMoveIn || null,
         message: (inq.message || '').trim(),
         status: 'new', // Enforce server-side default; visitors cannot choose administrative status
         created_at: new Date().toISOString(),
@@ -753,10 +759,11 @@ const currentUserId = authData.user.id;
   async saveBooking(b: InspectionBooking): Promise<boolean> {
     if (!isSupabaseConfigured || !supabase) return false;
     try {
+      const propertyPrice = Number(String(b.propertyPrice || '').replace(/[^0-9.]/g, '')) || 0;
       const payload: Record<string, any> = {
         property_title: b.propertyTitle,
-        property_location: b.propertyLocation || null,
-        property_price: b.propertyPrice || null,
+        property_location: b.propertyLocation || '',
+        property_price: propertyPrice,
         name: (b.name || '').trim(),
         email: b.email || null,
         phone: (b.phone || '').trim(),

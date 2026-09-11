@@ -36,6 +36,10 @@ import { supabase, isSupabaseConfigured, supabaseDb, signOut as signOutFromSupab
 
 export default function App() {
   const [properties, setProperties] = useState<Property[]>(() => {
+    // Demo data is only a development fallback. A configured production
+    // database must remain empty when it has no approved listings.
+    if (isSupabaseConfigured) return [];
+
     try {
       const stored = localStorage.getItem('smartbridge_properties');
       return stored ? JSON.parse(stored) : PROPERTIES;
@@ -96,7 +100,7 @@ export default function App() {
 
     // 1. Fetch live properties from Supabase
     supabaseDb.fetchProperties().then((cloudProps) => {
-      if (cloudProps && cloudProps.length > 0) {
+      if (cloudProps !== null) {
         setProperties(cloudProps);
       }
     });
@@ -296,9 +300,8 @@ export default function App() {
   const handleInspectionBookingConfirmed = (booking: InspectionBooking) => {
     setInspectionTargetProperty(null);
     setBookings((prev) => [booking, ...prev]);
-    supabaseDb.saveBooking(booking);
     addToast(
-      `Viewing confirmed for ${booking.preferredDate} at ${booking.preferredTime}! Our specialist will call ${booking.phone}.`,
+      `Viewing request received for ${booking.preferredDate} at ${booking.preferredTime}. SmartBridge will call ${booking.phone} to confirm.`,
       'success'
     );
   };
@@ -307,9 +310,8 @@ export default function App() {
   const handleBuyerInquirySuccess = (newInquiry: PropertyInquiry) => {
     setInquiries((prev) => [newInquiry, ...prev]);
     setInquiryTargetProperty(null);
-    supabaseDb.saveInquiry(newInquiry);
     addToast(
-      `Inquiry dispatched to ${newInquiry.ownerName || 'Property Advertiser'}! SmartBridge anti-fraud tracking enabled.`,
+      `Enquiry received for ${newInquiry.propertyTitle}. SmartBridge will contact you with the next steps.`,
       'success'
     );
   };

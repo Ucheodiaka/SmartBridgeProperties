@@ -47,22 +47,30 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
       id: `book-${Date.now()}`,
       propertyId: property.id,
       propertyTitle: property.title,
+      propertyLocation: property.location,
+      propertyPrice: property.priceDisplay,
       ...formData,
       status: 'pending',
       createdAt: new Date().toISOString(),
     };
 
     try {
-      await supabaseDb.saveBooking(booking);
-    } catch (err) {
-      console.warn('Inspection local fallback handled:', err);
-    }
+      const saved = await supabaseDb.saveBooking(booking);
+      if (!saved) {
+        setErrorMessage('We could not submit your viewing request. Please check your connection and try again.');
+        return;
+      }
 
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    setTimeout(() => {
-      onBookingConfirmed(booking);
-    }, 1200);
+      setIsSuccess(true);
+      setTimeout(() => {
+        onBookingConfirmed(booking);
+      }, 1200);
+    } catch (err) {
+      console.error('Unable to save viewing request:', err);
+      setErrorMessage('We could not submit your viewing request. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -82,7 +90,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                 Schedule Physical Viewing
               </h2>
               <span className="text-[10px] text-white/70 uppercase tracking-wider block font-medium">
-                Verified Rivers State On-Site Inspection
+                Viewing request handled by SmartBridge
               </span>
             </div>
           </div>
@@ -102,10 +110,10 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <h3 className="font-playfair text-2xl font-bold text-[#003527]">
-                Inspection Booked!
+                Viewing Request Received!
               </h3>
               <p className="text-xs md:text-sm text-[#404944] leading-relaxed">
-                Your physical inspection of <strong>{property.title}</strong> is booked for{' '}
+                Your preferred viewing time for <strong>{property.title}</strong> is{' '}
                 <strong>
                   {formData.preferredDate} at {formData.preferredTime}
                 </strong>
@@ -114,8 +122,8 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
               <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 text-left flex items-start gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                 <span>
-                  A SmartBridge field verification specialist will accompany you on-site at{' '}
-                  <strong>{property.location}</strong> to walk through the property and inspect title documents.
+                  A SmartBridge representative will contact you to confirm availability for{' '}
+                  <strong>{property.location}</strong>. This request is not a confirmed appointment until you receive that confirmation.
                 </span>
               </div>
               <div className="pt-2">

@@ -68,17 +68,22 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
     };
 
     try {
-      // Persist to Supabase if database available
-      await supabaseDb.saveInquiry(newInquiry);
-    } catch (err: any) {
-      console.warn('Inquiry local fallback handled:', err);
-    }
+      const saved = await supabaseDb.saveInquiry(newInquiry);
+      if (!saved) {
+        setErrorMessage('We could not send your enquiry. Please check your connection and try again.');
+        return;
+      }
 
-    setIsSubmitting(false);
-    setSubmitted(true);
-    setTimeout(() => {
-      onSubmitSuccess(newInquiry);
-    }, 1200);
+      setSubmitted(true);
+      setTimeout(() => {
+        onSubmitSuccess(newInquiry);
+      }, 1200);
+    } catch (err) {
+      console.error('Unable to save property enquiry:', err);
+      setErrorMessage('We could not send your enquiry. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -98,7 +103,7 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
                 Submit Property Enquiry
               </h2>
               <span className="text-[10px] uppercase tracking-wider font-semibold text-white/80 block">
-                Direct Enquiry • SmartBridge Concierge Protected
+                Enquiry handled by SmartBridge
               </span>
             </div>
           </div>
@@ -118,16 +123,16 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <h3 className="font-playfair text-2xl font-bold text-[#003527]">
-                Enquiry Dispatched Successfully!
+                Enquiry Received!
               </h3>
               <p className="text-sm text-[#404944] max-w-md mx-auto leading-relaxed">
                 Thank you, <strong>{formData.buyerName}</strong>. Your enquiry regarding{' '}
-                <strong>{property.title}</strong> has been transmitted directly to the verified listing manager.
+                <strong>{property.title}</strong> has been received by SmartBridge. We will contact you to confirm availability and the next steps.
               </p>
               <div className="p-3.5 bg-[#003527]/10 rounded-xl border border-[#003527]/20 text-xs text-[#003527] max-w-md mx-auto text-left flex items-start gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-[#003527] shrink-0 mt-0.5" />
                 <span>
-                  <strong>Safe Transaction Guarantee:</strong> SmartBridge verifies title documentation and ensures all inspections are accompanied by licensed Rivers State property specialists.
+                  <strong>Stay protected:</strong> Do not make payment until SmartBridge has confirmed the payment instructions and you have completed the checks appropriate for the property.
                 </span>
               </div>
             </div>
