@@ -50,6 +50,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'overview' | 'inspection' | 'video'>('overview');
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [agentAvatarFailed, setAgentAvatarFailed] = useState(false);
   const displayAgent = property.agent || {
     name: 'SmartBridge Property Desk',
     role: 'Property Enquiry Support',
@@ -59,6 +60,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
   useEffect(() => {
     // Brief smooth skeleton hydration
+    setAgentAvatarFailed(false);
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 280);
@@ -490,11 +492,22 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           {/* Assigned Local Agent Section */}
           <div className="bg-white p-6 rounded-2xl border border-[#bfc9c3]/30 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <img
-                src={displayAgent.avatar}
-                alt={displayAgent.name}
-                className="w-14 h-14 rounded-full object-cover border-2 border-[#fed65b]"
-              />
+              {displayAgent.avatar && !agentAvatarFailed ? (
+                <img
+                  src={displayAgent.avatar}
+                  alt=""
+                  onError={() => setAgentAvatarFailed(true)}
+                  className="w-14 h-14 rounded-full object-cover border-2 border-[#fed65b]"
+                />
+              ) : (
+                <div
+                  className="w-14 h-14 rounded-full border-2 border-[#fed65b] bg-[#003527] text-[#fed65b] flex items-center justify-center shrink-0"
+                  role="img"
+                  aria-label="SmartBridge Property Desk"
+                >
+                  <Building2 className="w-7 h-7" />
+                </div>
+              )}
               <div>
                 <div className="inline-flex items-center gap-1 text-[10px] font-bold text-[#745c00] bg-[#fed65b]/30 px-2 py-0.5 rounded-full mb-1">
                   {displayAgent.badge}
