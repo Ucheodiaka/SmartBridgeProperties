@@ -8,7 +8,7 @@ import {
   Plus,
   ArrowLeft,
 } from 'lucide-react';
-import { Property, InspectionBooking, PropertySubmission, PropertyInquiry, InquiryStatus, AdminTab, AuditStatus, BookingStatus, AgentInfo, AdminStaffAccount } from '../../types';
+import { Property, InspectionBooking, PropertySubmission, PropertyInquiry, InquiryStatus, LeadFollowUpUpdate, AdminTab, AuditStatus, BookingStatus, AgentInfo, AdminStaffAccount } from '../../types';
 import { AdminOverview } from './AdminOverview';
 import { AdminPropertiesTable } from './AdminPropertiesTable';
 import { AdminAnalytics } from './AdminAnalytics';
@@ -32,6 +32,7 @@ interface AdminDashboardProps {
   onApproveAndPublishSubmission: (submission: PropertySubmission, auditScore: number) => void;
   onUpdateBookingStatus: (bookingId: string, status: BookingStatus, specialist?: string) => void;
   onUpdateInquiryStatus: (inquiryId: string, status: InquiryStatus) => void;
+  onUpdateLeadFollowUp: (inquiryId: string, updates: LeadFollowUpUpdate) => Promise<boolean>;
   onViewPropertyDetail: (property: Property) => void;
 }
 
@@ -52,6 +53,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onApproveAndPublishSubmission,
   onUpdateBookingStatus,
   onUpdateInquiryStatus,
+  onUpdateLeadFollowUp,
   onViewPropertyDetail,
 }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
@@ -211,7 +213,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         )}
 
         {activeTab === 'leads' && (
-          <AdminLeads inquiries={inquiries} onUpdateStatus={onUpdateInquiryStatus} />
+          <AdminLeads
+            inquiries={inquiries}
+            currentAdminStaff={currentAdminStaff}
+            onUpdateStatus={onUpdateInquiryStatus}
+            onUpdateFollowUp={onUpdateLeadFollowUp}
+          />
         )}
 
         {activeTab === 'analytics' && (
