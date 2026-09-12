@@ -20,6 +20,7 @@ interface ListPropertyModalProps {
   onClose: () => void;
   onSubmitSuccess: (data: PropertySubmission) => void;
   currentOwner?: OwnerAccount | null;
+  editingSubmission?: PropertySubmission | null;
 }
 
 interface UploadedMediaItem {
@@ -79,26 +80,37 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
   onClose,
   onSubmitSuccess,
   currentOwner,
+  editingSubmission,
 }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    propertyType: 'Duplex' as PropertyType,
-    listingType: 'sale' as ListingType,
-    location: 'GRA Phase 2',
-    address: '',
-    price: '',
-    bedrooms: '4',
-    bathrooms: '4',
+    title: editingSubmission?.title || '',
+    propertyType: editingSubmission?.propertyType || ('Duplex' as PropertyType),
+    listingType: editingSubmission?.listingType || ('sale' as ListingType),
+    location: editingSubmission?.location || 'GRA Phase 2',
+    address: editingSubmission?.address || '',
+    price: editingSubmission ? String(editingSubmission.price) : '',
+    bedrooms: editingSubmission ? String(editingSubmission.bedrooms) : '4',
+    bathrooms: editingSubmission ? String(editingSubmission.bathrooms) : '4',
     ownerName: currentOwner?.name || '',
     ownerPhone: currentOwner?.phone || '',
     ownerEmail: currentOwner?.email || '',
-    titleDocType: 'Certificate of Occupancy (C of O)',
-    description: '',
+    titleDocType: editingSubmission?.titleDocType || 'Certificate of Occupancy (C of O)',
+    description: editingSubmission?.description || '',
   });
 
   // Media state: Images and optional Video tour URL
-  const [uploadedImages, setUploadedImages] = useState<UploadedMediaItem[]>([]);
-  const [videoUrlInput, setVideoUrlInput] = useState('');
+  const [uploadedImages, setUploadedImages] = useState<UploadedMediaItem[]>(() =>
+    (editingSubmission?.images || []).map((url, index) => ({
+      id: `existing-${index}`,
+      name: `Existing property image ${index + 1}`,
+      size: 'Saved',
+      previewUrl: url,
+      storagePath: url,
+      type: 'image' as const,
+      uploadStatus: 'uploaded' as const,
+    }))
+  );
+  const [videoUrlInput, setVideoUrlInput] = useState(editingSubmission?.videoUrl || '');
 
   // Status and feedback states
   const [isUploading, setIsUploading] = useState(false);
@@ -281,6 +293,8 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
       const cleanPrice = formData.price.replace(/[^0-9.]/g, '');
       const submissionPayload: PropertySubmission = {
         ...formData,
+        id: editingSubmission?.id,
+        approvedPropertyId: editingSubmission?.approvedPropertyId,
         price: cleanPrice ? Number(cleanPrice) : 0,
         bedrooms: Number(formData.bedrooms) || 0,
         bathrooms: Number(formData.bathrooms) || 0,
@@ -339,7 +353,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
             </div>
             <div>
               <h2 className="font-playfair text-lg sm:text-xl md:text-2xl font-bold text-[#003527]">
-                List Your Property
+                {editingSubmission ? 'Edit Your Property' : 'List Your Property'}
               </h2>
               <span className="text-[10px] uppercase tracking-wider font-semibold text-[#707974] block">
                 The Port Harcourt Standard Direct Registry
@@ -362,10 +376,12 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <h3 className="font-playfair text-2xl font-bold text-[#003527]">
-                Submission Received
+                {editingSubmission ? 'Changes Submitted' : 'Submission Received'}
               </h3>
               <p className="text-sm text-[#404944] max-w-md mx-auto leading-relaxed">
-                Your property submission has been received and is awaiting review. SmartBridge Properties will contact you if additional information is required.
+                {editingSubmission
+                  ? 'Your changes are awaiting admin approval. The current property remains unchanged on the marketplace until the update is approved.'
+                  : 'Your property submission has been received and is awaiting review. SmartBridge Properties will contact you if additional information is required.'}
               </p>
               <div className="pt-4">
                 <button
@@ -872,7 +888,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                   ) : (
                     <>
                       <Send className="w-4 h-4 text-[#fed65b]" />
-                      Submit Property for Review
+                      {editingSubmission ? 'Submit Changes for Admin Approval' : 'Submit Property for Review'}
                     </>
                   )}
                 </button>

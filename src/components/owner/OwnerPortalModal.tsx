@@ -21,6 +21,7 @@ import {
   Check,
   Calendar,
   Settings,
+  Pencil,
 } from 'lucide-react';
 import {
   OwnerAccount,
@@ -71,6 +72,7 @@ interface OwnerPortalModalProps {
   onUpdateInquiryStatus: (inquiryId: string, status: PropertyInquiry['status']) => void;
   initialAuthTab?: 'create' | 'signin';
   onUpdateOwner?: (owner: OwnerAccount) => void;
+  onEditSubmission: (submission: PropertySubmission) => void;
 }
 
 export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
@@ -83,6 +85,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   onOpenListProperty,
   initialAuthTab = 'signin',
   onUpdateOwner,
+  onEditSubmission,
 }) => {
   // Auth State
   const [authTab, setAuthTab] = useState<'create' | 'signin'>(initialAuthTab);
@@ -131,7 +134,12 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   );
   const totalListings = ownerSubmissions.length + unlinkedOwnerProperties.length;
   const liveListings =
-    ownerSubmissions.filter((submission) => submission.status === 'approved').length +
+    ownerSubmissions.filter((submission) =>
+      submission.status === 'approved' ||
+      (Boolean(submission.approvedPropertyId) && ownerProperties.some(
+        (property) => property.id === submission.approvedPropertyId && property.status === 'approved'
+      ))
+    ).length +
     unlinkedOwnerProperties.filter((property) => property.status === 'approved').length;
   const [signedImageUrls, setSignedImageUrls] = useState<Record<string, string>>({});
   const privateImagePaths = useMemo(
@@ -973,6 +981,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                       {ownerSubmissions.map((sub) => {
                         const isApproved = sub.status === 'approved';
                         const isUnavailable = ['sold', 'rented', 'unpublished'].includes(sub.status);
+                        const isPendingUpdate = sub.status === 'pending' && Boolean(sub.approvedPropertyId);
                         const statusLabel =
                           sub.status === 'sold'
                             ? 'Sold'
@@ -982,7 +991,9 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                                 ? 'Unpublished'
                                 : isApproved
                                   ? 'Approved'
-                                  : 'Under Admin Audit';
+                                  : isPendingUpdate
+                                    ? 'Pending Update Approval'
+                                    : 'Under Admin Audit';
                         const coverPath = sub.images?.[0];
                         const coverUrl = coverPath && (/^https?:\/\//i.test(coverPath) ? coverPath : signedImageUrls[coverPath]);
                         return (
@@ -1025,6 +1036,16 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                             <p className="text-[11px] text-[#707974] line-clamp-2">
                               {sub.description}
                             </p>
+
+                            {isApproved && (
+                              <button
+                                type="button"
+                                onClick={() => onEditSubmission(sub)}
+                                className="inline-flex items-center gap-1.5 mt-2 rounded-lg bg-[#003527] px-3 py-2 text-[11px] font-bold text-[#fed65b] hover:bg-[#064e3b] cursor-pointer"
+                              >
+                                <Pencil className="w-3.5 h-3.5" /> Edit Property
+                              </button>
+                            )}
 
                           </div>
                         </div>

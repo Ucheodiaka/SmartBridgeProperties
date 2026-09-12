@@ -69,6 +69,7 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
           {submissions.map((submission) => {
             const isProcessing = processingId === submission.id;
             const status = submission.status || 'pending';
+            const isPropertyUpdate = status === 'pending' && Boolean(submission.approvedPropertyId);
             return (
               <article
                 key={submission.id || submission.title}
@@ -107,7 +108,7 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
                             ? 'bg-red-100 text-red-700'
                             : 'bg-amber-100 text-amber-800'
                       }`}>
-                        {status}
+                        {isPropertyUpdate ? 'pending update' : status}
                       </span>
                     </div>
 
@@ -126,7 +127,7 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
                           className="inline-flex items-center gap-2 bg-[#003527] text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-[#00513c] disabled:opacity-50 cursor-pointer"
                         >
                           <CheckCircle2 className="w-4 h-4" />
-                          {isProcessing ? 'Processing…' : 'Approve and Publish'}
+                          {isProcessing ? 'Processing…' : isPropertyUpdate ? 'Approve Property Update' : 'Approve and Publish'}
                         </button>
                         <button
                           onClick={() => handleReject(submission)}

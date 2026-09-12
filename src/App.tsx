@@ -82,6 +82,7 @@ export default function App() {
   });
 
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [editingSubmission, setEditingSubmission] = useState<PropertySubmission | null>(null);
 
   const [filterState, setFilterState] = useState<FilterState>({
     type: 'all',
@@ -388,6 +389,8 @@ export default function App() {
 
   const handleListPropertySuccess = (data: PropertySubmission) => {
     setIsListPropertyOpen(false);
+    const wasPropertyUpdate = Boolean(editingSubmission?.approvedPropertyId);
+    setEditingSubmission(null);
     const newSubmission: PropertySubmission = {
       ...data,
       ownerName: currentOwner?.name || data.ownerName || 'Property Advertiser',
@@ -401,7 +404,9 @@ export default function App() {
     };
     setSubmissions((prev) => [newSubmission, ...prev.filter((item) => item.id !== newSubmission.id)]);
     addToast(
-      'Property listing submitted with media! Physical inspection audit queued at Operations Desk.',
+      wasPropertyUpdate
+        ? 'Property changes submitted for admin approval. The current marketplace listing remains live until approval.'
+        : 'Property listing submitted with media! Physical inspection audit queued at Operations Desk.',
       'success'
     );
   };
@@ -773,6 +778,11 @@ export default function App() {
           onOpenListProperty={() => setIsListPropertyOpen(true)}
           onUpdateInquiryStatus={handleUpdateInquiryStatus}
           onUpdateOwner={(updated) => setCurrentOwner(updated)}
+          onEditSubmission={(submission) => {
+            setEditingSubmission(submission);
+            setIsOwnerPortalOpen(false);
+            setIsListPropertyOpen(true);
+          }}
         />
       )}
 
@@ -780,7 +790,11 @@ export default function App() {
       {isListPropertyOpen && (
         <ListPropertyModal
           currentOwner={currentOwner}
-          onClose={() => setIsListPropertyOpen(false)}
+          editingSubmission={editingSubmission}
+          onClose={() => {
+            setIsListPropertyOpen(false);
+            setEditingSubmission(null);
+          }}
           onSubmitSuccess={handleListPropertySuccess}
         />
       )}

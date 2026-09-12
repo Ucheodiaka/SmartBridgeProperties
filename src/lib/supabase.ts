@@ -612,13 +612,25 @@ const currentUserId = authData.user.id;
         payload.id = sub.id;
       }
 
-      // A new listing is inserted exactly once here. The parent callback only
-      // updates React state; it must never write this record a second time.
-      const { data, error } = await supabase
-        .from('property_submissions')
-        .insert(payload)
-        .select('*')
-        .single();
+      const isApprovedPropertyUpdate = Boolean(
+        sub.id && isUUID(sub.id) && sub.approvedPropertyId
+      );
+      if (isApprovedPropertyUpdate) {
+        delete payload.id;
+      }
+
+      // Approved listings are edited through their linked submission. The
+      // database returns that submission to pending while the live property
+      // remains unchanged until an administrator approves the update.
+      const query = isApprovedPropertyUpdate
+        ? supabase
+            .from('property_submissions')
+            .update(payload)
+            .eq('id', sub.id as string)
+            .eq('owner_id', currentUserId)
+        : supabase.from('property_submissions').insert(payload);
+
+      const { data, error } = await query.select('*').single();
       if (error) throw error;
       return {
         id: data.id,
@@ -641,6 +653,7 @@ const currentUserId = authData.user.id;
         videoUrl: data.video_url,
         status: data.status || 'pending',
         submittedAt: data.submitted_at,
+        approvedPropertyId: data.approved_property_id || undefined,
       } as PropertySubmission;
     } catch (e) {
       console.error('Supabase saveSubmission error:', e);
@@ -661,7 +674,7 @@ const currentUserId = authData.user.id;
     try {
       const { data: rawSubmission, error: submissionError } = await supabase
         .from('property_submissions')
-        .select('images, videos, video_url')
+        .select('images, videos, video_url, approved_property_id')
         .eq('id', submissionId)
         .single();
       if (submissionError) throw submissionError;
@@ -717,7 +730,10 @@ const currentUserId = authData.user.id;
         .eq('id', submissionId);
       if (mediaUpdateError) throw mediaUpdateError;
 
-      const { data, error } = await supabase.rpc('approve_property_submission', {
+      const approvalFunction = rawSubmission.approved_property_id
+        ? 'approve_property_update'
+        : 'approve_property_submission';
+      const { data, error } = await supabase.rpc(approvalFunction, {
         p_submission_id: submissionId,
         p_audit_score: Math.max(0, Math.min(100, Math.round(auditScore))),
       });
