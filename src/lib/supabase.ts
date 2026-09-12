@@ -42,6 +42,7 @@ export interface AuthUserProfile {
   email: string;
   name: string;
   avatar?: string;
+  avatarPath?: string;
   role?: 'landlord' | 'agent' | 'developer' | 'admin';
   companyName?: string;
   phone?: string;
@@ -118,6 +119,7 @@ export async function signInWithEmail(
       email: authUser.email || email,
       name: profile?.name || authUser.user_metadata?.full_name || email.split('@')[0],
       avatar: profile?.avatar || authUser.user_metadata?.avatar_url,
+      avatarPath: profile?.avatarPath,
       role: profile.role,
       companyName: profile?.companyName || authUser.user_metadata?.company_name,
       phone: profile?.phone || authUser.user_metadata?.phone,
@@ -1035,6 +1037,21 @@ const currentUserId = authData.user.id;
       if (error) throw error;
       if (!data) return null;
 
+      let avatar = data.avatar_url || undefined;
+      const avatarPath =
+        avatar && !/^https?:\/\//i.test(avatar) ? avatar : undefined;
+
+      if (avatarPath) {
+        const { data: signedData, error: signedError } = await supabase.storage
+          .from('profile-avatars')
+          .createSignedUrl(avatarPath, 60 * 60);
+        if (!signedError && signedData?.signedUrl) {
+          avatar = signedData.signedUrl;
+        } else {
+          avatar = undefined;
+        }
+      }
+
       return {
         id: data.id,
         email: data.email,
@@ -1042,7 +1059,8 @@ const currentUserId = authData.user.id;
         phone: data.phone,
         companyName: data.company_name,
         role: data.role,
-        avatar: data.avatar_url,
+        avatar,
+        avatarPath,
         verified: data.verified,
       };
     } catch (e) {
@@ -1065,7 +1083,8 @@ const currentUserId = authData.user.id;
       if (profile.name !== undefined) payload.full_name = profile.name;
       if (profile.phone !== undefined) payload.phone = profile.phone || null;
       if (profile.companyName !== undefined) payload.company_name = profile.companyName || null;
-      if (profile.avatar !== undefined) payload.avatar_url = profile.avatar || null;
+      if (profile.avatarPath !== undefined) payload.avatar_url = profile.avatarPath || null;
+      else if (profile.avatar !== undefined) payload.avatar_url = profile.avatar || null;
 
       // Note: The frontend must never send or update 'role' or 'verified' through saveProfile()
       const { error } = await supabase
@@ -1081,6 +1100,40 @@ const currentUserId = authData.user.id;
     } catch (e) {
       console.error('Supabase saveProfile error:', e);
       return false;
+    }
+  },
+
+  async uploadProfileAvatar(
+    file: File,
+    userId: string
+  ): Promise<{ path: string; signedUrl: string } | null> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(userId)) return null;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024;
+    if (!allowedTypes.includes(file.type) || file.size > maxSize) return null;
+
+    try {
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${userId}/avatar-${Date.now()}.${fileExt}`;
+      const { data, error } = await supabase.storage
+        .from('profile-avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          contentType: file.type,
+          upsert: false,
+        });
+      if (error) throw error;
+
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('profile-avatars')
+        .createSignedUrl(data.path, 60 * 60);
+      if (signedError || !signedData?.signedUrl) throw signedError || new Error('Photo preview failed.');
+
+      return { path: data.path, signedUrl: signedData.signedUrl };
+    } catch (e) {
+      console.warn('Supabase uploadProfileAvatar error:', e);
+      return null;
     }
   },
 
