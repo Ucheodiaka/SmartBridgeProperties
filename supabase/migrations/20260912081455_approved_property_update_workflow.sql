@@ -135,5 +135,5 @@ begin
 end;
 $$;
 
-revoke all on function public.approve_property_update(uuid, integer) from public;
+revoke all on function public.approve_property_update(uuid, integer) from public, anon;
 grant execute on function public.approve_property_update(uuid, integer) to authenticated;
