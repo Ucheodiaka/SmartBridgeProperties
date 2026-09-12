@@ -136,9 +136,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   const liveListings =
     ownerSubmissions.filter((submission) =>
       submission.status === 'approved' ||
-      (Boolean(submission.approvedPropertyId) && ownerProperties.some(
-        (property) => property.id === submission.approvedPropertyId && property.status === 'approved'
-      ))
+      (submission.status === 'pending' && Boolean(submission.approvedPropertyId))
     ).length +
     unlinkedOwnerProperties.filter((property) => property.status === 'approved').length;
   const [signedImageUrls, setSignedImageUrls] = useState<Record<string, string>>({});
