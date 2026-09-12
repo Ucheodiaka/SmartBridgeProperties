@@ -6,30 +6,21 @@ import {
   Building2,
   MapPin,
   Camera,
+  Upload,
   CheckCircle2,
   ShieldCheck,
   Save,
   RotateCcw,
   Sparkles,
-  Database,
 } from 'lucide-react';
 import { OwnerAccount } from '../../types';
-import { supabaseDb, isSupabaseConfigured } from '../../lib/supabase';
+import { supabaseDb } from '../../lib/supabase';
 
 interface OwnerProfileEditorProps {
   currentOwner: OwnerAccount;
   onUpdateProfile: (updated: OwnerAccount) => void;
   onClose?: () => void;
 }
-
-const PRESET_AVATARS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
-];
 
 export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
   currentOwner,
@@ -47,10 +38,10 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
     currentOwner.bio ||
       'Verified property advertiser managing verified residential and commercial assets across Port Harcourt.'
   );
-  const [avatar, setAvatar] = useState(
-    currentOwner.avatar || PRESET_AVATARS[0]
-  );
-  const [customAvatarUrl, setCustomAvatarUrl] = useState('');
+  const [avatar, setAvatar] = useState(currentOwner.avatar || '');
+  const [avatarPath, setAvatarPath] = useState(currentOwner.avatarPath || '');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -69,25 +60,21 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
       address: address.trim(),
       bio: bio.trim(),
       avatar,
+      avatarPath,
       isVerifiedLandlord: true,
     };
 
     try {
       // 1. Save to Supabase Cloud Database
-      await supabaseDb.saveProfile({
+      const saved = await supabaseDb.saveProfile({
         id: updatedAccount.id,
         email: updatedAccount.email,
         name: updatedAccount.name,
         phone: updatedAccount.phone,
         companyName: updatedAccount.companyName,
-        role: listerType?.toLowerCase().includes('agent')
-          ? 'agent'
-          : listerType?.toLowerCase().includes('developer')
-          ? 'developer'
-          : 'landlord',
-        avatar: updatedAccount.avatar,
-        verified: true,
+        avatarPath: updatedAccount.avatarPath,
       });
+      if (!saved) throw new Error('Profile changes could not be saved.');
 
       // 2. Update local state
       onUpdateProfile(updatedAccount);
@@ -100,41 +87,43 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
     }
   };
 
-  const handleSelectPreset = (url: string) => {
-    setAvatar(url);
-    setCustomAvatarUrl('');
-  };
+  const handlePhotoUpload = async (file?: File) => {
+    if (!file) return;
 
-  const handleApplyCustomUrl = () => {
-    if (customAvatarUrl.trim()) {
-      setAvatar(customAvatarUrl.trim());
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setPhotoError('Please choose a JPG, PNG, or WebP image.');
+      return;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('The profile photo must be 5 MB or smaller.');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    setPhotoError(null);
+    const uploaded = await supabaseDb.uploadProfileAvatar(file, currentOwner.id);
+    if (!uploaded) {
+      setPhotoError('The photo could not be uploaded. Please try again.');
+      setIsUploadingPhoto(false);
+      return;
+    }
+
+    setAvatar(uploaded.signedUrl);
+    setAvatarPath(uploaded.path);
+    setIsUploadingPhoto(false);
   };
 
   return (
     <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#bfc9c3]/40 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-playfair text-lg sm:text-xl font-bold text-[#003527]">
-              Lister & Host Profile Settings
-            </h3>
-            <span className="bg-[#003527]/10 text-[#003527] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-[#003527]" /> Cloud Synced
-            </span>
-          </div>
-          <p className="text-xs text-[#707974] mt-1">
-            Manage your official contact details, branding, and credentials displayed to prospective buyers and tenants.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs">
-          <div className="px-3 py-1.5 rounded-lg bg-[#f0ede6] text-[#404944] font-mono flex items-center gap-1.5 border border-[#bfc9c3]/40">
-            <Database className="w-3.5 h-3.5 text-[#003527]" />
-            <span>{isSupabaseConfigured ? 'Supabase Connected' : 'Supabase Ready'}</span>
-          </div>
-        </div>
+      {/* Profile heading */}
+      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#bfc9c3]/40 shadow-xs">
+        <h3 className="font-playfair text-lg sm:text-xl font-bold text-[#003527]">
+          Lister & Host Profile Settings
+        </h3>
+        <p className="text-xs text-[#707974] mt-1">
+          Manage your official contact details and private profile photo.
+        </p>
       </div>
 
       {savedSuccess && (
@@ -153,51 +142,44 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Columns: Editable Inputs */}
         <div className="lg:col-span-2 space-y-5 bg-white p-5 sm:p-6 rounded-2xl border border-[#bfc9c3]/40 shadow-xs">
-          {/* Avatar Selector */}
+          {/* Private profile photo */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-[#707974] mb-2 flex items-center gap-1.5">
               <Camera className="w-3.5 h-3.5 text-[#003527]" />
-              Profile Photo & Avatar
+              Private Profile Photo
             </label>
-            <div className="flex flex-wrap items-center gap-3">
-              {PRESET_AVATARS.map((url, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => handleSelectPreset(url)}
-                  className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-all cursor-pointer relative ${
-                    avatar === url
-                      ? 'border-[#003527] ring-2 ring-[#003527]/30 scale-105'
-                      : 'border-transparent opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <img src={url} alt={`Avatar option ${i + 1}`} className="w-full h-full object-cover" />
-                  {avatar === url && (
-                    <div className="absolute inset-0 bg-[#003527]/20 flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 text-white drop-shadow-sm" />
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Custom Avatar URL input */}
-            <div className="mt-3 flex gap-2">
-              <input
-                type="url"
-                value={customAvatarUrl}
-                onChange={(e) => setCustomAvatarUrl(e.target.value)}
-                placeholder="Or paste custom image URL (https://...)"
-                className="flex-1 px-3 py-2 text-xs rounded-lg border border-[#bfc9c3] focus:outline-hidden focus:border-[#003527]"
-              />
-              <button
-                type="button"
-                onClick={handleApplyCustomUrl}
-                disabled={!customAvatarUrl.trim()}
-                className="px-3 py-2 bg-[#f0ede6] hover:bg-[#e4dfd5] text-[#003527] text-xs font-bold rounded-lg border border-[#bfc9c3]/60 cursor-pointer disabled:opacity-50"
-              >
-                Apply
-              </button>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              {avatar ? (
+                <img
+                  src={avatar}
+                  alt="Current profile"
+                  className="w-20 h-20 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-xs"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-2xl bg-[#003527]/10 text-[#003527] flex items-center justify-center border-2 border-[#003527]/20">
+                  <User className="w-8 h-8" />
+                </div>
+              )}
+              <div className="space-y-2">
+                <label className="inline-flex items-center gap-2 bg-[#003527] hover:bg-[#064e3b] text-white font-semibold text-xs px-4 py-2.5 rounded-xl cursor-pointer">
+                  <Upload className="w-4 h-4 text-[#fed65b]" />
+                  {isUploadingPhoto ? 'Uploading Photo...' : 'Upload Profile Photo'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={isUploadingPhoto}
+                    onChange={(event) => {
+                      void handlePhotoUpload(event.target.files?.[0]);
+                      event.currentTarget.value = '';
+                    }}
+                  />
+                </label>
+                <p className="text-[11px] text-[#707974]">
+                  JPG, PNG, or WebP. Maximum size: 5 MB. Your photo remains private.
+                </p>
+                {photoError && <p className="text-xs text-red-600 font-semibold">{photoError}</p>}
+              </div>
             </div>
           </div>
 
@@ -322,7 +304,9 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
                 setEmail(currentOwner.email);
                 setPhone(currentOwner.phone);
                 setCompanyName(currentOwner.companyName || '');
-                setAvatar(currentOwner.avatar || PRESET_AVATARS[0]);
+                setAvatar(currentOwner.avatar || '');
+                setAvatarPath(currentOwner.avatarPath || '');
+                setPhotoError(null);
               }}
               className="inline-flex items-center gap-1.5 text-xs text-[#707974] hover:text-[#1b1c1c] font-semibold transition-colors cursor-pointer"
             >
@@ -362,11 +346,17 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
             </div>
 
             <div className="flex items-center gap-4 mt-2">
-              <img
-                src={avatar}
-                alt={name || 'Lister'}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-xs"
-              />
+              {avatar ? (
+                <img
+                  src={avatar}
+                  alt={name || 'Lister'}
+                  className="w-16 h-16 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-xs"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl bg-[#003527]/10 text-[#003527] flex items-center justify-center border-2 border-[#003527]/20 shadow-xs">
+                  <User className="w-7 h-7" />
+                </div>
+              )}
               <div className="min-w-0">
                 <h4 className="font-playfair font-bold text-base text-[#003527] truncate">
                   {name || 'Your Full Name'}

@@ -13,7 +13,6 @@ import {
   Video,
   Eye,
   EyeOff,
-  MessageSquare,
   Clock,
   ArrowRight,
   LogOut,
@@ -81,9 +80,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   onClose,
   properties,
   submissions,
-  inquiries,
   onOpenListProperty,
-  onUpdateInquiryStatus,
   initialAuthTab = 'signin',
   onUpdateOwner,
 }) => {
@@ -105,7 +102,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Dashboard Tab State
-  const [activeTab, setActiveTab] = useState<'properties' | 'inquiries' | 'audits' | 'profile'>('properties');
+  const [activeTab, setActiveTab] = useState<'properties' | 'profile'>('properties');
 
   // Filter properties and inquiries for current logged-in owner
   const ownerProperties = currentOwner
@@ -124,9 +121,18 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
       )
     : [];
 
-  const inReviewSubmissions = ownerSubmissions.filter((s) =>
-    ['draft', 'pending'].includes(s.status || 'pending')
+  // An approved submission and its published property represent one listing,
+  // so exclude linked properties before calculating totals or rendering cards.
+  const linkedPropertyIds = new Set(
+    ownerSubmissions.map((submission) => submission.approvedPropertyId).filter(Boolean)
   );
+  const unlinkedOwnerProperties = ownerProperties.filter(
+    (property) => !linkedPropertyIds.has(property.id)
+  );
+  const totalListings = ownerSubmissions.length + unlinkedOwnerProperties.length;
+  const liveListings =
+    ownerSubmissions.filter((submission) => submission.status === 'approved').length +
+    unlinkedOwnerProperties.filter((property) => property.status === 'approved').length;
   const [signedImageUrls, setSignedImageUrls] = useState<Record<string, string>>({});
   const privateImagePaths = useMemo(
     () => Array.from(new Set(ownerSubmissions.flatMap((s) => s.images || []).filter((path) => !/^https?:\/\//i.test(path)))),
@@ -159,13 +165,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
     };
   }, [privateImagePaths]);
 
-  const ownerInquiries = currentOwner
-    ? inquiries.filter(
-        (inq) => inq.ownerEmail?.toLowerCase() === currentOwner.email.toLowerCase()
-      )
-    : [];
-
-  // 1. Google Optional Auth Handler
+  // 1. Google Optional Auth Handler  // 1. Google Optional Auth Handler
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     setAuthError(null);
@@ -823,16 +823,16 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                 </div>
               </div>
 
-              {/* Stats Summary Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              {/* Lister Summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/40 shadow-2xs">
                   <span className="text-[10px] font-bold text-[#707974] uppercase tracking-wider block">
                     My Total Listings
                   </span>
                   <p className="font-playfair text-2xl font-bold text-[#003527] mt-1">
-                    {ownerProperties.length + ownerSubmissions.filter((s) => s.status !== 'approved').length}
+                    {totalListings}
                   </p>
-                  <span className="text-[10px] text-[#707974]">Direct Port Harcourt Assets</span>
+                  <span className="text-[10px] text-[#707974]">Properties submitted by this account</span>
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/40 shadow-2xs">
@@ -840,34 +840,10 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                     Live On Marketplace
                   </span>
                   <p className="font-playfair text-2xl font-bold text-emerald-700 mt-1">
-                    {ownerProperties.length}
+                    {liveListings}
                   </p>
                   <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Fully Verified
-                  </span>
-                </div>
-
-                <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/40 shadow-2xs">
-                  <span className="text-[10px] font-bold text-[#707974] uppercase tracking-wider block">
-                    Under Inspection
-                  </span>
-                  <p className="font-playfair text-2xl font-bold text-amber-700 mt-1">
-                    {inReviewSubmissions.length}
-                  </p>
-                  <span className="text-[10px] text-amber-700 font-semibold flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> In Verification
-                  </span>
-                </div>
-
-                <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/40 shadow-2xs">
-                  <span className="text-[10px] font-bold text-[#707974] uppercase tracking-wider block">
-                    Buyer Inquiries
-                  </span>
-                  <p className="font-playfair text-2xl font-bold text-[#003527] mt-1">
-                    {ownerInquiries.length}
-                  </p>
-                  <span className="text-[10px] text-[#003527] font-semibold flex items-center gap-1">
-                    <MessageSquare className="w-3 h-3" /> Leads Received
+                    <CheckCircle2 className="w-3 h-3" /> Available to property seekers
                   </span>
                 </div>
               </div>
@@ -883,43 +859,8 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                   }`}
                 >
                   <Building2 className="w-4 h-4" />
-                  My Properties ({ownerProperties.length + ownerSubmissions.length})
+                  My Properties ({totalListings})
                   {activeTab === 'properties' && (
-                    <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
-                  )}
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('inquiries')}
-                  className={`pb-3 text-xs sm:text-sm font-bold transition-colors relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                    activeTab === 'inquiries'
-                      ? 'text-[#003527]'
-                      : 'text-[#707974] hover:text-[#003527]'
-                  }`}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  Buyer Inquiries & Leads ({ownerInquiries.length})
-                  {ownerInquiries.length > 0 && (
-                    <span className="bg-[#003527] text-[#fed65b] text-[9px] font-bold px-1.5 py-0.2 rounded-full">
-                      New
-                    </span>
-                  )}
-                  {activeTab === 'inquiries' && (
-                    <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
-                  )}
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('audits')}
-                  className={`pb-3 text-xs sm:text-sm font-bold transition-colors relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                    activeTab === 'audits'
-                      ? 'text-[#003527]'
-                      : 'text-[#707974] hover:text-[#003527]'
-                  }`}
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  Inspection & Audit Status
-                  {activeTab === 'audits' && (
                     <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
                   )}
                 </button>
@@ -940,7 +881,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                 </button>
               </div>
 
-              {/* TAB 1: MY PROPERTIES */}
+              {/* TAB 1: MY PROPERTIES */}              {/* TAB 1: MY PROPERTIES */}
               {activeTab === 'properties' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -958,7 +899,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                     </button>
                   </div>
 
-                  {ownerProperties.length === 0 && ownerSubmissions.length === 0 ? (
+                  {totalListings === 0 ? (
                     <div className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-8 text-center space-y-3">
                       <div className="w-12 h-12 rounded-full bg-[#003527]/10 text-[#003527] flex items-center justify-center mx-auto">
                         <Building2 className="w-6 h-6" />
@@ -980,12 +921,12 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
                       {/* Active Verified Properties */}
-                      {ownerProperties.map((property) => (
+                      {unlinkedOwnerProperties.map((property) => (
                         <div
                           key={property.id}
-                          className="bg-white rounded-2xl border border-[#bfc9c3]/40 overflow-hidden shadow-xs flex flex-col self-start w-full"
+                          className="bg-white rounded-2xl border border-[#bfc9c3]/40 overflow-hidden shadow-xs flex flex-col w-full h-[28rem] sm:h-[30rem]"
                         >
                           <div className="relative h-52 sm:h-56 overflow-hidden bg-black/5 shrink-0">
                             <img
@@ -1008,7 +949,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                             )}
                           </div>
 
-                          <div className="p-4 space-y-2">
+                          <div className="p-4 space-y-2 flex-1 min-h-0 overflow-y-auto">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-[#003527]">
                                 {property.location}
@@ -1024,14 +965,6 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                               {property.description}
                             </p>
 
-                            <div className="pt-2 border-t border-[#bfc9c3]/30 flex items-center justify-between text-[11px]">
-                              <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                                <ShieldCheck className="w-3 h-3" /> Audit Score: {property.inspectionReport.overallScore}/100
-                              </span>
-                              <span className="text-[#003527] font-bold">
-                                {inquiries.filter((i) => i.propertyId === property.id).length} Inquiries Received
-                              </span>
-                            </div>
                           </div>
                         </div>
                       ))}
@@ -1055,7 +988,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                         return (
                         <div
                           key={sub.id || Math.random()}
-                          className={`${isApproved ? 'bg-emerald-50/50 border-emerald-300/60' : isUnavailable ? 'bg-slate-50/70 border-slate-300/70' : 'bg-amber-50/50 border-amber-300/60'} rounded-2xl border overflow-hidden shadow-xs flex flex-col self-start w-full`}
+                          className={`${isApproved ? 'bg-emerald-50/50 border-emerald-300/60' : isUnavailable ? 'bg-slate-50/70 border-slate-300/70' : 'bg-amber-50/50 border-amber-300/60'} rounded-2xl border overflow-hidden shadow-xs flex flex-col w-full h-[28rem] sm:h-[30rem]`}
                         >
                           <div className="relative h-52 sm:h-56 overflow-hidden bg-black/10 shrink-0">
                             {coverUrl ? (
@@ -1077,7 +1010,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                             </div>
                           </div>
 
-                          <div className="p-4 space-y-2">
+                          <div className="p-4 space-y-2 flex-1 min-h-0 overflow-y-auto">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-amber-800">
                                 {sub.location}
@@ -1093,14 +1026,6 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                               {sub.description}
                             </p>
 
-                            <div className="pt-2 border-t border-amber-200/60 flex items-center justify-between text-[11px]">
-                              <span className="text-amber-800 font-semibold">
-                                Inspector: {sub.assignedInspector || 'Triage Dispatch'}
-                              </span>
-                              <span className="text-amber-900 font-bold">
-                                Title: {sub.titleDocType}
-                              </span>
-                            </div>
                           </div>
                         </div>
                       );})}
@@ -1109,152 +1034,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                 </div>
               )}
 
-              {/* TAB 2: INCOMING INQUIRIES & LEADS */}
-              {activeTab === 'inquiries' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-[#707974] uppercase tracking-wider">
-                      Buyer & Tenant Inquiries Received ({ownerInquiries.length})
-                    </h4>
-                    <span className="text-[11px] text-[#003527] font-semibold">
-                      Protected by SmartBridge Concierge
-                    </span>
-                  </div>
-
-                  {ownerInquiries.length === 0 ? (
-                    <div className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-8 text-center space-y-2">
-                      <MessageSquare className="w-10 h-10 text-[#707974] mx-auto opacity-40" />
-                      <h4 className="font-playfair text-base font-bold text-[#003527]">
-                        No Inquiries Yet
-                      </h4>
-                      <p className="text-xs text-[#707974]">
-                        When prospective buyers fill the inquiry form on your properties, their messages will appear directly here.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {ownerInquiries.map((inq) => (
-                        <div
-                          key={inq.id}
-                          className={`p-4 rounded-xl border transition-all ${
-                            inq.status === 'new'
-                              ? 'bg-emerald-50/40 border-emerald-300 shadow-xs'
-                              : 'bg-white border-[#bfc9c3]/50'
-                          }`}
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[#bfc9c3]/30">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h5 className="font-bold text-sm text-[#1b1c1c]">{inq.buyerName}</h5>
-                                <span className="bg-[#003527]/10 text-[#003527] text-[10px] font-bold px-1.5 py-0.2 rounded-xs">
-                                  {inq.inquiryType.toUpperCase()}
-                                </span>
-                                {inq.smartBridgeEscrowRequested && (
-                                  <span className="bg-[#fed65b]/30 text-[#735c00] text-[9px] font-bold px-1.5 py-0.2 rounded-xs flex items-center gap-0.5">
-                                    <ShieldCheck className="w-2.5 h-2.5" /> Escrow Protected
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[11px] text-[#707974] mt-0.5">
-                                Regarding: <strong>{inq.propertyTitle}</strong> ({inq.propertyLocation})
-                              </p>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              {inq.offerAmount && (
-                                <div className="text-right">
-                                  <span className="text-[10px] text-[#707974] block">Offer Amount</span>
-                                  <span className="text-xs font-bold text-[#003527]">
-                                    {inq.offerAmount}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="py-3">
-                            <p className="text-xs text-[#404944] italic bg-white/80 p-3 rounded-lg border border-[#bfc9c3]/20">
-                              "{inq.message}"
-                            </p>
-                          </div>
-
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs">
-                            <div className="flex items-center gap-3 text-[#707974]">
-                              <span className="flex items-center gap-1">
-                                <Phone className="w-3 h-3 text-[#003527]" /> {inq.buyerPhone}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Mail className="w-3 h-3 text-[#003527]" /> {inq.buyerEmail}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <a
-                                href={`https://wa.me/${inq.buyerPhone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(inq.buyerName)},%20I%20am%20contacting%20you%20regarding%20your%20inquiry%20on%20SmartBridge%20for%20${encodeURIComponent(inq.propertyTitle)}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-lg text-xs hover:bg-emerald-700 transition-colors flex items-center gap-1"
-                              >
-                                <Phone className="w-3 h-3" /> Reply on WhatsApp
-                              </a>
-                              {inq.status === 'new' && (
-                                <button
-                                  type="button"
-                                  onClick={() => onUpdateInquiryStatus(inq.id, 'contacted')}
-                                  className="bg-[#003527]/10 text-[#003527] font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-[#003527]/20 transition-colors cursor-pointer"
-                                >
-                                  Mark as Contacted
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* TAB 3: INSPECTION & AUDIT STATUS */}
-              {activeTab === 'audits' && (
-                <div className="space-y-4">
-                  <div className="bg-[#003527]/5 p-4 rounded-xl border border-[#003527]/20 flex items-start gap-3">
-                    <ShieldCheck className="w-5 h-5 text-[#003527] shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-bold text-xs text-[#003527] uppercase">
-                        The 5-Point Port Harcourt Physical Audit
-                      </h4>
-                      <p className="text-xs text-[#404944] mt-0.5 leading-relaxed">
-                        To maintain buyer confidence, SmartBridge field inspection engineers verify
-                        all foundations, power generators, drainage channels, and Ministry of Lands
-                        title deeds before approving listings for the public registry.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/40 space-y-1.5">
-                      <span className="text-[10px] font-bold text-[#707974] uppercase">1. Legal Title Clearance</span>
-                      <p className="text-xs font-semibold text-[#1b1c1c]">Rivers State Ministry of Lands Cadastral Search</p>
-                      <span className="text-[10px] text-emerald-700 font-bold block">✓ Guaranteed Clean Title</span>
-                    </div>
-
-                    <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/40 space-y-1.5">
-                      <span className="text-[10px] font-bold text-[#707974] uppercase">2. Topography & Flood Index</span>
-                      <p className="text-xs font-semibold text-[#1b1c1c]">Port Harcourt Wet-Season Runoff Elevation</p>
-                      <span className="text-[10px] text-emerald-700 font-bold block">✓ Zero Flood Risk Certified</span>
-                    </div>
-
-                    <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/40 space-y-1.5">
-                      <span className="text-[10px] font-bold text-[#707974] uppercase">3. Structural & Power Audit</span>
-                      <p className="text-xs font-semibold text-[#1b1c1c]">Dedicated Transformers, Inverters, & Concrete Slabs</p>
-                      <span className="text-[10px] text-emerald-700 font-bold block">✓ 100% Passed</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 4: PROFILE EDITOR */}
+              {/* TAB 4: PROFILE EDITOR */}              {/* TAB 4: PROFILE EDITOR */}
               {activeTab === 'profile' && (
                 <div className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-5 sm:p-7 shadow-xs">
                   <OwnerProfileEditor

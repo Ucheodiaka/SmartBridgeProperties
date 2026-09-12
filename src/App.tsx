@@ -158,6 +158,7 @@ export default function App() {
           phone: profile.phone || '',
           companyName: profile.companyName || 'Property Lister',
           avatar: profile.avatar,
+          avatarPath: profile.avatarPath,
           isVerifiedLandlord: Boolean(profile.verified),
           joinedAt: new Date().toISOString().split('T')[0],
         });

@@ -142,6 +142,7 @@ export interface OwnerAccount {
   role?: 'landlord' | 'agent' | 'developer';
   companyName?: string;
   avatar?: string;
+  avatarPath?: string;
   isVerifiedLandlord: boolean;
   joinedAt: string;
   listerType?: 'Landlord / Property Owner' | 'Registered Real Estate Agent' | 'Property Developer';
