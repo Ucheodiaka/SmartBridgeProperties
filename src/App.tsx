@@ -528,11 +528,14 @@ export default function App() {
       prev.map((item) => (item.id === result.submission.id ? result.submission : item))
     );
 
+    const wasPropertyUpdate = Boolean(submission.approvedPropertyId);
     addToast(
-      result.alreadyApproved
-        ? `Listing "${submission.title}" was already approved. No duplicate was created.`
-        : `Listing "${submission.title}" approved and published to the live marketplace!`,
-      result.alreadyApproved ? 'info' : 'success'
+      wasPropertyUpdate
+        ? `Property update for "${submission.title}" approved and published to the marketplace!`
+        : result.alreadyApproved
+          ? `Listing "${submission.title}" was already approved. No duplicate was created.`
+          : `Listing "${submission.title}" approved and published to the live marketplace!`,
+      wasPropertyUpdate || !result.alreadyApproved ? 'success' : 'info'
     );
   };
 
