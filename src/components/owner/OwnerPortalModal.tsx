@@ -21,7 +21,6 @@ import {
   Check,
   Calendar,
   Settings,
-  Pencil,
 } from 'lucide-react';
 import {
   OwnerAccount,
@@ -37,6 +36,7 @@ import {
   supabase,
 } from '../../lib/supabase';
 import { OwnerProfileEditor } from './OwnerProfileEditor';
+import { OwnerPropertyDetailModal } from './OwnerPropertyDetailModal';
 
 // Reusable Google SVG Icon
 const GoogleIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
@@ -106,6 +106,10 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
 
   // Dashboard Tab State
   const [activeTab, setActiveTab] = useState<'properties' | 'profile'>('properties');
+  const [selectedListing, setSelectedListing] = useState<{
+    property?: Property;
+    submission?: PropertySubmission;
+  } | null>(null);
 
   // Filter properties and inquiries for current logged-in owner
   const ownerProperties = currentOwner
@@ -934,7 +938,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                           key={property.id}
                           className="bg-white rounded-2xl border border-[#bfc9c3]/40 overflow-hidden shadow-xs flex flex-col w-full h-[28rem] sm:h-[30rem]"
                         >
-                          <div className="relative h-52 sm:h-56 overflow-hidden bg-black/5 shrink-0">
+                          <button type="button" onClick={() => setSelectedListing({ property })} className="relative h-52 sm:h-56 overflow-hidden bg-black/5 shrink-0 cursor-pointer text-left" aria-label={`View details for ${property.title}`}>
                             <img
                               src={property.images[0]}
                               alt={property.title}
@@ -953,7 +957,8 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                                 <Video className="w-2.5 h-2.5 text-[#fed65b]" /> 4K Tour
                               </span>
                             )}
-                          </div>
+                            <span className="absolute bottom-2 left-2 bg-black/65 text-white text-[9px] font-bold px-2 py-1 rounded">View property details</span>
+                          </button>
 
                           <div className="p-4 space-y-2 flex-1 min-h-0 overflow-y-auto">
                             <div className="flex items-center justify-between">
@@ -999,7 +1004,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                           key={sub.id || Math.random()}
                           className={`${isApproved ? 'bg-emerald-50/50 border-emerald-300/60' : isUnavailable ? 'bg-slate-50/70 border-slate-300/70' : 'bg-amber-50/50 border-amber-300/60'} rounded-2xl border overflow-hidden shadow-xs flex flex-col w-full h-[28rem] sm:h-[30rem]`}
                         >
-                          <div className="relative h-52 sm:h-56 overflow-hidden bg-black/10 shrink-0">
+                          <button type="button" onClick={() => setSelectedListing({ submission: sub })} className="relative h-52 sm:h-56 overflow-hidden bg-black/10 shrink-0 cursor-pointer text-left" aria-label={`View details for ${sub.title}`}>
                             {coverUrl ? (
                               <img
                                 src={coverUrl}
@@ -1017,7 +1022,8 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                                 {statusLabel}
                               </span>
                             </div>
-                          </div>
+                            <span className="absolute bottom-2 left-2 bg-black/65 text-white text-[9px] font-bold px-2 py-1 rounded">View property details</span>
+                          </button>
 
                           <div className="p-4 space-y-2 flex-1 min-h-0 overflow-y-auto">
                             <div className="flex items-center justify-between">
@@ -1035,22 +1041,25 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                               {sub.description}
                             </p>
 
-                            {isApproved && (
-                              <button
-                                type="button"
-                                onClick={() => onEditSubmission(sub)}
-                                className="inline-flex items-center gap-1.5 mt-2 rounded-lg bg-[#003527] px-3 py-2 text-[11px] font-bold text-[#fed65b] hover:bg-[#064e3b] cursor-pointer"
-                              >
-                                <Pencil className="w-3.5 h-3.5" /> Edit Property
-                              </button>
-                            )}
-
                           </div>
                         </div>
                       );})}
                     </div>
                   )}
                 </div>
+              )}
+
+              {selectedListing && (
+                <OwnerPropertyDetailModal
+                  property={selectedListing.property}
+                  submission={selectedListing.submission}
+                  onClose={() => setSelectedListing(null)}
+                  onEdit={selectedListing.submission?.status === 'approved' ? () => {
+                    const submission = selectedListing.submission;
+                    setSelectedListing(null);
+                    if (submission) onEditSubmission(submission);
+                  } : undefined}
+                />
               )}
 
               {/* TAB 4: PROFILE EDITOR */}              {/* TAB 4: PROFILE EDITOR */}
