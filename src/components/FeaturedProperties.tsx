@@ -25,7 +25,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
   const featured = markedFeatured.length > 0 ? markedFeatured : properties.slice(0, 3);
 
   return (
-    <section className="py-12 sm:py-16 md:py-24 lg:py-28 px-4 sm:px-6 md:px-12 lg:px-16 max-w-[1280px] mx-auto">
+    <section className="pt-10 pb-8 sm:pt-12 sm:pb-10 md:pt-16 md:pb-12 px-4 sm:px-6 md:px-12 lg:px-16 max-w-[1280px] mx-auto">
       {/* Section Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-end gap-3 sm:gap-4 mb-8 sm:mb-12">
         <div>

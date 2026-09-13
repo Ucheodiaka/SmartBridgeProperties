@@ -30,7 +30,7 @@ export const TrustStats: React.FC = () => {
   ];
 
   return (
-    <section className="bg-[#fbf9f8] border-y border-[#bfc9c3]/30 py-8 sm:py-12 md:py-16">
+    <section className="bg-[#fbf9f8] border-y border-[#bfc9c3]/30 py-6 sm:py-8 md:py-10">
       <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
           {stats.map((stat) => {
