@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Menu, X, Heart, ShieldCheck, Shield, UserCheck, KeyRound, Lock, User } from 'lucide-react';
+import { Building2, Menu, X, ShieldCheck, Shield, UserCheck, KeyRound, Lock, User } from 'lucide-react';
 import { OwnerAccount, AdminStaffAccount } from '../types';
 
 interface NavbarProps {
@@ -7,8 +7,6 @@ interface NavbarProps {
   onNavigate: (screen: string) => void;
   onOpenListProperty: () => void;
   onOpenAboutProcess: () => void;
-  savedCount: number;
-  onOpenSaved: () => void;
   onOpenPortalGate: () => void;
   currentOwner?: OwnerAccount | null;
   currentAdminStaff?: AdminStaffAccount | null;
@@ -19,8 +17,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigate,
   onOpenListProperty,
   onOpenAboutProcess,
-  savedCount,
-  onOpenSaved,
   onOpenPortalGate,
   currentOwner,
   currentAdminStaff,
@@ -142,21 +138,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          {/* Saved wishlist button */}
-          <button
-            id="nav-saved-button"
-            onClick={onOpenSaved}
-            className="p-2 lg:p-2.5 rounded-lg border border-[#bfc9c3]/50 text-[#404944] hover:text-[#003527] hover:border-[#003527] hover:bg-white transition-all relative cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center shrink-0"
-            title="Saved Properties"
-          >
-            <Heart className={`w-4 h-4 lg:w-5 lg:h-5 ${savedCount > 0 ? 'fill-[#ba1a1a] text-[#ba1a1a]' : ''}`} />
-            {savedCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#003527] text-white text-[10px] lg:text-[11px] font-bold w-4.5 h-4.5 lg:w-5 lg:h-5 rounded-full flex items-center justify-center border-2 border-[#FCF9F2]">
-                {savedCount}
-              </span>
-            )}
-          </button>
-
           {/* List Your Property CTA */}
           <button
             id="nav-list-property-button"
@@ -190,19 +171,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <KeyRound className="w-3.5 h-3.5 text-[#735c00]" />
             <span>Portal</span>
-          </button>
-
-          <button
-            id="nav-mobile-saved-button"
-            onClick={onOpenSaved}
-            className="p-1.5 sm:p-2 rounded-lg text-[#404944] hover:text-[#003527] relative cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
-          >
-            <Heart className={`w-5 h-5 ${savedCount > 0 ? 'fill-[#ba1a1a] text-[#ba1a1a]' : ''}`} />
-            {savedCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#003527] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                {savedCount}
-              </span>
-            )}
           </button>
 
           <button
@@ -274,5 +242,4 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
-
 

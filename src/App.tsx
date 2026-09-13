@@ -633,11 +633,6 @@ export default function App() {
         onNavigate={handleNavigate}
         onOpenListProperty={() => setIsListPropertyOpen(true)}
         onOpenAboutProcess={() => setIsAboutProcessOpen(true)}
-        savedCount={savedIds.length}
-        onOpenSaved={() => {
-          setActiveScreen('saved');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
         onOpenPortalGate={() => setIsPortalGateOpen(true)}
         currentOwner={currentOwner}
         currentAdminStaff={currentAdminStaff}
@@ -676,6 +671,7 @@ export default function App() {
 
             {/* 4. Prime Port Harcourt Neighborhoods Explorer */}
             <NeighborhoodExplorer
+              properties={publicProperties}
               onSelectNeighborhood={handleSelectNeighborhood}
             />
           </div>
