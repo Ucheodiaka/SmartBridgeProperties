@@ -12,10 +12,11 @@ alter table public.inspection_bookings
   add column if not exists lister_id uuid references auth.users(id) on delete set null;
 
 update public.properties p
-set owner_company_name = coalesce(nullif(trim(pr.company_name), ''), nullif(trim(pr.full_name), ''), nullif(trim(p.owner_name), ''))
+set owner_company_name = coalesce(nullif(trim(p.owner_company_name), ''), nullif(trim(pr.company_name), ''), nullif(trim(pr.full_name), ''), nullif(trim(p.owner_name), '')),
+    owner_phone = coalesce(nullif(trim(p.owner_phone), ''), nullif(trim(pr.phone), ''))
 from public.profiles pr
 where pr.id = p.owner_id
-  and p.owner_company_name is null;
+  and (nullif(trim(p.owner_company_name), '') is null or nullif(trim(p.owner_phone), '') is null);
 
 update public.property_inquiries i
 set lister_id = p.owner_id,
