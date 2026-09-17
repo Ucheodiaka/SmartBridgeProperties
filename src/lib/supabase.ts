@@ -821,10 +821,9 @@ const currentUserId = authData.user.id;
   async fetchInquiries(forLister = false): Promise<PropertyInquiry[] | null> {
     if (!isSupabaseConfigured || !supabase) return null;
     try {
-      const { data, error } = await supabase
-        .from(forLister ? 'lister_property_inquiries' : 'property_inquiries')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = forLister
+        ? await supabase.rpc('fetch_my_property_inquiries')
+        : await supabase.from('property_inquiries').select('*').order('created_at', { ascending: false });
 
       if (error) throw error;
       if (!data || data.length === 0) return null;
@@ -949,10 +948,9 @@ const currentUserId = authData.user.id;
   async fetchBookings(forLister = false): Promise<InspectionBooking[] | null> {
     if (!isSupabaseConfigured || !supabase) return null;
     try {
-      const { data, error } = await supabase
-        .from(forLister ? 'lister_inspection_bookings' : 'inspection_bookings')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = forLister
+        ? await supabase.rpc('fetch_my_inspection_bookings')
+        : await supabase.from('inspection_bookings').select('*').order('created_at', { ascending: false });
 
       if (error) throw error;
       if (!data || data.length === 0) return null;
