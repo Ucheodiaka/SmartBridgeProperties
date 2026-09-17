@@ -451,7 +451,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           )}
 
           {/* Verified lister contact section */}
-          <div className="bg-white p-6 rounded-2xl border border-[#bfc9c3]/30 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="bg-white p-6 rounded-2xl border border-[#bfc9c3]/30 shadow-xs flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div
                 className="w-14 h-14 rounded-xl border-2 border-[#fed65b] bg-[#003527] text-[#fed65b] flex items-center justify-center shrink-0"
@@ -470,17 +470,17 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto">
               <button
                 onClick={() => onOpenInquiry?.(property)}
-                className="flex-1 sm:flex-none bg-[#003527] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                className="w-full bg-[#003527] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
               >
                 <MessageSquare className="w-4 h-4 text-[#fed65b]" />
                 Send Enquiry / Offer to Lister
               </button>
               <button
                 onClick={() => onScheduleInspection(property)}
-                className="flex-1 sm:flex-none bg-[#003527] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                className="w-full bg-[#003527] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
               >
                 <Calendar className="w-4 h-4 text-[#fed65b]" />
                 Request Viewing with Lister
