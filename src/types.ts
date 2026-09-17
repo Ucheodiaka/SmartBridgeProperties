@@ -67,6 +67,8 @@ export interface Property {
   ownerId?: string;
   ownerEmail?: string;
   ownerName?: string;
+  ownerPhone?: string;
+  ownerCompanyName?: string;
   status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'unpublished' | 'sold' | 'rented';
 }
 
@@ -99,6 +101,7 @@ export interface InspectionBooking {
   status: BookingStatus;
   createdAt: string;
   assignedSpecialist?: string;
+  listerId?: string;
 }
 
 export type PropertyStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'unpublished' | 'sold' | 'rented';
@@ -169,6 +172,7 @@ export interface PropertyInquiry {
   propertyPrice?: string;
   ownerEmail: string;
   ownerName?: string;
+  listerId?: string;
   buyerName: string;
   buyerPhone: string;
   buyerEmail: string;
@@ -197,5 +201,4 @@ export interface AdminStaffAccount {
   pin: string;
   badge?: string;
 }
-
 

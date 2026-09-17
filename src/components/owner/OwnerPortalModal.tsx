@@ -21,12 +21,14 @@ import {
   Check,
   Calendar,
   Settings,
+  MessageSquare,
 } from 'lucide-react';
 import {
   OwnerAccount,
   Property,
   PropertySubmission,
   PropertyInquiry,
+  InspectionBooking,
 } from '../../types';
 import {
   signInWithGoogle,
@@ -68,6 +70,7 @@ interface OwnerPortalModalProps {
   properties: Property[];
   submissions: PropertySubmission[];
   inquiries: PropertyInquiry[];
+  bookings: InspectionBooking[];
   onOpenListProperty: () => void;
   onUpdateInquiryStatus: (inquiryId: string, status: PropertyInquiry['status']) => void;
   initialAuthTab?: 'create' | 'signin';
@@ -82,6 +85,9 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   onClose,
   properties,
   submissions,
+  inquiries,
+  bookings,
+  onUpdateInquiryStatus,
   onOpenListProperty,
   initialAuthTab = 'signin',
   onUpdateOwner,
@@ -105,7 +111,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Dashboard Tab State
-  const [activeTab, setActiveTab] = useState<'properties' | 'profile'>('properties');
+  const [activeTab, setActiveTab] = useState<'properties' | 'inquiries' | 'viewings' | 'profile'>('properties');
   const [selectedListing, setSelectedListing] = useState<{
     property?: Property;
     submission?: PropertySubmission;
@@ -126,6 +132,13 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
           s.ownerId === currentOwner.id ||
           s.ownerEmail?.toLowerCase() === currentOwner.email.toLowerCase()
       )
+    : [];
+
+  const ownerInquiries = currentOwner
+    ? inquiries.filter((inquiry) => inquiry.listerId === currentOwner.id)
+    : [];
+  const ownerBookings = currentOwner
+    ? bookings.filter((booking) => booking.listerId === currentOwner.id)
     : [];
 
   // An approved submission and its published property represent one listing,
@@ -876,6 +889,28 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                 </button>
 
                 <button
+                  onClick={() => setActiveTab('inquiries')}
+                  className={`pb-3 text-xs sm:text-sm font-bold transition-colors relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                    activeTab === 'inquiries' ? 'text-[#003527]' : 'text-[#707974] hover:text-[#003527]'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Buyer Enquiries & Leads ({ownerInquiries.length})
+                  {activeTab === 'inquiries' && <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />}
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('viewings')}
+                  className={`pb-3 text-xs sm:text-sm font-bold transition-colors relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                    activeTab === 'viewings' ? 'text-[#003527]' : 'text-[#707974] hover:text-[#003527]'
+                  }`}
+                >
+                  <Calendar className="w-4 h-4" />
+                  Viewing Requests ({ownerBookings.length})
+                  {activeTab === 'viewings' && <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />}
+                </button>
+
+                <button
                   onClick={() => setActiveTab('profile')}
                   className={`pb-3 text-xs sm:text-sm font-bold transition-colors relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                     activeTab === 'profile'
@@ -1060,6 +1095,54 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                     if (submission) onEditSubmission(submission);
                   } : undefined}
                 />
+              )}
+
+              {activeTab === 'inquiries' && (
+                <div className="space-y-3">
+                  {ownerInquiries.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-8 text-center text-sm text-[#707974]">No buyer enquiries have arrived yet.</div>
+                  ) : ownerInquiries.map((inquiry) => (
+                    <article key={inquiry.id} className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-5 shadow-xs space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">{inquiry.inquiryType} enquiry</p>
+                          <h4 className="font-playfair font-bold text-[#003527]">{inquiry.propertyTitle}</h4>
+                          <p className="text-xs text-[#707974]">{inquiry.propertyLocation}</p>
+                        </div>
+                        <select value={inquiry.status} onChange={(event) => onUpdateInquiryStatus(inquiry.id, event.target.value as PropertyInquiry['status'])} className="rounded-lg border border-[#bfc9c3] bg-white px-3 py-2 text-xs font-semibold text-[#003527]">
+                          <option value="new">New</option><option value="contacted">Contacted</option><option value="tour_scheduled">Viewing Scheduled</option><option value="closed">Closed</option>
+                        </select>
+                      </div>
+                      <div className="grid sm:grid-cols-3 gap-2 text-xs text-[#404944]">
+                        <span className="font-semibold">{inquiry.buyerName}</span>
+                        <a href={`tel:${inquiry.buyerPhone}`} className="hover:underline">{inquiry.buyerPhone}</a>
+                        <a href={`mailto:${inquiry.buyerEmail}`} className="truncate hover:underline">{inquiry.buyerEmail}</a>
+                      </div>
+                      {inquiry.offerAmount && <p className="text-xs"><strong>Offer:</strong> {inquiry.offerAmount}</p>}
+                      <p className="text-sm text-[#404944] whitespace-pre-wrap">{inquiry.message}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === 'viewings' && (
+                <div className="space-y-3">
+                  {ownerBookings.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-8 text-center text-sm text-[#707974]">No viewing requests have arrived yet.</div>
+                  ) : ownerBookings.map((booking) => (
+                    <article key={booking.id} className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-5 shadow-xs space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div><h4 className="font-playfair font-bold text-[#003527]">{booking.propertyTitle}</h4><p className="text-xs text-[#707974]">{booking.propertyLocation}</p></div>
+                        <span className="self-start rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase text-amber-800">{booking.status}</span>
+                      </div>
+                      <div className="grid sm:grid-cols-3 gap-2 text-xs text-[#404944]">
+                        <span className="font-semibold">{booking.name}</span><a href={`tel:${booking.phone}`} className="hover:underline">{booking.phone}</a><a href={`mailto:${booking.email}`} className="truncate hover:underline">{booking.email}</a>
+                      </div>
+                      <p className="text-sm"><strong>Preferred time:</strong> {booking.preferredDate} at {booking.preferredTime}</p>
+                      {booking.notes && <p className="text-sm text-[#404944] whitespace-pre-wrap">{booking.notes}</p>}
+                    </article>
+                  ))}
+                </div>
               )}
 
               {/* TAB 4: PROFILE EDITOR */}              {/* TAB 4: PROFILE EDITOR */}
