@@ -451,7 +451,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           )}
 
           {/* Verified lister contact section */}
-          <div className="bg-white p-6 rounded-2xl border border-[#bfc9c3]/30 shadow-xs flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#bfc9c3]/30 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div
                 className="w-14 h-14 rounded-xl border-2 border-[#fed65b] bg-[#003527] text-[#fed65b] flex items-center justify-center shrink-0"
@@ -470,7 +470,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full md:w-auto md:shrink-0">
               <button
                 onClick={() => onOpenInquiry?.(property)}
                 className="w-full bg-[#003527] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
