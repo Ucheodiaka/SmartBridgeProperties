@@ -49,6 +49,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
       propertyTitle: property.title,
       propertyLocation: property.location,
       propertyPrice: property.priceDisplay,
+      listerId: property.ownerId,
       ...formData,
       status: 'pending',
       createdAt: new Date().toISOString(),
@@ -90,7 +91,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                 Schedule Physical Viewing
               </h2>
               <span className="text-[10px] text-white/70 uppercase tracking-wider block font-medium">
-                Viewing request handled by SmartBridge
+                Viewing request sent to the property lister
               </span>
             </div>
           </div>
@@ -122,7 +123,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
               <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 text-left flex items-start gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                 <span>
-                  A SmartBridge representative will contact you to confirm availability for{' '}
+                  The verified property lister will contact you to confirm availability for{' '}
                   <strong>{property.location}</strong>. This request is not a confirmed appointment until you receive that confirmation.
                 </span>
               </div>

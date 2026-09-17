@@ -50,12 +50,8 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'overview' | 'inspection' | 'video'>('overview');
   const [imageLoaded, setImageLoaded] = useState(false);
-  const displayAgent = {
-    name: 'SmartBridge Property Desk',
-    role: 'Property Enquiry Support',
-    avatar: property.images?.[0] || '',
-    badge: 'SmartBridge Managed',
-  };
+  const listerCompany = property.ownerCompanyName || property.ownerName || 'Verified Property Lister';
+  const listerPhone = property.ownerPhone || 'Phone available after enquiry';
 
   useEffect(() => {
     // Brief smooth skeleton hydration
@@ -454,23 +450,23 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             </div>
           )}
 
-          {/* SmartBridge-managed visitor contact section */}
+          {/* Verified lister contact section */}
           <div className="bg-white p-6 rounded-2xl border border-[#bfc9c3]/30 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div
                 className="w-14 h-14 rounded-xl border-2 border-[#fed65b] bg-[#003527] text-[#fed65b] flex items-center justify-center shrink-0"
                 role="img"
-                aria-label="SmartBridge Property Desk"
+                aria-label="Verified property lister"
               >
                 <Building2 className="w-7 h-7" />
               </div>
               <div>
                 <div className="inline-flex items-center gap-1 text-[10px] font-bold text-[#745c00] bg-[#fed65b]/30 px-2 py-0.5 rounded-full mb-1">
-                  {displayAgent.badge}
+                  Verified Property Lister
                 </div>
-                <h4 className="font-bold text-base text-[#1b1c1c]">{displayAgent.name}</h4>
-                <p className="text-xs text-[#707974]">{displayAgent.role}</p>
-                <p className="text-[11px] text-[#707974] mt-1">All enquiries, offers, and viewings are handled by SmartBridge.</p>
+                <h4 className="font-bold text-base text-[#1b1c1c]">{listerCompany}</h4>
+                <p className="text-xs text-[#707974] flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {listerPhone}</p>
+                <p className="text-[11px] text-[#707974] mt-1">Enquiries, offers, and viewing requests go directly to this verified lister.</p>
               </div>
             </div>
 
@@ -480,14 +476,14 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 className="flex-1 sm:flex-none bg-[#003527] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
               >
                 <MessageSquare className="w-4 h-4 text-[#fed65b]" />
-                Submit Enquiry / Offer
+                Send Enquiry / Offer to Lister
               </button>
               <button
                 onClick={() => onScheduleInspection(property)}
                 className="flex-1 sm:flex-none bg-[#003527] text-white font-semibold text-xs md:text-sm px-4 sm:px-5 py-3 rounded-[10px] hover:bg-[#064e3b] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
               >
                 <Calendar className="w-4 h-4 text-[#fed65b]" />
-                Schedule Physical Viewing
+                Request Viewing with Lister
               </button>
             </div>
           </div>

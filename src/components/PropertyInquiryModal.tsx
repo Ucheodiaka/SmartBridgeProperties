@@ -54,10 +54,9 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
       propertyTitle: property.title,
       propertyLocation: property.location,
       propertyPrice: property.priceDisplay,
-      // Public enquiries are assigned to SmartBridge, never routed directly
-      // to the property lister.
-      ownerEmail: 'admin@smartbridgeproperties.ng',
-      ownerName: 'SmartBridge Property Desk',
+      ownerEmail: property.ownerEmail || '',
+      ownerName: property.ownerCompanyName || property.ownerName || 'Verified Property Lister',
+      listerId: property.ownerId,
       buyerName: formData.buyerName,
       buyerPhone: formData.buyerPhone,
       buyerEmail: formData.buyerEmail,
@@ -105,7 +104,7 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
                 Submit Property Enquiry
               </h2>
               <span className="text-[10px] uppercase tracking-wider font-semibold text-white/80 block">
-                Enquiry handled by SmartBridge
+                Enquiry sent to the property lister
               </span>
             </div>
           </div>

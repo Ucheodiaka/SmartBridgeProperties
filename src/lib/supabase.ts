@@ -381,6 +381,8 @@ export const supabaseDb = {
         ownerId: item.owner_id,
         ownerName: item.owner_name,
         ownerEmail: item.owner_email,
+        ownerPhone: item.owner_phone,
+        ownerCompanyName: item.owner_company_name,
         status: item.status || 'approved',
       }));
     } catch (e) {
@@ -816,11 +818,11 @@ const currentUserId = authData.user.id;
   },
 
   // 3. INQUIRIES
-  async fetchInquiries(): Promise<PropertyInquiry[] | null> {
+  async fetchInquiries(forLister = false): Promise<PropertyInquiry[] | null> {
     if (!isSupabaseConfigured || !supabase) return null;
     try {
       const { data, error } = await supabase
-        .from('property_inquiries')
+        .from(forLister ? 'lister_property_inquiries' : 'property_inquiries')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -835,6 +837,7 @@ const currentUserId = authData.user.id;
         propertyPrice: item.property_price ? String(item.property_price) : undefined,
         ownerEmail: item.owner_email,
         ownerName: item.owner_name,
+        listerId: item.lister_id || item.owner_id || undefined,
         buyerName: item.buyer_name,
         buyerEmail: item.buyer_email,
         buyerPhone: item.buyer_phone,
@@ -901,14 +904,13 @@ const currentUserId = authData.user.id;
   async updateInquiryStatus(inquiryId: string, status: InquiryStatus): Promise<boolean> {
     if (!isSupabaseConfigured || !supabase || !isUUID(inquiryId)) return false;
     try {
-      const { data, error } = await supabase
-        .from('property_inquiries')
-        .update({ status })
-        .eq('id', inquiryId)
-        .select('id');
+      const { data, error } = await supabase.rpc('update_my_inquiry_status', {
+        target_inquiry_id: inquiryId,
+        next_status: status,
+      });
 
       if (error) throw error;
-      return Boolean(data && data.length === 1);
+      return Boolean(data);
     } catch (e) {
       console.error('Supabase updateInquiryStatus error:', e);
       return false;
@@ -944,11 +946,11 @@ const currentUserId = authData.user.id;
   },
 
   // 4. BOOKINGS
-  async fetchBookings(): Promise<InspectionBooking[] | null> {
+  async fetchBookings(forLister = false): Promise<InspectionBooking[] | null> {
     if (!isSupabaseConfigured || !supabase) return null;
     try {
       const { data, error } = await supabase
-        .from('inspection_bookings')
+        .from(forLister ? 'lister_inspection_bookings' : 'inspection_bookings')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -969,6 +971,7 @@ const currentUserId = authData.user.id;
         notes: item.notes,
         status: item.status as BookingStatus,
         assignedSpecialist: item.assigned_specialist,
+        listerId: item.lister_id || undefined,
         createdAt: item.created_at,
       }));
     } catch (e) {

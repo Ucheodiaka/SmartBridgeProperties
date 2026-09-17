@@ -107,11 +107,11 @@ export default function App() {
       }
     });
 
-    const refreshProtectedData = async () => {
+    const refreshProtectedData = async (forLister: boolean) => {
       const [cloudSubs, cloudInqs, cloudBookings] = await Promise.all([
         supabaseDb.fetchSubmissions(),
-        supabaseDb.fetchInquiries(),
-        supabaseDb.fetchBookings(),
+        supabaseDb.fetchInquiries(forLister),
+        supabaseDb.fetchBookings(forLister),
       ]);
       if (cloudSubs) setSubmissions(cloudSubs);
       if (cloudInqs) setInquiries(cloudInqs);
@@ -129,7 +129,7 @@ export default function App() {
 
       // Protected rows are fetched only after Supabase has established the
       // authenticated role, making database status the authoritative state.
-      await refreshProtectedData();
+      await refreshProtectedData(profile.role !== 'admin');
 
       if (profile.role === 'admin') {
         // Visitors initially load the approved-only public view. Once the
@@ -312,7 +312,7 @@ export default function App() {
     setInspectionTargetProperty(null);
     setBookings((prev) => [booking, ...prev]);
     addToast(
-      `Viewing request received for ${booking.preferredDate} at ${booking.preferredTime}. SmartBridge will call ${booking.phone} to confirm.`,
+      `Viewing request sent to the property lister for ${booking.preferredDate} at ${booking.preferredTime}.`,
       'success'
     );
   };
@@ -322,7 +322,7 @@ export default function App() {
     setInquiries((prev) => [newInquiry, ...prev]);
     setInquiryTargetProperty(null);
     addToast(
-      `Enquiry received for ${newInquiry.propertyTitle}. SmartBridge will contact you with the next steps.`,
+      `Enquiry sent to the property lister for ${newInquiry.propertyTitle}.`,
       'success'
     );
   };
@@ -774,6 +774,7 @@ export default function App() {
           properties={properties}
           submissions={submissions}
           inquiries={inquiries}
+          bookings={bookings}
           onOpenListProperty={() => setIsListPropertyOpen(true)}
           onUpdateInquiryStatus={handleUpdateInquiryStatus}
           onUpdateOwner={(updated) => setCurrentOwner(updated)}
