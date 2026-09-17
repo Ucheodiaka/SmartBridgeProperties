@@ -220,33 +220,83 @@ drop policy if exists bookings_lister_select on public.inspection_bookings;
 drop trigger if exists limit_lister_inquiry_updates on public.property_inquiries;
 drop function if exists private.limit_lister_inquiry_updates();
 
-create or replace view public.lister_property_inquiries
-with (security_barrier = true) as
-select
-  id, property_id, property_title, property_location, property_price,
-  owner_id, owner_email, owner_name, lister_id,
-  buyer_name, buyer_email, buyer_phone, inquiry_type, offered_price,
-  timeline, message, status, created_at
-from public.property_inquiries
-where lister_id = (select auth.uid())
-  and (select public.is_lister());
+create or replace function private.fetch_my_property_inquiries()
+returns table (
+  id uuid, property_id text, property_title text, property_location text,
+  property_price numeric, owner_id text, owner_email text, owner_name text,
+  lister_id uuid, buyer_name text, buyer_email text, buyer_phone text,
+  inquiry_type text, offered_price numeric, timeline text, message text,
+  status text, created_at timestamptz
+)
+language sql
+security definer
+set search_path = ''
+as $$
+  select i.id, i.property_id, i.property_title, i.property_location,
+    i.property_price, i.owner_id, i.owner_email, i.owner_name, i.lister_id,
+    i.buyer_name, i.buyer_email, i.buyer_phone, i.inquiry_type,
+    i.offered_price, i.timeline, i.message, i.status, i.created_at
+  from public.property_inquiries i
+  where i.lister_id = (select auth.uid())
+    and (select public.is_lister())
+  order by i.created_at desc;
+$$;
 
-create or replace view public.lister_inspection_bookings
-with (security_barrier = true) as
-select
-  id, property_id, property_title, property_location, property_price,
-  name, email, phone, preferred_date, preferred_time, notes, status,
-  lister_id, created_at
-from public.inspection_bookings
-where lister_id = (select auth.uid())
-  and (select public.is_lister());
+create or replace function private.fetch_my_inspection_bookings()
+returns table (
+  id uuid, property_id text, property_title text, property_location text,
+  property_price numeric, name text, email text, phone text,
+  preferred_date date, preferred_time time, notes text, status text,
+  lister_id uuid, created_at timestamptz
+)
+language sql
+security definer
+set search_path = ''
+as $$
+  select b.id, b.property_id, b.property_title, b.property_location,
+    b.property_price, b.name, b.email, b.phone, b.preferred_date,
+    b.preferred_time, b.notes, b.status, b.lister_id, b.created_at
+  from public.inspection_bookings b
+  where b.lister_id = (select auth.uid())
+    and (select public.is_lister())
+  order by b.created_at desc;
+$$;
 
-revoke all on public.lister_property_inquiries from public, anon;
-revoke all on public.lister_inspection_bookings from public, anon;
-grant select on public.lister_property_inquiries to authenticated;
-grant select on public.lister_inspection_bookings to authenticated;
+create or replace function public.fetch_my_property_inquiries()
+returns table (
+  id uuid, property_id text, property_title text, property_location text,
+  property_price numeric, owner_id text, owner_email text, owner_name text,
+  lister_id uuid, buyer_name text, buyer_email text, buyer_phone text,
+  inquiry_type text, offered_price numeric, timeline text, message text,
+  status text, created_at timestamptz
+)
+language sql
+security invoker
+set search_path = ''
+as $$ select * from private.fetch_my_property_inquiries(); $$;
 
-create or replace function public.update_my_inquiry_status(
+create or replace function public.fetch_my_inspection_bookings()
+returns table (
+  id uuid, property_id text, property_title text, property_location text,
+  property_price numeric, name text, email text, phone text,
+  preferred_date date, preferred_time time, notes text, status text,
+  lister_id uuid, created_at timestamptz
+)
+language sql
+security invoker
+set search_path = ''
+as $$ select * from private.fetch_my_inspection_bookings(); $$;
+
+revoke all on function private.fetch_my_property_inquiries() from public, anon;
+revoke all on function private.fetch_my_inspection_bookings() from public, anon;
+grant execute on function private.fetch_my_property_inquiries() to authenticated;
+grant execute on function private.fetch_my_inspection_bookings() to authenticated;
+revoke all on function public.fetch_my_property_inquiries() from public, anon;
+revoke all on function public.fetch_my_inspection_bookings() from public, anon;
+grant execute on function public.fetch_my_property_inquiries() to authenticated;
+grant execute on function public.fetch_my_inspection_bookings() to authenticated;
+
+create or replace function private.update_my_inquiry_status(
   target_inquiry_id uuid,
   next_status text
 )
@@ -274,5 +324,17 @@ begin
 end;
 $$;
 
+create or replace function public.update_my_inquiry_status(
+  target_inquiry_id uuid,
+  next_status text
+)
+returns boolean
+language sql
+security invoker
+set search_path = ''
+as $$ select private.update_my_inquiry_status(target_inquiry_id, next_status); $$;
+
+revoke all on function private.update_my_inquiry_status(uuid, text) from public, anon;
+grant execute on function private.update_my_inquiry_status(uuid, text) to authenticated;
 revoke all on function public.update_my_inquiry_status(uuid, text) from public, anon;
 grant execute on function public.update_my_inquiry_status(uuid, text) to authenticated;
