@@ -276,4 +276,644 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in">
       <div
-        id="admin-property-evßmí¢G§²ÚîÆ­yÒ·GÐ¢Âö÷F–öãà¢’—Ð¢Â÷6VÆV7Cà¢ÂöF—cà ¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒÖ"ÓãR#à¢æV–v†&÷&†ööB ¢ÂöÆ&VÃà¢Ç6VÆV7@¢–CÒ'6VÆV7B×&÷ÖæV–v†&÷&†ööB ¢fÇVS×¶æV–v†&÷&†ööGÐ¢öä6†ævS×²†R’Óâ6WDæV–v†&÷&†ööB†RçF&vWBçfÇVR2ç’—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&r×v†—FR&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚ÓB’Ó"ãRFW‡B×6ÒFW‡BÕ²3#35Òfö7W3¦÷WFÆ–æRÖæöæRfö7W3¦&÷&FW"Õ²33S#uÒ ¢à¢´äT”t„$õ$„ôôEôõD”ôå2æÖ‚†æ"’Óâ€¢Æ÷F–öâ¶W“×¶æ'ÒfÇVS×¶æ'Óà¢¶æ'Ð¢Âö÷F–öãà¢’—Ð¢Â÷6VÆV7Cà¢ÂöF—cà¢ÂöF—cà ¢ÆF—b6Æ74æÖSÒ&w&–Bw&–BÖ6öÇ2ÓÖC¦w&–BÖ6öÇ2Ó"vÓB#à¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒÖ"ÓãR#à¢gVÆÂ‡—6–6ÂFG&W72 ¢ÂöÆ&VÃà¢Æ–çW@¢–CÒ&–çWB×&÷ÖFG&W72 ¢G—SÒ'FW‡B ¢&WV—&V@¢fÇVS×¶FG&W77Ð¢öä6†ævS×²†R’Óâ6WDFG&W72†RçF&vWBçfÇVR—Ð¢Æ6V†öÆFW#Ò&RærâÆ÷BBÂ&W6–FVçF–Â6V7F–öâÂu$†6R"Â÷'B†&6÷W'B ¢6Æ74æÖSÒ'rÖgVÆÂ&r×v†—FR&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚ÓB’Ó"ãRFW‡B×6ÒFW‡BÕ²3#35Òfö7W3¦÷WFÆ–æRÖæöæRfö7W3¦&÷&FW"Õ²33S#uÒ ¢óà¢ÂöF—cà ¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒÖ"ÓãR#à¢&–6R–âæ—&Ž(*b’¢¶Æ—7F–æuG—RÓÓÒw&VçBròr„æçVÂ&VçB’r¢r„6¶–ær&–6R’wÐ¢ÂöÆ&VÃà¢ÆF—b6Æ74æÖSÒ'&VÆF—fR#à¢Ç7â6Æ74æÖSÒ&'6öÇWFRÆVgBÓ2ãRF÷Ó"ãRFW‡B×6ÒföçBÖ&öÆBFW‡BÕ²3ss“sEÒ#î(*cÂ÷7ãà¢Æ–çW@¢–CÒ&–çWB×&÷×&–6R ¢G—SÒ&çVÖ&W" ¢&WV—&V@¢Ö–ã×³Ð¢7FW×³SÐ¢fÇVS×·&–6WÐ¢öä6†ævS×²†R’Óâ6WE&–6R„çVÖ&W"†RçF&vWBçfÇVR’—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&r×v†—FR&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆrÂÓ‚"ÓB’Ó"ãRFW‡B×6ÒFW‡BÕ²3#35ÒföçB×6VÖ–&öÆBfö7W3¦÷WFÆ–æRÖæöæRfö7W3¦&÷&FW"Õ²33S#uÒ ¢óà¢ÂöF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&×BÓ"fÆW‚—FV×2Ö6VçFW"vÓ"FW‡B×‡2föçB×6VÖ–&öÆBFW‡BÕ²3CC“CEÒ7W'6÷"×ö–çFW"#à¢Æ–çW@¢G—SÒ&6†V6¶&÷‚ ¢6†V6¶VC×¶—4æVv÷F–&ÆWÐ¢öä6†ævS×²†R’Óâ6WD—4æVv÷F–&ÆR†RçF&vWBæ6†V6¶VB—Ð¢6Æ74æÖSÒ&‚ÓBrÓB66VçBÕ²33S#uÒ ¢óà¢&–6R—2æVv÷F–&ÆP¢ÂöÆ&VÃà¢Ç6Æ74æÖSÒ'FW‡BÕ³…ÒFW‡BÕ²3ss“sEÒ×BÓ#à¢F—7Æ’&Wf–Ws¢¶f÷&ÖDæ—&F—7Æ’‡&–6RÂÆ—7F–æuG—R—Ò¶Æ—7F–æuG—RÓÓÒw&VçBròr÷—"r¢rwÐ¢Â÷à¢ÂöF—cà¢ÂöF—cà ¢²ò¢7V6–f–6F–öç3¢&VG2Â&F‡2Â&¶–ærÂ6—¦R¢÷Ð¢ÆF—b6Æ74æÖSÒ&w&–Bw&–BÖ6öÇ2Ó"ÖC¦w&–BÖ6öÇ2ÓBvÓ2&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS#à¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçB×6VÖ–&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#ä&VG&öö×3ÂöÆ&VÃà¢Æ–çW@¢G—SÒ&çVÖ&W" ¢Ö–ã×³Ð¢Öƒ×³#Ð¢fÇVS×¶&VG&öö×7Ð¢öä6†ævS×²†R’Óâ6WD&VG&öö×2„çVÖ&W"†RçF&vWBçfÇVR’—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚Ó2’Ó"FW‡B×6ÒFW‡BÖ6VçFW"föçBÖ&öÆB ¢óà¢ÂöF—cà¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçB×6VÖ–&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#ä&F‡&öö×3ÂöÆ&VÃà¢Æ–çW@¢G—SÒ&çVÖ&W" ¢Ö–ã×³Ð¢Öƒ×³#Ð¢fÇVS×¶&F‡&öö×7Ð¢öä6†ævS×²†R’Óâ6WD&F‡&öö×2„çVÖ&W"†RçF&vWBçfÇVR’—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚Ó2’Ó"FW‡B×6ÒFW‡BÖ6VçFW"föçBÖ&öÆB ¢óà¢ÂöF—cà¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçB×6VÖ–&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#å&¶–ær&—3ÂöÆ&VÃà¢Æ–çW@¢G—SÒ&çVÖ&W" ¢Ö–ã×³Ð¢Öƒ×³#Ð¢fÇVS×·&¶–æu76W7Ð¢öä6†ævS×²†R’Óâ6WE&¶–æu76W2„çVÖ&W"†RçF&vWBçfÇVR’—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚Ó2’Ó"FW‡B×6ÒFW‡BÖ6VçFW"föçBÖ&öÆB ¢óà¢ÂöF—cà¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçB×6VÖ–&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#äfÆö÷"&V…7gB“ÂöÆ&VÃà¢Æ–çW@¢G—SÒ&çVÖ&W" ¢Ö–ã×³SÐ¢7FW×³Ð¢fÇVS×·6—¦U7gGÐ¢öä6†ævS×²†R’Óâ6WE6—¦U7gB„çVÖ&W"†RçF&vWBçfÇVR’—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚Ó2’Ó"FW‡B×6ÒFW‡BÖ6VçFW"föçBÖ&öÆB ¢óà¢ÂöF—cà¢ÂöF—cà ¢²ò¢&FvW2b76–væVBvVçB¢÷Ð¢ÆF—b6Æ74æÖSÒ&w&–Bw&–BÖ6öÇ2ÓÖC¦w&–BÖ6öÇ2Ó"vÓB#à¢ÆF—b6Æ74æÖSÒ&&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS76R×’Ó2#à¢Ç7â6Æ74æÖSÒ'FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒ&Æö6²#à¢f—6–&–Æ—G’b&FvW0¢Â÷7ãà¢ÆÆ&VÂ6Æ74æÖSÒ&fÆW‚—FV×2Ö6VçFW"vÓ27W'6÷"×ö–çFW"#à¢Æ–çW@¢G—SÒ&6†V6¶&÷‚ ¢6†V6¶VC×¶—5fW&–f–VGÐ¢öä6†ævS×²†R’Óâ6WD—5fW&–f–VB†RçF&vWBæ6†V6¶VB—Ð¢6Æ74æÖSÒ'rÓB‚ÓBFW‡BÕ²33S#uÒ&÷VæFVB×6Òfö7W3§&–ærÕ²33S#uÒ ¢óà¢ÆF—cà¢Ç7â6Æ74æÖSÒ'FW‡B×6ÒföçB×6VÖ–&öÆBFW‡BÕ²3#35Ò&Æö6²#å6Ö'D'&–FvRfW&–f–VCÂ÷7ãà¢Ç7â6Æ74æÖSÒ'FW‡B×‡2FW‡BÕ²3ss“sEÒ#äF—7Æ—2F†R&÷fVBÆ—7F–ær&FvSÂ÷7ãà¢ÂöF—cà¢ÂöÆ&VÃà¢ÆÆ&VÂ6Æ74æÖSÒ&fÆW‚—FV×2Ö6VçFW"vÓ27W'6÷"×ö–çFW"#à¢Æ–çW@¢G—SÒ&6†V6¶&÷‚ ¢6†V6¶VC×¶—4fVGW&VGÐ¢öä6†ævS×²†R’Óâ6WD—4fVGW&VB†RçF&vWBæ6†V6¶VB—Ð¢6Æ74æÖSÒ'rÓB‚ÓBFW‡BÕ²33S#uÒ&÷VæFVB×6Òfö7W3§&–ærÕ²33S#uÒ ¢óà¢ÆF—cà¢Ç7â6Æ74æÖSÒ'FW‡B×6ÒföçB×6VÖ–&öÆBFW‡BÕ²3#35Ò&Æö6²#äfVGW&VBöâ†öÖWvSÂ÷7ãà¢Ç7â6Æ74æÖSÒ'FW‡B×‡2FW‡BÕ²3ss“sEÒ#å&öÖ÷FVB–â&–ÖR7÷FÆ–v‡B6V7F–öãÂ÷7ãà¢ÂöF—cà¢ÂöÆ&VÃà¢ÂöF—cà ¢ÂöF—cà ¢²ò¢FW67&—F–öâ¢÷Ð¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒÖ"ÓãR#à¢FWF–ÆVBFW67&—F–öâ ¢ÂöÆ&VÃà¢ÇFW‡F&V¢&÷w3×³GÐ¢&WV—&V@¢fÇVS×¶FW67&—F–öçÐ¢öä6†ævS×²†R’Óâ6WDFW67&—F–öâ†RçF&vWBçfÇVR—Ð¢Æ6V†öÆFW#Ò%&÷f–FRâ÷fW'f–Wröb&6†—FV7GW&Â†–v†Æ–v‡G2ÂW7FFR6V7W&—G’Âf–æ—6†W2ÂæBæV–v†&÷W&†ööBW&·2âââ ¢6Æ74æÖSÒ'rÖgVÆÂ&r×v†—FR&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆrÓ2ãRFW‡B×6ÒFW‡BÕ²3#35Òfö7W3¦÷WFÆ–æRÖæöæRfö7W3¦&÷&FW"Õ²33S#uÒ ¢óà¢ÂöF—cà¢ÂöF—cà¢—Ð ¢²ò¢D"#¢”å5T5D”ôâbTD•B¢÷Ð¢¶7F—fUF"ÓÓÒv–ç7V7F–öârbb€¢ÆF—b6Æ74æÖSÒ'76R×’ÓRæ–ÖFRÖ–âfFRÖ–â#à¢ÆF—b6Æ74æÖSÒ&&rÕ²33S#uÒóR&÷&FW"&÷&FW"Õ²33S#uÒó#ÓB&÷VæFVB×†ÂfÆW‚—FV×2×7F'BvÓ2#à¢Å6†–VÆD6†V6²6Æ74æÖSÒ'rÓR‚ÓRFW‡BÕ²33S#uÒ6‡&–æ²Ó×BÓãR"óà¢ÆF—b6Æ74æÖSÒ'FW‡B×‡2FW‡BÕ²3CC“CEÒÆVF–ær×&VÆ†VB#à¢Ç7G&öær6Æ74æÖSÒ'FW‡BÕ²33S#uÒ#å‡—6–6ÂVæv–æVW&–ærbÆæB6V&6‚7FæF&C£Â÷7G&öæsâWfW'’Æ—7F–ærV&Æ—6†VBv—F‚fW&–f–6F–öâöâ6Ö'D'&–FvRVæFW&vöW2öâ×6—FRVæv–æVW&–ærFW7F–æræB&—fW'27FFRÖ–æ—7G'’öbÆæG2F—FÆR6V&6†W2à¢ÂöF—cà¢ÂöF—cà ¢ÆF—b6Æ74æÖSÒ&w&–Bw&–BÖ6öÇ2ÓÖC¦w&–BÖ6öÇ2Ó"vÓB#à¢ÆF—b6Æ74æÖSÒ&&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS76R×’Ó2#à¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒ#à¢÷fW&ÆÂ–ç7V7F–öâ66÷&RƒÒ¢ÂöÆ&VÃà¢ÆF—b6Æ74æÖSÒ&fÆW‚—FV×2Ö6VçFW"vÓB#à¢Æ–çW@¢G—SÒ'&ævR ¢Ö–ã×³cÐ¢Öƒ×³Ð¢fÇVS×¶÷fW&ÆÅ66÷&WÐ¢öä6†ævS×²†R’Óâ6WD÷fW&ÆÅ66÷&R„çVÖ&W"†RçF&vWBçfÇVR’—Ð¢6Æ74æÖSÒ&fÆW‚Ó66VçBÕ²33S#uÒ ¢óà¢Ç7â6Æ74æÖSÒ&föçB×Æ–f—"FW‡BÓ'†ÂföçBÖ&öÆBFW‡BÕ²33S#uÒ‚Ó2’Ó&rÕ²6fVCcV%Òó#&÷VæFVBÖÆr#à¢¶÷fW&ÆÅ66÷&WÒP¢Â÷7ãà¢ÂöF—cà¢ÂöF—cà ¢ÆF—b6Æ74æÖSÒ&&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS76R×’Ó2#à¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒ#à¢F—FÆRFö7VÖVçBG—RbfW&–f–6F–öà¢ÂöÆ&VÃà¢ÆF—b6Æ74æÖSÒ&w&–Bw&–BÖ6öÇ2Ó"vÓ"#à¢Ç6VÆV7@¢fÇVS×·F—FÆTFö7VÖVçEG—WÐ¢öä6†ævS×²†R’Óâ6WEF—FÆTFö7VÖVçEG—R†RçF&vWBçfÇVR2ç’—Ð¢6Æ74æÖSÒ&&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚Ó2’Ó"FW‡B×‡2föçB×6VÖ–&öÆB ¢à¢Æ÷F–öâfÇVSÒ$2öbò#ä6W'F–f–6FRöbö67Wæ7’„2öbò“Âö÷F–öãà¢Æ÷F–öâfÇVSÒ$v÷fW&æ÷"w26öç6VçB#äv÷fW&æ÷"w26öç6VçCÂö÷F–öãà¢Æ÷F–öâfÇVSÒ$FVVBöb6öçfW–æ6R#äFVVBöb6öçfW–æ6SÂö÷F–öãà¢Æ÷F–öâfÇVSÒ$v¦WGFR#äv¦WGFSÂö÷F–öãà¢Â÷6VÆV7Cà¢ÆÆ&VÂ6Æ74æÖSÒ&fÆW‚—FV×2Ö6VçFW"vÓ"FW‡B×‡2föçB×6VÖ–&öÆBFW‡BÕ²33S#uÒ7W'6÷"×ö–çFW"#à¢Æ–çW@¢G—SÒ&6†V6¶&÷‚ ¢6†V6¶VC×·F—FÆUfW&–f–VGÐ¢öä6†ævS×²†R’Óâ6WEF—FÆUfW&–f–VB†RçF&vWBæ6†V6¶VB—Ð¢6Æ74æÖSÒ'rÓB‚ÓBFW‡BÕ²33S#uÒ&÷VæFVB×6Ò ¢óà¢ÆæG2&Vv—7G'’fW&–f–V@¢ÂöÆ&VÃà¢ÂöF—cà¢ÂöF—cà¢ÂöF—cà ¢ÆF—b6Æ74æÖSÒ&w&–Bw&–BÖ6öÇ2ÓÖC¦w&–BÖ6öÇ2Ó2vÓB#à¢ÆF—b6Æ74æÖSÒ&&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS#à¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçBÖ&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#äfÆööB&—6²&F–æsÂöÆ&VÃà¢Ç6VÆV7@¢fÇVS×¶fÆööE&—6·Ð¢öä6†ævS×²†R’Óâ6WDfÆööE&—6²†RçF&vWBçfÇVR2ç’—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆrÓ"FW‡B×‡2föçB×6VÖ–&öÆB ¢à¢Æ÷F–öâfÇVSÒ%¦W&ò&—6²„VÆWfFVB’#å¦W&ò&—6²„VÆWfFVB“Âö÷F–öãà¢Æ÷F–öâfÇVSÒ$Æ÷r#äÆ÷r&—6³Âö÷F–öãà¢Æ÷F–öâfÇVSÒ$ÖöFW&FR#äÖöFW&FSÂö÷F–öãà¢Â÷6VÆV7Cà¢ÂöF—cà ¢ÆF—b6Æ74æÖSÒ&&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS#à¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçBÖ&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#å÷vW"w&–B7F&–Æ—G“ÂöÆ&VÃà¢Æ–çW@¢G—SÒ'FW‡B ¢fÇVS×·÷vW$w&–E7F&–Æ—G—Ð¢öä6†ævS×²†R’Óâ6WE÷vW$w&–E7F&–Æ—G’†RçF&vWBçfÇVR—Ð¢Æ6V†öÆFW#Ò&Rærâ#BórGVÂvVâ²6öÆ" ¢6Æ74æÖSÒ'rÖgVÆÂ&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆrÓ"FW‡B×‡2föçB×6VÖ–&öÆB ¢óà¢ÂöF—cà ¢ÆF—b6Æ74æÖSÒ&&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS#à¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçBÖ&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#å6V7W&—G’&F–æsÂöÆ&VÃà¢Æ–çW@¢G—SÒ'FW‡B ¢fÇVS×·6V7W&—G•&F–æwÐ¢öä6†ævS×²†R’Óâ6WE6V7W&—G•&F–ær†RçF&vWBçfÇVR—Ð¢Æ6V†öÆFW#Ò&Rærâw&FR²„&ÖVBG&öÂ’ ¢6Æ74æÖSÒ'rÖgVÆÂ&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆrÓ"FW‡B×‡2föçB×6VÖ–&öÆB ¢óà¢ÂöF—cà¢ÂöF—cà ¢ÆF—b6Æ74æÖSÒ&w&–Bw&–BÖ6öÇ2ÓÖC¦w&–BÖ6öÇ2Ó2vÓB#à¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçB×6VÖ–&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#äÆVB–ç7V7F÷"æÖSÂöÆ&VÃà¢Æ–çW@¢G—SÒ'FW‡B ¢fÇVS×¶–ç7V7F÷$æÖWÐ¢öä6†ævS×²†R’Óâ6WD–ç7V7F÷$æÖR†RçF&vWBçfÇVR—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&r×v†—FR&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆrÓ"FW‡B×‡2 ¢óà¢ÂöF—cà¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçB×6VÖ–&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#ä–ç7V7F÷"”B&FvSÂöÆ&VÃà¢Æ–çW@¢G—SÒ'FW‡B ¢fÇVS×¶–ç7V7F÷$–GÐ¢öä6†ævS×²†R’Óâ6WD–ç7V7F÷$–B†RçF&vWBçfÇVR—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&r×v†—FR&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆrÓ"FW‡B×‡2 ¢óà¢ÂöF—cà¢ÆF—cà¢ÆÆ&VÂ6Æ74æÖSÒ&&Æö6²FW‡B×‡2föçB×6VÖ–&öÆBFW‡BÕ²3CC“CEÒÖ"Ó#ä–ç7V7F–öâFFSÂöÆ&VÃà¢Æ–çW@¢G—SÒ'FW‡B ¢fÇVS×¶–ç7V7FVDFFWÐ¢öä6†ævS×²†R’Óâ6WD–ç7V7FVDFFR†RçF&vWBçfÇVR—Ð¢6Æ74æÖSÒ'rÖgVÆÂ&r×v†—FR&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆrÓ"FW‡B×‡2 ¢óà¢ÂöF—cà¢ÂöF—cà¢ÂöF—cà¢—Ð ¢²ò¢D"3¢ÔTD”¢÷Ð¢¶7F—fUF"ÓÓÒvÖVF–rbb€¢ÆF—b6Æ74æÖSÒ'76R×’ÓRæ–ÖFRÖ–âfFRÖ–â#à¢ÆF—b6Æ74æÖSÒ&&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS76R×’Ó2#à¢Ç7â6Æ74æÖSÒ'FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒ&Æö6²#à¢FB†–v‚Õ&W2&÷W'G’–ÖvRU$À¢Â÷7ãà¢ÆF—b6Æ74æÖSÒ&fÆW‚vÓ"#à¢Æ–çW@¢G—SÒ'W&Â ¢fÇVS×¶æWt–ÖvUW&ÇÐ¢öä6†ævS×²†R’Óâ6WDæWt–ÖvUW&Â†RçF&vWBçfÇVR—Ð¢Æ6V†öÆFW#Ò%7FR–ÖvRU$Â†‡GG3¢òòâââ’ ¢6Æ74æÖSÒ&fÆW‚Ó&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚Ó2ãR’Ó"FW‡B×‡2FW‡BÕ²3#35Ò ¢óà¢Æ'WGFöà¢G—SÒ&'WGFöâ ¢öä6Æ–6³×²‚’Óâ†æFÆTFD–ÖvR†æWt–ÖvUW&ÂçG&–Ò‚’—Ð¢6Æ74æÖSÒ&&rÕ²33S#uÒFW‡B×v†—FRFW‡B×‡2föçBÖ&öÆB‚ÓB’Ó"&÷VæFVBÖÆr†÷fW#¦&rÕ²3cFS6%Ò7W'6÷"×ö–çFW"fÆW‚—FV×2Ö6VçFW"vÓãR ¢à¢ÅÇW26Æ74æÖSÒ'rÓ2ãR‚Ó2ãR"óâFBU$À¢Âö'WGFöãà¢ÂöF—cà ¢²ò¢V–6²&W6WG2¢÷Ð¢ÆF—b6Æ74æÖSÒ'BÓ"#à¢Ç7â6Æ74æÖSÒ'FW‡BÕ³…ÒföçB×6VÖ–&öÆBFW‡BÕ²3ss“sEÒ&Æö6²Ö"Ó"#à¢V–6²6×ÆR†÷Fò&W6WG2f÷"÷'B†&6÷W'B&÷W'F–W3 ¢Â÷7ãà¢ÆF—b6Æ74æÖSÒ&w&–Bw&–BÖ6öÇ2Ó"6Ó¦w&–BÖ6öÇ2ÓBvÓ"#à¢µ4ÕÄUô”ÔtUô$ä²æÖ‚‡6×ÆUW&ÂÂ–G‚’Óâ€¢ÆF—`¢¶W“×¶–G‡Ð¢öä6Æ–6³×²‚’Óâ†æFÆTFD–ÖvR‡6×ÆUW&Â—Ð¢6Æ74æÖSÒ'&VÆF—fRw&÷W7W'6÷"×ö–çFW"&÷VæFVBÖÆr÷fW&fÆ÷rÖ†–FFVâ&÷&FW"&÷&FW"Õ²6&f3–35ÒóC7V7B×f–FVò ¢à¢Æ–Ör7&3×·6×ÆUW&ÇÒÇCÒ%6×ÆR"6Æ74æÖSÒ'rÖgVÆÂ‚ÖgVÆÂö&¦V7BÖ6÷fW""óà¢ÆF—b6Æ74æÖSÒ&'6öÇWFR–ç6WBÓ&rÖ&Æ6²óC÷6—G’Ów&÷WÖ†÷fW#¦÷6—G’ÓfÆW‚—FV×2Ö6VçFW"§W7F–g’Ö6VçFW"FW‡B×v†—FRFW‡B×‡2föçBÖ&öÆBG&ç6—F–öâÖ÷6—G’#à¢²F@¢ÂöF—cà¢ÂöF—cà¢’—Ð¢ÂöF—cà¢ÂöF—cà¢ÂöF—cà ¢²ò¢7W'&VçB–ÖvW2Æ—7B¢÷Ð¢ÆF—b6Æ74æÖSÒ'76R×’Ó2#à¢Ç7â6Æ74æÖSÒ'FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒ&Æö6²#à¢7W'&VçBvÆÆW'’–ÖvW2‡¶–ÖvW2æÆVæwF‡Ò¢Â÷7ãà¢ÆF—b6Æ74æÖSÒ&w&–Bw&–BÖ6öÇ2Ó6Ó¦w&–BÖ6öÇ2Ó"ÖC¦w&–BÖ6öÇ2Ó2vÓ2#à¢¶–ÖvW2æÖ‚†–ÖrÂ–G‚’Óâ€¢ÆF—`¢¶W“×¶–G‡Ð¢6Æ74æÖSÒ'&VÆF—fRw&÷W&÷VæFVB×†Â÷fW&fÆ÷rÖ†–FFVâ&÷&FW"&÷&FW"Õ²6&f3–35ÒóS&r×v†—FR6†F÷r×‡2 ¢à¢Æ–Ör7&3×¶–ÖwÒÇC×¶vÆÆW'’G¶–G‚²ÖÒ6Æ74æÖSÒ'rÖgVÆÂ‚Ó3bö&¦V7BÖ6÷fW""óà¢ÆF—b6Æ74æÖSÒ'Ó"ãRfÆW‚—FV×2Ö6VçFW"§W7F–g’Ö&WGvVVâ&r×v†—FRFW‡B×‡2#à¢Ç7â6Æ74æÖSÒ&föçB×6VÖ–&öÆBFW‡BÕ²3ss“sEÒ#à¢¶–G‚ÓÓÒò~)ˆR&–Ö'’6÷fW"r¢†÷Fò2G¶–G‚²ÖÐ¢Â÷7ãà¢¶–ÖvW2æÆVæwF‚âbb€¢Æ'WGFöà¢G—SÒ&'WGFöâ ¢öä6Æ–6³×²‚’Óâ†æFÆU&VÖ÷fT–ÖvR†–G‚—Ð¢6Æ74æÖSÒ'FW‡BÕ²6&Ò†÷fW#¦&rÕ²6&ÒóÓãR&÷VæFVBÖÖBG&ç6—F–öâÖ6öÆ÷'27W'6÷"×ö–çFW" ¢à¢ÅG&6ƒ"6Æ74æÖSÒ'rÓB‚ÓB"óà¢Âö'WGFöãà¢—Ð¢ÂöF—cà¢ÂöF—cà¢’—Ð¢ÂöF—cà¢ÂöF—cà¢ÂöF—cà¢—Ð ¢²ò¢D"C¢dTEU$U2bÔTä•D”U2¢÷Ð¢¶7F—fUF"ÓÓÒvfVGW&W2rbb€¢ÆF—b6Æ74æÖSÒ'76R×’Óbæ–ÖFRÖ–âfFRÖ–â#à¢²ò¢fVGW&W2¢÷Ð¢ÆF—b6Æ74æÖSÒ&&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS76R×’Ó2#à¢Ç7â6Æ74æÖSÒ'FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒ&Æö6²#à¢&÷W'G’†–v†Æ–v‡G2bf–æ—6†W0¢Â÷7ãà¢ÆF—b6Æ74æÖSÒ&fÆW‚vÓ"#à¢Æ–çW@¢G—SÒ'FW‡B ¢fÇVS×¶æWtfVGW&WÐ¢öä6†ævS×²†R’Óâ6WDæWtfVGW&R†RçF&vWBçfÇVR—Ð¢öä¶W”F÷vã×²†R’Óâ°¢–b†Ræ¶W’ÓÓÒtVçFW"r’°¢Rç&WfVçDFVfVÇB‚“°¢†æFÆTFDfVGW&R‚“°¢Ð¢×Ð¢Æ6V†öÆFW#Ò&Rærâ&—fFRÆ7v–ÖÖ–ærööÂÂ3µdvVæW&F÷"Â—FÆ–â¶—F6†Vâ ¢6Æ74æÖSÒ&fÆW‚Ó&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚Ó2ãR’Ó"FW‡B×‡2FW‡BÕ²3#35Ò ¢óà¢Æ'WGFöà¢G—SÒ&'WGFöâ ¢öä6Æ–6³×¶†æFÆTFDfVGW&WÐ¢6Æ74æÖSÒ&&rÕ²33S#uÒFW‡B×v†—FRFW‡B×‡2föçBÖ&öÆB‚ÓB’Ó"&÷VæFVBÖÆr†÷fW#¦&rÕ²3cFS6%Ò7W'6÷"×ö–çFW"fÆW‚—FV×2Ö6VçFW"vÓ ¢à¢ÅÇW26Æ74æÖSÒ'rÓ2ãR‚Ó2ãR"óâF@¢Âö'WGFöãà¢ÂöF—cà¢ÆF—b6Æ74æÖSÒ&fÆW‚fÆW‚×w&vÓ"BÓ"#à¢¶fVGW&W2æÖ‚†fVBÂ–G‚’Óâ€¢Ç7à¢¶W“×¶–G‡Ð¢6Æ74æÖSÒ&–æÆ–æRÖfÆW‚—FV×2Ö6VçFW"vÓãR‚Ó2’ÓãR&÷VæFVBÖÆr&rÕ²33S#uÒóFW‡BÕ²33S#uÒFW‡B×‡2föçBÖÖVF—VÒ ¢à¢¶fVGÐ¢Æ'WGFöà¢G—SÒ&'WGFöâ ¢öä6Æ–6³×²‚’Óâ†æFÆU&VÖ÷fTfVGW&R†–G‚—Ð¢6Æ74æÖSÒ&†÷fW#§FW‡BÕ²6&Ò7W'6÷"×ö–çFW" ¢à¢Å‚6Æ74æÖSÒ'rÓ2ãR‚Ó2ãR"óà¢Âö'WGFöãà¢Â÷7ãà¢’—Ð¢ÂöF—cà¢ÂöF—cà ¢²ò¢ÖVæ—F–W2¢÷Ð¢ÆF—b6Æ74æÖSÒ&&r×v†—FRÓB&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒóS76R×’Ó2#à¢Ç7â6Æ74æÖSÒ'FW‡B×‡2föçBÖ&öÆBWW&66RG&6¶–ær×v–FW"FW‡BÕ²3CC“CEÒ&Æö6²#à¢W7FFRÖVæ—F–W2b–æg&7G'V7GW&P¢Â÷7ãà¢ÆF—b6Æ74æÖSÒ&fÆW‚vÓ"#à¢Æ–çW@¢G—SÒ'FW‡B ¢fÇVS×¶æWtÖVæ—G—Ð¢öä6†ævS×²†R’Óâ6WDæWtÖVæ—G’†RçF&vWBçfÇVR—Ð¢öä¶W”F÷vã×²†R’Óâ°¢–b†Ræ¶W’ÓÓÒtVçFW"r’°¢Rç&WfVçDFVfVÇB‚“°¢†æFÆTFDÖVæ—G’‚“°¢Ð¢×Ð¢Æ6V†öÆFW#Ò&Rærâ#Bór&ÖVBG&öÂÂ†–v‚Õ7VVBf–&W"–çFW&æWBÂ–æGW7G&–Â&÷&V†öÆR ¢6Æ74æÖSÒ&fÆW‚Ó&rÕ²6f&c–c…Ò&÷&FW"&÷&FW"Õ²6&f3–35Ò&÷VæFVBÖÆr‚Ó2ãR’Ó"FW‡B×‡2FW‡BÕ²3#35Ò ¢óà¢Æ'WGFöà¢G—SÒ&'WGFöâ ¢öä6Æ–6³×¶†æFÆTFDÖVæ—G—Ð¢6Æ74æÖSÒ&&rÕ²33S#uÒFW‡B×v†—FRFW‡B×‡2föçBÖ&öÆB‚ÓB’Ó"&÷VæFVBÖÆr†÷fW#¦&rÕ²3cFS6%Ò7W'6÷"×ö–çFW"fÆW‚—FV×2Ö6VçFW"vÓ ¢à¢ÅÇW26Æ74æÖSÒ'rÓ2ãR‚Ó2ãR"óâF@¢Âö'WGFöãà¢ÂöF—cà¢ÆF—b6Æ74æÖSÒ&fÆW‚fÆW‚×w&vÓ"BÓ"#à¢¶ÖVæ—F–W2æÖ‚†ÒÂ–G‚’Óâ€¢Ç7à¢¶W“×¶–G‡Ð¢6Æ74æÖSÒ&–æÆ–æRÖfÆW‚—FV×2Ö6VçFW"vÓãR‚Ó2’ÓãR&÷VæFVBÖÆr&rÕ²6fVCcV%Òó3FW‡BÕ²3s3V3ÒFW‡B×‡2föçBÖÖVF—VÒ ¢à¢¶×Ð¢Æ'WGFöà¢G—SÒ&'WGFöâ ¢öä6Æ–6³×²‚’Óâ†æFÆU&VÖ÷fTÖVæ—G’†–G‚—Ð¢6Æ74æÖSÒ&†÷fW#§FW‡BÕ²6&Ò7W'6÷"×ö–çFW" ¢à¢Å‚6Æ74æÖSÒ'rÓ2ãR‚Ó2ãR"óà¢Âö'WGFöãà¢Â÷7ãà¢’—Ð¢ÂöF—cà¢ÂöF—cà¢ÂöF—cà¢—Ð ¢²ò¢fö÷FW"7F–öç2¢÷Ð¢ÆF—b6Æ74æÖSÒ'BÓB&÷&FW"×B&÷&FW"Õ²6&f3–35ÒóCfÆW‚—FV×2Ö6VçFW"§W7F–g’ÖVæBvÓ2#à¢Æ'WGFöà¢G—SÒ&'WGFöâ ¢–CÒ&'FâÖ6æ6VÂÖVF—F÷" ¢öä6Æ–6³×¶öä6Æ÷6WÐ¢6Æ74æÖSÒ'‚ÓR’Ó"ãR&÷VæFVB×†Â&÷&FW"&÷&FW"Õ²6&f3–35ÒFW‡BÕ²3CC“CEÒ†÷fW#¦&r×v†—FRFW‡B×6ÒföçB×6VÖ–&öÆBG&ç6—F–öâÖ6öÆ÷'27W'6÷"×ö–çFW" ¢à¢6æ6VÀ¢Âö'WGFöãà¢Æ'WGFöà¢G—SÒ'7V&Ö—B ¢–CÒ&'Fâ×6fR×&÷W'G’ÖÆ—7F–ær ¢6Æ74æÖSÒ'‚Ób’Ó"ãR&÷VæFVB×†Â&rÕ²33S#uÒFW‡B×v†—FR†÷fW#¦&rÕ²3cFS6%ÒFW‡B×6ÒföçBÖ&öÆB6†F÷rÖÖB†÷fW#§6†F÷rÖÆrG&ç6—F–öâÖÆÂ7W'6÷"×ö–çFW"fÆW‚—FV×2Ö6VçFW"vÓ" ¢à¢Ä6†V6´6—&6ÆS"6Æ74æÖSÒ'rÓB‚ÓBFW‡BÕ²6fVCcV%Ò"óà¢·&÷W'G’òu6fR6†ævW2r¢uV&Æ—6‚fW&–f–VB&÷W'G’wÐ¢Âö'WGFöãà¢ÂöF—cà¢Âöf÷&Óà¢ÂöF—cà¢ÂöF—cà¢“°§Ó°
+        id="admin-property-editor-modal"
+        className="bg-[#FCF9F2] rounded-xl sm:rounded-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col shadow-2xl border border-[#bfc9c3]/50 overflow-hidden"
+      >
+        {/* Modal Header */}
+        <div className="px-4 sm:px-6 py-4 sm:py-5 bg-[#003527] text-white flex items-center justify-between border-b border-[#003527]/20">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-[#fed65b]/20 flex items-center justify-center text-[#fed65b] shrink-0">
+              <Home className="w-4 sm:w-5 h-4 sm:h-5" />
+            </div>
+            <div>
+              <h2 className="font-playfair text-base sm:text-xl font-bold line-clamp-1">
+                {property ? 'Edit Property Listing' : 'Create New Verified Listing'}
+              </h2>
+              <p className="text-[10px] sm:text-xs text-[#fed65b]/90 font-medium">
+                SmartBridge Port Harcourt Real Estate Registry
+              </p>
+            </div>
+          </div>
+          <button
+            id="btn-close-property-editor"
+            onClick={onClose}
+            className="p-1.5 sm:p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
+          >
+            <X className="w-4 sm:w-5 h-4 sm:h-5" />
+          </button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex border-b border-[#bfc9c3]/40 bg-white/70 px-4 sm:px-6 gap-3 sm:gap-6 text-xs sm:text-sm font-semibold overflow-x-auto no-scrollbar whitespace-nowrap">
+          <button
+            type="button"
+            onClick={() => setActiveTab('basic')}
+            className={`py-3 sm:py-3.5 border-b-2 transition-all cursor-pointer ${
+              activeTab === 'basic'
+                ? 'border-[#003527] text-[#003527] font-bold'
+                : 'border-transparent text-[#707974] hover:text-[#003527]'
+            }`}
+          >
+            Basic Details & Pricing
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('media')}
+            className={`py-3 sm:py-3.5 border-b-2 transition-all cursor-pointer ${
+              activeTab === 'media'
+                ? 'border-[#003527] text-[#003527] font-bold'
+                : 'border-transparent text-[#707974] hover:text-[#003527]'
+            }`}
+          >
+            Images ({images.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('features')}
+            className={`py-3 sm:py-3.5 border-b-2 transition-all cursor-pointer ${
+              activeTab === 'features'
+                ? 'border-[#003527] text-[#003527] font-bold'
+                : 'border-transparent text-[#707974] hover:text-[#003527]'
+            }`}
+          >
+            Features & Amenities
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+          {/* TAB 1: BASIC DETAILS */}
+          {activeTab === 'basic' && (
+            <div className="space-y-5 animate-in fade-in">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944] mb-1.5">
+                    Property Title *
+                  </label>
+                  <input
+                    id="input-prop-title"
+                    type="text"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Contemporary 5-Bed Detached Duplex"
+                    className="w-full bg-white border border-[#bfc9c3] rounded-lg px-4 py-2.5 text-sm text-[#1b1c1c] focus:outline-none focus:border-[#003527]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944] mb-1.5">
+                    Listing Status
+                  </label>
+                  <select
+                    id="select-prop-status"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as any)}
+                    className="w-full bg-white border border-[#bfc9c3] rounded-lg px-4 py-2.5 text-sm text-[#1b1c1c] focus:outline-none focus:border-[#003527]"
+                  >
+                    <option value="active">Active Listing</option>
+                    <option value="pending_verification">Pending Audit</option>
+                    <option value="sold">Sold Out</option>
+                    <option value="rented">Rented Out</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944] mb-1.5">
+                    Listing Type *
+                  </label>
+                  <div className="flex rounded-lg border border-[#bfc9c3] overflow-hidden bg-white p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setListingType('sale')}
+                      className={`flex-1 py-2 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                        listingType === 'sale' ? 'bg-[#003527] text-white shadow-xs' : 'text-[#404944]'
+                      }`}
+                    >
+                      For Sale
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setListingType('rent')}
+                      className={`flex-1 py-2 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                        listingType === 'rent' ? 'bg-[#003527] text-white shadow-xs' : 'text-[#404944]'
+                      }`}
+                    >
+                      For Rent
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944] mb-1.5">
+                    Property Type *
+                  </label>
+                  <select
+                    id="select-prop-type"
+                    value={propertyType}
+                    onChange={(e) => setPropertyType(e.target.value as PropertyType)}
+                    className="w-full bg-white border border-[#bfc9c3] rounded-lg px-4 py-2.5 text-sm text-[#1b1c1c] focus:outline-none focus:border-[#003527]"
+                  >
+                    {PROPERTY_TYPES.map((pt) => (
+                      <option key={pt} value={pt}>
+                        {pt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944] mb-1.5">
+                    Neighborhood *
+                  </label>
+                  <select
+                    id="select-prop-neighborhood"
+                    value={neighborhood}
+                    onChange={(e) => setNeighborhood(e.target.value as any)}
+                    className="w-full bg-white border border-[#bfc9c3] rounded-lg px-4 py-2.5 text-sm text-[#1b1c1c] focus:outline-none focus:border-[#003527]"
+                  >
+                    {NEIGHBORHOOD_OPTIONS.map((nb) => (
+                      <option key={nb} value={nb}>
+                        {nb}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944] mb-1.5">
+                    Full Physical Address *
+                  </label>
+                  <input
+                    id="input-prop-address"
+                    type="text"
+                    required
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="e.g. Plot 14, Presidential Section, GRA Phase 2, Port Harcourt"
+                    className="w-full bg-white border border-[#bfc9c3] rounded-lg px-4 py-2.5 text-sm text-[#1b1c1c] focus:outline-none focus:border-[#003527]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944] mb-1.5">
+                    Price in Naira (â‚¦) * {listingType === 'rent' ? '(Annual Rent)' : '(Asking Price)'}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-2.5 text-sm font-bold text-[#707974]">â‚¦</span>
+                    <input
+                      id="input-prop-price"
+                      type="number"
+                      required
+                      min={100000}
+                      step={500000}
+                      value={price}
+                      onChange={(e) => setPrice(Number(e.target.value))}
+                      className="w-full bg-white border border-[#bfc9c3] rounded-lg pl-8 pr-4 py-2.5 text-sm text-[#1b1c1c] font-semibold focus:outline-none focus:border-[#003527]"
+                    />
+                  </div>
+                  <label className="mt-2 flex items-center gap-2 text-xs font-semibold text-[#404944] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isNegotiable}
+                      onChange={(e) => setIsNegotiable(e.target.checked)}
+                      className="h-4 w-4 accent-[#003527]"
+                    />
+                    Price is negotiable
+                  </label>
+                  <p className="text-[11px] text-[#707974] mt-1">
+                    Display preview: {formatNairaDisplay(price, listingType)} {listingType === 'rent' ? '/yr' : ''}
+                  </p>
+                </div>
+              </div>
+
+              {/* Specifications: Beds, Baths, Parking, Size */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-4 rounded-xl border border-[#bfc9c3]/50">
+                <div>
+                  <label className="block text-xs font-semibold text-[#404944] mb-1">Bedrooms</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={bedrooms}
+                    onChange={(e) => setBedrooms(Number(e.target.value))}
+                    className="w-full bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg px-3 py-2 text-sm text-center font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#404944] mb-1">Bathrooms</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={bathrooms}
+                    onChange={(e) => setBathrooms(Number(e.target.value))}
+                    className="w-full bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg px-3 py-2 text-sm text-center font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#404944] mb-1">Parking Bays</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={20}
+                    value={parkingSpaces}
+                    onChange={(e) => setParkingSpaces(Number(e.target.value))}
+                    className="w-full bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg px-3 py-2 text-sm text-center font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#404944] mb-1">Floor Area (SqFt)</label>
+                  <input
+                    type="number"
+                    min={500}
+                    step={100}
+                    value={sizeSqFt}
+                    onChange={(e) => setSizeSqFt(Number(e.target.value))}
+                    className="w-full bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg px-3 py-2 text-sm text-center font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Badges & Assigned Agent */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50 space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#404944] block">
+                    Visibility & Badges
+                  </span>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isVerified}
+                      onChange={(e) => setIsVerified(e.target.checked)}
+                      className="w-4 h-4 text-[#003527] rounded-sm focus:ring-[#003527]"
+                    />
+                    <div>
+                      <span className="text-sm font-semibold text-[#1b1c1c] block">SmartBridge Verified</span>
+                      <span className="text-xs text-[#707974]">Displays the approved listing badge</span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isFeatured}
+                      onChange={(e) => setIsFeatured(e.target.checked)}
+                      className="w-4 h-4 text-[#003527] rounded-sm focus:ring-[#003527]"
+                    />
+                    <div>
+                      <span className="text-sm font-semibold text-[#1b1c1c] block">Featured on Homepage</span>
+                      <span className="text-xs text-[#707974]">Promoted in prime spotlight section</span>
+                    </div>
+                  </label>
+                </div>
+
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#404944] mb-1.5">
+                  Detailed Description *
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Provide an overview of architectural highlights, estate security, finishes, and neighbourhood perks..."
+                  className="w-full bg-white border border-[#bfc9c3] rounded-lg p-3.5 text-sm text-[#1b1c1c] focus:outline-none focus:border-[#003527]"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: INSPECTION & AUDIT */}
+          {activeTab === 'inspection' && (
+            <div className="space-y-5 animate-in fade-in">
+              <div className="bg-[#003527]/5 border border-[#003527]/20 p-4 rounded-xl flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-[#003527] shrink-0 mt-0.5" />
+                <div className="text-xs text-[#404944] leading-relaxed">
+                  <strong className="text-[#003527]">Physical Engineering & Land Search Standard:</strong> Every listing published with verification on SmartBridge undergoes on-site engineering testing and Rivers State Ministry of Lands title searches.
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50 space-y-3">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944]">
+                    Overall Inspection Score (0 - 100)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min={60}
+                      max={100}
+                      value={overallScore}
+                      onChange={(e) => setOverallScore(Number(e.target.value))}
+                      className="flex-1 accent-[#003527]"
+                    />
+                    <span className="font-playfair text-2xl font-bold text-[#003527] px-3 py-1 bg-[#fed65b]/20 rounded-lg">
+                      {overallScore}%
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50 space-y-3">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#404944]">
+                    Title Document Type & Verification
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      value={titleDocumentType}
+                      onChange={(e) => setTitleDocumentType(e.target.value as any)}
+                      className="bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg px-3 py-2 text-xs font-semibold"
+                    >
+                      <option value="C of O">Certificate of Occupancy (C of O)</option>
+                      <option value="Governor's Consent">Governor's Consent</option>
+                      <option value="Deed of Conveyance">Deed of Conveyance</option>
+                      <option value="Gazette">Gazette</option>
+                    </select>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-[#003527] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={titleVerified}
+                        onChange={(e) => setTitleVerified(e.target.checked)}
+                        className="w-4 h-4 text-[#003527] rounded-sm"
+                      />
+                      Lands Registry Verified
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50">
+                  <label className="block text-xs font-bold text-[#404944] mb-1">Flood Risk Rating</label>
+                  <select
+                    value={floodRisk}
+                    onChange={(e) => setFloodRisk(e.target.value as any)}
+                    className="w-full bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg p-2 text-xs font-semibold"
+                  >
+                    <option value="Zero Risk (Elevated)">Zero Risk (Elevated)</option>
+                    <option value="Low">Low Risk</option>
+                    <option value="Moderate">Moderate</option>
+                  </select>
+                </div>
+
+                <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50">
+                  <label className="block text-xs font-bold text-[#404944] mb-1">Power Grid Stability</label>
+                  <input
+                    type="text"
+                    value={powerGridStability}
+                    onChange={(e) => setPowerGridStability(e.target.value)}
+                    placeholder="e.g. 24/7 Dual Gen + Solar"
+                    className="w-full bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg p-2 text-xs font-semibold"
+                  />
+                </div>
+
+                <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50">
+                  <label className="block text-xs font-bold text-[#404944] mb-1">Security Rating</label>
+                  <input
+                    type="text"
+                    value={securityRating}
+                    onChange={(e) => setSecurityRating(e.target.value)}
+                    placeholder="e.g. Grade A+ (Armed Patrol)"
+                    className="w-full bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg p-2 text-xs font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#404944] mb-1">Lead Inspector Name</label>
+                  <input
+                    type="text"
+                    value={inspectorName}
+                    onChange={(e) => setInspectorName(e.target.value)}
+                    className="w-full bg-white border border-[#bfc9c3] rounded-lg p-2 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#404944] mb-1">Inspector ID Badge</label>
+                  <input
+                    type="text"
+                    value={inspectorId}
+                    onChange={(e) => setInspectorId(e.target.value)}
+                    className="w-full bg-white border border-[#bfc9c3] rounded-lg p-2 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#404944] mb-1">Inspection Date</label>
+                  <input
+                    type="text"
+                    value={inspectedDate}
+                    onChange={(e) => setInspectedDate(e.target.value)}
+                    className="w-full bg-white border border-[#bfc9c3] rounded-lg p-2 text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: MEDIA */}
+          {activeTab === 'media' && (
+            <div className="space-y-5 animate-in fade-in">
+              <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50 space-y-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#404944] block">
+                  Add High-Res Property Image URL
+                </span>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    placeholder="Paste image URL (https://...)"
+                    className="flex-1 bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg px-3.5 py-2 text-xs text-[#1b1c1c]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddImage(newImageUrl.trim())}
+                    className="bg-[#003527] text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#064e3b] cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add URL
+                  </button>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="pt-2">
+                  <span className="text-[11px] font-semibold text-[#707974] block mb-2">
+                    Quick Sample Photo Presets for Port Harcourt Properties:
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {SAMPLE_IMAGE_BANK.map((sampleUrl, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleAddImage(sampleUrl)}
+                        className="relative group cursor-pointer rounded-lg overflow-hidden border border-[#bfc9c3]/40 aspect-video"
+                      >
+                        <img src={sampleUrl} alt="Sample" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-opacity">
+                          + Add
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Images List */}
+              <div className="space-y-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#404944] block">
+                  Current Gallery Images ({images.length})
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative group rounded-xl overflow-hidden border border-[#bfc9c3]/50 bg-white shadow-xs"
+                    >
+                      <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-36 object-cover" />
+                      <div className="p-2.5 flex items-center justify-between bg-white text-xs">
+                        <span className="font-semibold text-[#707974]">
+                          {idx === 0 ? 'â˜… Primary Cover' : `Photo #${idx + 1}`}
+                        </span>
+                        {images.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx)}
+                            className="text-[#ba1a1a] hover:bg-[#ba1a1a]/10 p-1.5 rounded-md transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: FEATURES & AMENITIES */}
+          {activeTab === 'features' && (
+            <div className="space-y-6 animate-in fade-in">
+              {/* Features */}
+              <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50 space-y-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#404944] block">
+                  Property Highlights & Finishes
+                </span>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newFeature}
+                    onChange={(e) => setNewFeature(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddFeature();
+                      }
+                    }}
+                    placeholder="e.g. Private Lap Swimming Pool, 30kVA Generator, Italian Kitchen"
+                    className="flex-1 bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg px-3.5 py-2 text-xs text-[#1b1c1c]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddFeature}
+                    className="bg-[#003527] text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#064e3b] cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {features.map((feat, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#003527]/10 text-[#003527] text-xs font-medium"
+                    >
+                      {feat}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFeature(idx)}
+                        className="hover:text-[#ba1a1a] cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Amenities */}
+              <div className="bg-white p-4 rounded-xl border border-[#bfc9c3]/50 space-y-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#404944] block">
+                  Estate Amenities & Infrastructure
+                </span>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddAmenity();
+                      }
+                    }}
+                    placeholder="e.g. 24/7 Armed Patrol, High-Speed Fiber Internet, Industrial Borehole"
+                    className="flex-1 bg-[#fbf9f8] border border-[#bfc9c3] rounded-lg px-3.5 py-2 text-xs text-[#1b1c1c]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddAmenity}
+                    className="bg-[#003527] text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#064e3b] cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {amenities.map((am, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#fed65b]/30 text-[#735c00] text-xs font-medium"
+                    >
+                      {am}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAmenity(idx)}
+                        className="hover:text-[#ba1a1a] cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Footer Actions */}
+          <div className="pt-4 border-t border-[#bfc9c3]/40 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              id="btn-cancel-editor"
+              onClick={onClose}
+              className="px-5 py-2.5 rounded-xl border border-[#bfc9c3] text-[#404944] hover:bg-white text-sm font-semibold transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              id="btn-save-property-listing"
+              className="px-6 py-2.5 rounded-xl bg-[#003527] text-white hover:bg-[#064e3b] text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4 text-[#fed65b]" />
+              {property ? 'Save Changes' : 'Publish Verified Property'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
