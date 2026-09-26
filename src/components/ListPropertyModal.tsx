@@ -91,10 +91,10 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     price: editingSubmission ? String(editingSubmission.price) : '',
     isNegotiable: editingSubmission?.isNegotiable || false,
     leaseTermYears: editingSubmission?.leaseTermYears ? String(editingSubmission.leaseTermYears) : '3',
-    agencyFee: editingSubmission?.agencyFee ? String(editingSubmission.agencyFee) : '',
+    agencyFeePercentage: editingSubmission?.agencyFeePercentage ? String(editingSubmission.agencyFeePercentage) : '',
     cautionFee: editingSubmission?.cautionFee ? String(editingSubmission.cautionFee) : '',
     serviceCharge: editingSubmission?.serviceCharge ? String(editingSubmission.serviceCharge) : '',
-    legalFee: editingSubmission?.legalFee ? String(editingSubmission.legalFee) : '',
+    legalFeePercentage: editingSubmission?.legalFeePercentage ? String(editingSubmission.legalFeePercentage) : '',
     otherCharges: editingSubmission?.otherCharges ? String(editingSubmission.otherCharges) : '',
     otherChargesDescription: editingSubmission?.otherChargesDescription || '',
     bedrooms: editingSubmission ? String(editingSubmission.bedrooms) : '4',
@@ -307,10 +307,10 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
         bedrooms: Number(formData.bedrooms) || 0,
         bathrooms: Number(formData.bathrooms) || 0,
         leaseTermYears: formData.listingType === 'lease' ? Number(formData.leaseTermYears) || 1 : undefined,
-        agencyFee: Number(formData.agencyFee.replace(/[^0-9.]/g, '')) || 0,
+        agencyFeePercentage: Number(formData.agencyFeePercentage.replace(/[^0-9.]/g, '')) || 0,
         cautionFee: Number(formData.cautionFee.replace(/[^0-9.]/g, '')) || 0,
         serviceCharge: Number(formData.serviceCharge.replace(/[^0-9.]/g, '')) || 0,
-        legalFee: Number(formData.legalFee.replace(/[^0-9.]/g, '')) || 0,
+        legalFeePercentage: Number(formData.legalFeePercentage.replace(/[^0-9.]/g, '')) || 0,
         otherCharges: Number(formData.otherCharges.replace(/[^0-9.]/g, '')) || 0,
         ownerId: currentOwner.id,
         ownerName: currentOwner.name || formData.ownerName,
@@ -608,15 +608,15 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {([
-                      ['agencyFee', 'Agency Fee (₦)'],
+                      ['agencyFeePercentage', 'Agency Fee (%)'],
                       ['cautionFee', 'Caution Fee (₦)'],
                       ['serviceCharge', 'Service Charge (₦)'],
-                      ['legalFee', 'Legal Fee (₦)'],
+                      ['legalFeePercentage', 'Legal Fee (%)'],
                       ['otherCharges', 'Other Charges (₦)'],
                     ] as const).map(([field, label]) => (
                       <div key={field}>
                         <label className="block text-xs font-bold text-[#404944] mb-1.5 uppercase">{label}</label>
-                        <input type="text" inputMode="numeric" placeholder="0" value={formData[field]}
+                        <input type="number" inputMode="decimal" min="0" max={field === 'agencyFeePercentage' || field === 'legalFeePercentage' ? '100' : undefined} step={field === 'agencyFeePercentage' || field === 'legalFeePercentage' ? '0.01' : '1'} placeholder="0" value={formData[field]}
                           onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
                           className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm" />
                       </div>

@@ -45,10 +45,10 @@ export interface Property {
   pricePeriod?: string; // e.g. "/yr"
   isNegotiable?: boolean;
   leaseTermYears?: number;
-  agencyFee?: number;
+  agencyFeePercentage?: number;
   cautionFee?: number;
   serviceCharge?: number;
-  legalFee?: number;
+  legalFeePercentage?: number;
   otherCharges?: number;
   otherChargesDescription?: string;
   type: ListingType;
@@ -126,10 +126,10 @@ export interface PropertySubmission {
   price: number | string;
   isNegotiable?: boolean;
   leaseTermYears?: number | string;
-  agencyFee?: number | string;
+  agencyFeePercentage?: number | string;
   cautionFee?: number | string;
   serviceCharge?: number | string;
-  legalFee?: number | string;
+  legalFeePercentage?: number | string;
   otherCharges?: number | string;
   otherChargesDescription?: string;
   bedrooms: number | string;

@@ -123,10 +123,10 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
                       <strong className="block text-[#003527] mb-2">Lease & charge details</strong>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-[#404944]">
                         {submission.listingType === 'lease' && <span>Term: <b>{submission.leaseTermYears} years</b></span>}
-                        <span>Agency: <b>₦{Number(submission.agencyFee || 0).toLocaleString()}</b></span>
+                        <span>Agency: <b>{Number(submission.agencyFeePercentage || 0)}% (₦{((Number(submission.price) * Number(submission.agencyFeePercentage || 0)) / 100).toLocaleString()})</b></span>
                         <span>Caution: <b>₦{Number(submission.cautionFee || 0).toLocaleString()}</b></span>
                         <span>Service: <b>₦{Number(submission.serviceCharge || 0).toLocaleString()}</b></span>
-                        <span>Legal: <b>₦{Number(submission.legalFee || 0).toLocaleString()}</b></span>
+                        <span>Legal: <b>{Number(submission.legalFeePercentage || 0)}% (₦{((Number(submission.price) * Number(submission.legalFeePercentage || 0)) / 100).toLocaleString()})</b></span>
                         <span>{submission.otherChargesDescription || 'Other'}: <b>₦{Number(submission.otherCharges || 0).toLocaleString()}</b></span>
                       </div>
                     </div>

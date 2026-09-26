@@ -245,10 +245,10 @@ export const AdminVerificationQueue: React.FC<AdminVerificationQueueProps> = ({
               <h3 className="font-bold text-[#003527] mb-2">Lease & charge details</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {selectedSubmission.listingType === 'lease' && <span>Term: <b>{selectedSubmission.leaseTermYears} years</b></span>}
-                <span>Agency: <b>₦{Number(selectedSubmission.agencyFee || 0).toLocaleString()}</b></span>
+                <span>Agency: <b>{Number(selectedSubmission.agencyFeePercentage || 0)}% (₦{((Number(selectedSubmission.price) * Number(selectedSubmission.agencyFeePercentage || 0)) / 100).toLocaleString()})</b></span>
                 <span>Caution: <b>₦{Number(selectedSubmission.cautionFee || 0).toLocaleString()}</b></span>
                 <span>Service: <b>₦{Number(selectedSubmission.serviceCharge || 0).toLocaleString()}</b></span>
-                <span>Legal: <b>₦{Number(selectedSubmission.legalFee || 0).toLocaleString()}</b></span>
+                <span>Legal: <b>{Number(selectedSubmission.legalFeePercentage || 0)}% (₦{((Number(selectedSubmission.price) * Number(selectedSubmission.legalFeePercentage || 0)) / 100).toLocaleString()})</b></span>
                 <span>{selectedSubmission.otherChargesDescription || 'Other'}: <b>₦{Number(selectedSubmission.otherCharges || 0).toLocaleString()}</b></span>
               </div>
             </div>

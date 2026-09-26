@@ -301,18 +301,14 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between gap-4 font-bold"><span>Property price{property.type === 'rent' ? ' / annual rent' : ''}</span><span>{property.priceDisplay}</span></div>
                   {property.type === 'lease' && property.leaseTermYears && <div className="flex justify-between gap-4"><span>Lease duration</span><span>{property.leaseTermYears} years</span></div>}
-                  {([
-                    ['Agency fee', property.agencyFee],
-                    ['Caution fee', property.cautionFee],
-                    ['Service charge', property.serviceCharge],
-                    ['Legal fee', property.legalFee],
-                    [property.otherChargesDescription || 'Other charges', property.otherCharges],
-                  ] as const).filter(([, amount]) => Number(amount) > 0).map(([label, amount]) => (
-                    <div key={label} className="flex justify-between gap-4 text-[#404944]"><span>{label}</span><span>₦{Number(amount).toLocaleString()}</span></div>
-                  ))}
+                  {Number(property.agencyFeePercentage) > 0 && <div className="flex justify-between gap-4 text-[#404944]"><span>Agency fee ({property.agencyFeePercentage}%)</span><span>₦{((property.price * Number(property.agencyFeePercentage)) / 100).toLocaleString()}</span></div>}
+                  {Number(property.cautionFee) > 0 && <div className="flex justify-between gap-4 text-[#404944]"><span>Caution fee</span><span>₦{Number(property.cautionFee).toLocaleString()}</span></div>}
+                  {Number(property.serviceCharge) > 0 && <div className="flex justify-between gap-4 text-[#404944]"><span>Service charge</span><span>₦{Number(property.serviceCharge).toLocaleString()}</span></div>}
+                  {Number(property.legalFeePercentage) > 0 && <div className="flex justify-between gap-4 text-[#404944]"><span>Legal fee ({property.legalFeePercentage}%)</span><span>₦{((property.price * Number(property.legalFeePercentage)) / 100).toLocaleString()}</span></div>}
+                  {Number(property.otherCharges) > 0 && <div className="flex justify-between gap-4 text-[#404944]"><span>{property.otherChargesDescription || 'Other charges'}</span><span>₦{Number(property.otherCharges).toLocaleString()}</span></div>}
                   <div className="mt-3 pt-3 border-t border-[#bfc9c3]/40 flex justify-between gap-4 font-bold text-[#003527]">
                     <span>Estimated total upfront cost</span>
-                    <span>₦{(property.price + (property.agencyFee || 0) + (property.cautionFee || 0) + (property.serviceCharge || 0) + (property.legalFee || 0) + (property.otherCharges || 0)).toLocaleString()}</span>
+                    <span>₦{(property.price + ((property.price * Number(property.agencyFeePercentage || 0)) / 100) + (property.cautionFee || 0) + (property.serviceCharge || 0) + ((property.price * Number(property.legalFeePercentage || 0)) / 100) + (property.otherCharges || 0)).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
