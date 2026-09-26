@@ -212,7 +212,7 @@ export const AdminVerificationQueue: React.FC<AdminVerificationQueueProps> = ({
 
                   <div className="mt-3 pt-2.5 border-t border-[#bfc9c3]/20 flex items-center justify-between text-xs text-[#707974]">
                     <span>Owner: <strong className="text-[#1b1c1c]">{sub.ownerName}</strong></span>
-                    <span className="font-bold text-[#003527]">{sub.listingType === 'rent' ? 'For Rent' : 'For Sale'}</span>
+                    <span className="font-bold text-[#003527]">{sub.listingType === 'sale' ? 'For Sale' : sub.listingType === 'lease' ? 'For Lease' : 'For Rent'}</span>
                   </div>
                 </div>
               );
@@ -239,6 +239,18 @@ export const AdminVerificationQueue: React.FC<AdminVerificationQueueProps> = ({
               <p className="text-xs text-[#707974] flex items-center gap-1 mt-1">
                 <MapPin className="w-3.5 h-3.5 text-[#003527]" /> {selectedSubmission.address}
               </p>
+            </div>
+
+            <div className="rounded-xl bg-[#fbf9f8] border border-[#bfc9c3]/30 p-4 text-xs">
+              <h3 className="font-bold text-[#003527] mb-2">Lease & charge details</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {selectedSubmission.listingType === 'lease' && <span>Term: <b>{selectedSubmission.leaseTermYears} years</b></span>}
+                <span>Agency: <b>{Number(selectedSubmission.agencyFeePercentage || 0)}% (₦{((Number(selectedSubmission.price) * Number(selectedSubmission.agencyFeePercentage || 0)) / 100).toLocaleString()})</b></span>
+                <span>Caution: <b>₦{Number(selectedSubmission.cautionFee || 0).toLocaleString()}</b></span>
+                <span>Service: <b>₦{Number(selectedSubmission.serviceCharge || 0).toLocaleString()}</b></span>
+                <span>Legal: <b>{Number(selectedSubmission.legalFeePercentage || 0)}% (₦{((Number(selectedSubmission.price) * Number(selectedSubmission.legalFeePercentage || 0)) / 100).toLocaleString()})</b></span>
+                <span>{selectedSubmission.otherChargesDescription || 'Other'}: <b>₦{Number(selectedSubmission.otherCharges || 0).toLocaleString()}</b></span>
+              </div>
             </div>
 
             {/* Owner & Property Specs */}

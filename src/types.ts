@@ -1,5 +1,5 @@
 export type PropertyType = 'Apartment' | 'Duplex' | 'Terrace' | 'Penthouse' | 'Mansion' | 'Commercial';
-export type ListingType = 'sale' | 'rent';
+export type ListingType = 'sale' | 'rent' | 'lease';
 
 export interface InspectionCheckItem {
   name: string;
@@ -44,6 +44,13 @@ export interface Property {
   priceDisplay: string;
   pricePeriod?: string; // e.g. "/yr"
   isNegotiable?: boolean;
+  leaseTermYears?: number;
+  agencyFeePercentage?: number;
+  cautionFee?: number;
+  serviceCharge?: number;
+  legalFeePercentage?: number;
+  otherCharges?: number;
+  otherChargesDescription?: string;
   type: ListingType;
   propertyType: PropertyType;
   bedrooms: number;
@@ -118,6 +125,13 @@ export interface PropertySubmission {
   address: string;
   price: number | string;
   isNegotiable?: boolean;
+  leaseTermYears?: number | string;
+  agencyFeePercentage?: number | string;
+  cautionFee?: number | string;
+  serviceCharge?: number | string;
+  legalFeePercentage?: number | string;
+  otherCharges?: number | string;
+  otherChargesDescription?: string;
   bedrooms: number | string;
   bathrooms: number | string;
   ownerName: string;

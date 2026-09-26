@@ -45,6 +45,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <span className="bg-[#fed65b] text-[#745c00] text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
               For Sale
             </span>
+          ) : property.type === 'lease' ? (
+            <span className="bg-[#735c00] text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
+              For Lease{property.leaseTermYears ? ` • ${property.leaseTermYears} yrs` : ''}
+            </span>
           ) : (
             <span className="bg-[#2b6954] text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
               For Rent
