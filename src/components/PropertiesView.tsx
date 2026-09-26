@@ -134,6 +134,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 ? 'Properties For Rent in Port Harcourt'
                 : filters.type === 'sale'
                 ? 'Properties For Sale in Port Harcourt'
+                : filters.type === 'lease'
+                ? 'Properties For Lease'
                 : 'All Port Harcourt Properties'}
             </h1>
             <p className="text-sm text-[#404944] mt-1.5">
@@ -163,6 +165,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               }`}
             >
               For Rent
+            </button>
+            <button
+              onClick={() => handleFilterChange({ ...filters, type: 'lease' })}
+              className={`px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all cursor-pointer ${
+                filters.type === 'lease'
+                  ? 'bg-[#003527] text-white shadow-xs'
+                  : 'text-[#404944] hover:text-[#003527]'
+              }`}
+            >
+              For Lease
             </button>
             <button
               onClick={() => handleFilterChange({ ...filters, type: 'sale' })}

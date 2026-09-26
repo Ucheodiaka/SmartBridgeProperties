@@ -95,7 +95,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   : 'bg-[#2b6954] text-white'
               }`}
             >
-              For {property.type === 'sale' ? 'Sale' : 'Rent'}
+              For {property.type === 'sale' ? 'Sale' : property.type === 'lease' ? 'Lease' : 'Rent'}
             </span>
             {property.isVerified && (
               <span className="bg-[#003527] text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md uppercase tracking-wider flex items-center gap-1">
@@ -294,6 +294,27 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <p className="text-sm md:text-base text-[#404944] leading-relaxed">
                   {property.description}
                 </p>
+              </div>
+
+              <div className="bg-white p-5 rounded-xl border border-[#bfc9c3]/40 shadow-xs">
+                <h3 className="text-lg font-bold text-[#1b1c1c] mb-4">Price & Complete Charges</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between gap-4 font-bold"><span>Property price{property.type === 'rent' ? ' / annual rent' : ''}</span><span>{property.priceDisplay}</span></div>
+                  {property.type === 'lease' && property.leaseTermYears && <div className="flex justify-between gap-4"><span>Lease duration</span><span>{property.leaseTermYears} years</span></div>}
+                  {([
+                    ['Agency fee', property.agencyFee],
+                    ['Caution fee', property.cautionFee],
+                    ['Service charge', property.serviceCharge],
+                    ['Legal fee', property.legalFee],
+                    [property.otherChargesDescription || 'Other charges', property.otherCharges],
+                  ] as const).filter(([, amount]) => Number(amount) > 0).map(([label, amount]) => (
+                    <div key={label} className="flex justify-between gap-4 text-[#404944]"><span>{label}</span><span>₦{Number(amount).toLocaleString()}</span></div>
+                  ))}
+                  <div className="mt-3 pt-3 border-t border-[#bfc9c3]/40 flex justify-between gap-4 font-bold text-[#003527]">
+                    <span>Estimated total upfront cost</span>
+                    <span>₦{(property.price + (property.agencyFee || 0) + (property.cautionFee || 0) + (property.serviceCharge || 0) + (property.legalFee || 0) + (property.otherCharges || 0)).toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Features & Amenities */}

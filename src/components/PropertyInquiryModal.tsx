@@ -33,7 +33,7 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
     buyerName: '',
     buyerPhone: '',
     buyerEmail: '',
-    inquiryType: (property.type === 'rent' ? 'rent' : 'buy') as 'buy' | 'rent' | 'offer' | 'general',
+    inquiryType: (property.type === 'sale' ? 'buy' : 'rent') as 'buy' | 'rent' | 'offer' | 'general',
     offerAmount: property.priceDisplay || '',
     proposedMoveIn: '',
     message: `Hello, I am interested in this property "${property.title}" located at ${property.location}. Please provide availability and inspection schedule.`,
@@ -149,7 +149,7 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
                 <div className="overflow-hidden flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-[#003527] uppercase tracking-wider">
-                      {property.type === 'rent' ? 'For Rent' : 'For Sale'}
+                      {property.type === 'sale' ? 'For Sale' : property.type === 'lease' ? 'For Lease' : 'For Rent'}
                     </span>
                     <span className="text-xs font-bold text-[#1b1c1c]">{property.priceDisplay}</span>
                   </div>

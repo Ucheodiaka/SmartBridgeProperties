@@ -984,7 +984,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                                 <CheckCircle2 className="w-2.5 h-2.5" /> Published & Active
                               </span>
                               <span className="bg-[#003527]/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-sm">
-                                {property.type === 'rent' ? 'For Rent' : 'For Sale'}
+                                {property.type === 'sale' ? 'For Sale' : property.type === 'lease' ? 'For Lease' : 'For Rent'}
                               </span>
                             </div>
                             {property.videos && property.videos.length > 0 && (

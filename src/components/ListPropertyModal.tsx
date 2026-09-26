@@ -90,6 +90,13 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     address: editingSubmission?.address || '',
     price: editingSubmission ? String(editingSubmission.price) : '',
     isNegotiable: editingSubmission?.isNegotiable || false,
+    leaseTermYears: editingSubmission?.leaseTermYears ? String(editingSubmission.leaseTermYears) : '3',
+    agencyFee: editingSubmission?.agencyFee ? String(editingSubmission.agencyFee) : '',
+    cautionFee: editingSubmission?.cautionFee ? String(editingSubmission.cautionFee) : '',
+    serviceCharge: editingSubmission?.serviceCharge ? String(editingSubmission.serviceCharge) : '',
+    legalFee: editingSubmission?.legalFee ? String(editingSubmission.legalFee) : '',
+    otherCharges: editingSubmission?.otherCharges ? String(editingSubmission.otherCharges) : '',
+    otherChargesDescription: editingSubmission?.otherChargesDescription || '',
     bedrooms: editingSubmission ? String(editingSubmission.bedrooms) : '4',
     bathrooms: editingSubmission ? String(editingSubmission.bathrooms) : '4',
     ownerName: currentOwner?.name || '',
@@ -299,6 +306,12 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
         price: cleanPrice ? Number(cleanPrice) : 0,
         bedrooms: Number(formData.bedrooms) || 0,
         bathrooms: Number(formData.bathrooms) || 0,
+        leaseTermYears: formData.listingType === 'lease' ? Number(formData.leaseTermYears) || 1 : undefined,
+        agencyFee: Number(formData.agencyFee.replace(/[^0-9.]/g, '')) || 0,
+        cautionFee: Number(formData.cautionFee.replace(/[^0-9.]/g, '')) || 0,
+        serviceCharge: Number(formData.serviceCharge.replace(/[^0-9.]/g, '')) || 0,
+        legalFee: Number(formData.legalFee.replace(/[^0-9.]/g, '')) || 0,
+        otherCharges: Number(formData.otherCharges.replace(/[^0-9.]/g, '')) || 0,
         ownerId: currentOwner.id,
         ownerName: currentOwner.name || formData.ownerName,
         ownerEmail: currentOwner.email || formData.ownerEmail,
@@ -457,6 +470,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                     >
                       <option value="sale">For Sale (Direct Purchase)</option>
                       <option value="rent">For Rent (Annual Lease)</option>
+                      <option value="lease">For Lease (Multi-Year)</option>
                     </select>
                   </div>
 
@@ -480,6 +494,18 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                     </select>
                   </div>
                 </div>
+
+                {formData.listingType === 'lease' && (
+                  <div>
+                    <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                      Lease Duration (Years) *
+                    </label>
+                    <input required type="number" min="1" max="99" value={formData.leaseTermYears}
+                      onChange={(e) => setFormData({ ...formData, leaseTermYears: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm" />
+                    <p className="mt-1 text-xs text-[#707974]">Enter the exact term agreed for this property.</p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -573,6 +599,35 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527]"
                   />
+                </div>
+
+                <div className="rounded-xl border border-[#bfc9c3]/50 bg-[#fbf9f8] p-4 space-y-4">
+                  <div>
+                    <h5 className="text-sm font-bold text-[#003527]">Additional Charges</h5>
+                    <p className="text-xs text-[#707974]">Enter 0 or leave blank when a charge does not apply.</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {([
+                      ['agencyFee', 'Agency Fee (₦)'],
+                      ['cautionFee', 'Caution Fee (₦)'],
+                      ['serviceCharge', 'Service Charge (₦)'],
+                      ['legalFee', 'Legal Fee (₦)'],
+                      ['otherCharges', 'Other Charges (₦)'],
+                    ] as const).map(([field, label]) => (
+                      <div key={field}>
+                        <label className="block text-xs font-bold text-[#404944] mb-1.5 uppercase">{label}</label>
+                        <input type="text" inputMode="numeric" placeholder="0" value={formData[field]}
+                          onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                          className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm" />
+                      </div>
+                    ))}
+                    <div>
+                      <label className="block text-xs font-bold text-[#404944] mb-1.5 uppercase">Other Charge Description</label>
+                      <input type="text" maxLength={100} placeholder="e.g. Estate levy" value={formData.otherChargesDescription}
+                        onChange={(e) => setFormData({ ...formData, otherChargesDescription: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm" />
+                    </div>
+                  </div>
                 </div>
 
                 <div>

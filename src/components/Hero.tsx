@@ -132,6 +132,21 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onOpenListProperty, onBrow
                   <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
                 )}
               </button>
+              <button
+                type="button"
+                id="search-tab-lease"
+                onClick={() => setActiveTab('lease')}
+                className={`text-sm md:text-base font-bold pb-2 px-1 relative transition-all cursor-pointer ${
+                  activeTab === 'lease'
+                    ? 'text-[#003527]'
+                    : 'text-[#404944] hover:text-[#003527]'
+                }`}
+              >
+                Lease
+                {activeTab === 'lease' && (
+                  <span className="absolute bottom-[-1px] left-0 w-full h-[2.5px] bg-[#003527] rounded-full" />
+                )}
+              </button>
             </div>
 
             {/* Search Form */}
