@@ -51,6 +51,7 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
   const [neighborhood, setNeighborhood] = useState<Property['neighborhood']>('GRA Phase 2');
   const [address, setAddress] = useState('');
   const [price, setPrice] = useState<number>(100000000);
+  const [isNegotiable, setIsNegotiable] = useState<boolean>(false);
   const [bedrooms, setBedrooms] = useState<number>(4);
   const [bathrooms, setBathrooms] = useState<number>(4);
   const [parkingSpaces, setParkingSpaces] = useState<number>(3);
@@ -88,6 +89,7 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
       setNeighborhood(property.neighborhood);
       setAddress(property.address);
       setPrice(property.price);
+      setIsNegotiable(Boolean(property.isNegotiable));
       setBedrooms(property.bedrooms);
       setBathrooms(property.bathrooms);
       setParkingSpaces(property.parkingSpaces);
@@ -124,6 +126,7 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
       setNeighborhood('GRA Phase 2');
       setAddress('');
       setPrice(150000000);
+      setIsNegotiable(false);
       setBedrooms(4);
       setBathrooms(4);
       setParkingSpaces(3);
@@ -222,6 +225,7 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
       neighborhood: neighborhood,
       address: address.trim(),
       price: Number(price),
+      isNegotiable,
       priceDisplay: formatNairaDisplay(Number(price), listingType),
       pricePeriod: listingType === 'rent' ? '/yr' : undefined,
       type: listingType,
@@ -472,6 +476,15 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
                       className="w-full bg-white border border-[#bfc9c3] rounded-lg pl-8 pr-4 py-2.5 text-sm text-[#1b1c1c] font-semibold focus:outline-none focus:border-[#003527]"
                     />
                   </div>
+                  <label className="mt-2 flex items-center gap-2 text-xs font-semibold text-[#404944] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isNegotiable}
+                      onChange={(e) => setIsNegotiable(e.target.checked)}
+                      className="h-4 w-4 accent-[#003527]"
+                    />
+                    Price is negotiable
+                  </label>
                   <p className="text-[11px] text-[#707974] mt-1">
                     Display preview: {formatNairaDisplay(price, listingType)} {listingType === 'rent' ? '/yr' : ''}
                   </p>

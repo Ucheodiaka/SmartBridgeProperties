@@ -89,6 +89,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     location: editingSubmission?.location || 'GRA Phase 2',
     address: editingSubmission?.address || '',
     price: editingSubmission ? String(editingSubmission.price) : '',
+    isNegotiable: editingSubmission?.isNegotiable || false,
     bedrooms: editingSubmission ? String(editingSubmission.bedrooms) : '4',
     bathrooms: editingSubmission ? String(editingSubmission.bathrooms) : '4',
     ownerName: currentOwner?.name || '',
@@ -483,21 +484,27 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
-                      Neighborhood in Port Harcourt *
+                      City / Neighborhood / Area *
                     </label>
-                    <select
+                    <input
+                      required
+                      type="text"
+                      list="smartbridge-location-suggestions"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      placeholder="e.g. Jabi, Abuja or GRA Phase 2, Port Harcourt"
                       className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]"
-                    >
-                      <option value="GRA Phase 2">GRA Phase 2</option>
-                      <option value="Peter Odili Road">Peter Odili Road</option>
-                      <option value="Woji">Woji</option>
-                      <option value="Old GRA">Old GRA</option>
-                      <option value="Golf Estate">Golf Estate</option>
-                      <option value="Ada George">Ada George</option>
-                      <option value="Trans Amadi">Trans Amadi</option>
-                    </select>
+                    />
+                    <datalist id="smartbridge-location-suggestions">
+                      <option value="GRA Phase 2, Port Harcourt" />
+                      <option value="Peter Odili Road, Port Harcourt" />
+                      <option value="Woji, Port Harcourt" />
+                      <option value="Old GRA, Port Harcourt" />
+                      <option value="Golf Estate, Port Harcourt" />
+                      <option value="Ada George, Port Harcourt" />
+                      <option value="Trans Amadi, Port Harcourt" />
+                      <option value="Jabi, Abuja" />
+                    </datalist>
                   </div>
 
                   <div>
@@ -512,6 +519,15 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527]"
                     />
+                    <label className="mt-2 flex items-center gap-2 text-xs font-semibold text-[#404944] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isNegotiable}
+                        onChange={(e) => setFormData({ ...formData, isNegotiable: e.target.checked })}
+                        className="h-4 w-4 accent-[#003527]"
+                      />
+                      Price is negotiable
+                    </label>
                   </div>
                 </div>
 
@@ -584,6 +600,8 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                     Description / Key Features
                   </label>
                   <textarea
+                    required
+                    maxLength={500}
                     rows={3}
                     placeholder="Highlight special details: swimming pool, solar power installation, security estate, boys quarters..."
                     value={formData.description}

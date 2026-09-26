@@ -38,11 +38,12 @@ export interface Property {
   title: string;
   slug: string;
   location: string;
-  neighborhood: 'GRA Phase 2' | 'Peter Odili Road' | 'Woji' | 'Old GRA' | 'Ada George' | 'Trans Amadi' | 'Golf Estate';
+  neighborhood: string;
   address: string;
   price: number;
   priceDisplay: string;
   pricePeriod?: string; // e.g. "/yr"
+  isNegotiable?: boolean;
   type: ListingType;
   propertyType: PropertyType;
   bedrooms: number;
@@ -116,6 +117,7 @@ export interface PropertySubmission {
   location: string;
   address: string;
   price: number | string;
+  isNegotiable?: boolean;
   bedrooms: number | string;
   bathrooms: number | string;
   ownerName: string;
@@ -201,4 +203,3 @@ export interface AdminStaffAccount {
   pin: string;
   badge?: string;
 }
-
