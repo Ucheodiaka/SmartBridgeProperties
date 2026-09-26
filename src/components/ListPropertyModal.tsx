@@ -12,6 +12,8 @@ import {
   AlertCircle,
   FileText,
   Loader2,
+  Video,
+  Upload,
 } from 'lucide-react';
 import { PropertyType, ListingType, PropertySubmission, OwnerAccount } from '../types';
 import { supabaseDb } from '../lib/supabase';
@@ -33,6 +35,17 @@ interface UploadedMediaItem {
   uploadStatus: 'uploading' | 'uploaded' | 'failed';
   error?: string;
 }
+
+interface UploadedVideoItem {
+  name: string;
+  size: string;
+  previewUrl: string;
+  storagePath: string;
+}
+
+const MAX_VIDEO_SIZE = 25 * 1024 * 1024;
+const MAX_VIDEO_DURATION_SECONDS = 60;
+const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
 // Validate that optional video tour link is a secure HTTPS link from YouTube, Vimeo, or Matterport
 const validateVideoTourUrl = (url: string): { isValid: boolean; error?: string } => {
@@ -119,6 +132,13 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     }))
   );
   const [videoUrlInput, setVideoUrlInput] = useState(editingSubmission?.videoUrl || '');
+  const [uploadedVideo, setUploadedVideo] = useState<UploadedVideoItem | null>(() => {
+    const existingVideo = editingSubmission?.videos?.[0];
+    return existingVideo
+      ? { name: 'Existing walkthrough video', size: 'Saved', previewUrl: existingVideo, storagePath: existingVideo }
+      : null;
+  });
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   // Status and feedback states
   const [isUploading, setIsUploading] = useState(false);
@@ -132,6 +152,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
 
   // Hidden File input ref
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Keep track of active object URLs for cleanup
   const previewUrlsRef = useRef<Set<string>>(new Set());
@@ -267,6 +288,69 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     });
   };
 
+  const readVideoDuration = (file: File): Promise<number> =>
+    new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const objectUrl = URL.createObjectURL(file);
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(video.duration);
+      };
+      video.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('This video could not be read. Please choose another video.'));
+      };
+      video.src = objectUrl;
+    });
+
+  const processVideoFile = async (file?: File) => {
+    setUploadError(null);
+    setSubmissionError(null);
+    if (!file) return;
+    if (!currentOwner?.id) {
+      setUploadError('Please sign in before uploading a property video.');
+      return;
+    }
+    if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+      setUploadError('Please upload an MP4, WebM, or MOV video.');
+      return;
+    }
+    if (file.size > MAX_VIDEO_SIZE) {
+      setUploadError('The video exceeds the 25MB file limit.');
+      return;
+    }
+
+    setIsUploadingVideo(true);
+    try {
+      const duration = await readVideoDuration(file);
+      if (!Number.isFinite(duration) || duration > MAX_VIDEO_DURATION_SECONDS + 0.5) {
+        setUploadError('The walkthrough video must be 60 seconds or shorter.');
+        return;
+      }
+      const storagePath = await supabaseDb.uploadSubmissionVideo(file, currentOwner.id);
+      if (!storagePath) throw new Error('Video upload failed. Please try again.');
+
+      if (uploadedVideo?.previewUrl.startsWith('blob:')) URL.revokeObjectURL(uploadedVideo.previewUrl);
+      const previewUrl = URL.createObjectURL(file);
+      previewUrlsRef.current.add(previewUrl);
+      setUploadedVideo({ name: file.name, size: formatFileSize(file.size), previewUrl, storagePath });
+    } catch (error: any) {
+      setUploadError(error?.message || 'Video upload failed. Please try again.');
+    } finally {
+      setIsUploadingVideo(false);
+      if (videoInputRef.current) videoInputRef.current.value = '';
+    }
+  };
+
+  const removeUploadedVideo = () => {
+    if (uploadedVideo?.previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(uploadedVideo.previewUrl);
+      previewUrlsRef.current.delete(uploadedVideo.previewUrl);
+    }
+    setUploadedVideo(null);
+  };
+
   // Asynchronous submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -288,6 +372,10 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     }
 
     if (videoUrlInput.trim()) {
+      if (uploadedVideo) {
+        setSubmissionError('Please use either a direct video upload or a video tour link, not both.');
+        return;
+      }
       const videoValidation = validateVideoTourUrl(videoUrlInput);
       if (!videoValidation.isValid) {
         setSubmissionError(videoValidation.error || 'Invalid video tour URL.');
@@ -318,6 +406,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
         ownerPhone: currentOwner.phone || formData.ownerPhone,
         status: 'pending',
         images: finalImages,
+        videos: uploadedVideo?.storagePath ? [uploadedVideo.storagePath] : [],
         videoUrl: videoUrlInput.trim() || undefined,
       };
 
@@ -348,6 +437,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
   const isSubmitDisabled =
     isSubmitting ||
     isImageUploading ||
+    isUploadingVideo ||
     hasFailedImages ||
     !hasUploadedImages ||
     !hasAuthenticatedOwner ||
@@ -671,10 +761,10 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                 <div>
                   <h4 className="text-xs font-bold text-[#707974] uppercase tracking-wider flex items-center gap-1.5">
                     <ImagePlus className="w-3.5 h-3.5 text-[#003527]" />
-                    2. Upload Property Photographs & Video Tour Link
+                    2. Upload Property Photographs & Video Walkthrough
                   </h4>
                   <p className="text-[11px] text-[#404944] mt-0.5">
-                    Upload original property photographs and optionally attach a video walkthrough link.
+                    Upload original property photographs and optionally add one short walkthrough video.
                   </p>
                 </div>
 
@@ -856,7 +946,65 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                   )}
                 </div>
 
-                {/* --- B. OPTIONAL VIDEO TOUR LINK --- */}
+                {/* --- B. OPTIONAL DIRECT VIDEO UPLOAD --- */}
+                <div className="space-y-3 pt-3 border-t border-[#bfc9c3]/30">
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-xs font-bold text-[#1b1c1c] uppercase flex items-center gap-1.5">
+                      <Video className="w-3.5 h-3.5 text-[#003527]" />
+                      <span>Property Walkthrough Video</span>
+                      <span className="text-[10px] font-normal text-[#707974]">(Optional)</span>
+                    </label>
+                    <span className="text-[10px] font-semibold text-[#707974]">60 sec • 25MB max</span>
+                  </div>
+
+                  <input
+                    ref={videoInputRef}
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+                    className="hidden"
+                    onChange={(event) => void processVideoFile(event.target.files?.[0])}
+                  />
+
+                  {!uploadedVideo ? (
+                    <button
+                      type="button"
+                      disabled={isUploadingVideo}
+                      onClick={() => videoInputRef.current?.click()}
+                      className="w-full border-2 border-dashed border-[#bfc9c3] bg-white hover:border-[#003527]/60 rounded-xl p-5 text-center transition-colors disabled:opacity-60 cursor-pointer"
+                    >
+                      {isUploadingVideo ? (
+                        <Loader2 className="w-7 h-7 mx-auto mb-2 animate-spin text-[#003527]" />
+                      ) : (
+                        <Upload className="w-7 h-7 mx-auto mb-2 text-[#003527]" />
+                      )}
+                      <span className="block text-xs sm:text-sm font-bold text-[#1b1c1c]">
+                        {isUploadingVideo ? 'Uploading video…' : 'Upload video from your phone or computer'}
+                      </span>
+                      <span className="block text-[10px] text-[#707974] mt-1">
+                        MP4, WebM or MOV • Maximum 60 seconds and 25MB
+                      </span>
+                    </button>
+                  ) : (
+                    <div className="rounded-xl overflow-hidden border border-[#bfc9c3]/50 bg-black relative">
+                      <video src={uploadedVideo.previewUrl} controls playsInline className="w-full max-h-64 object-contain" />
+                      <div className="flex items-center justify-between gap-3 bg-white p-3">
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#1b1c1c] truncate">{uploadedVideo.name}</p>
+                          <p className="text-[10px] text-[#707974]">{uploadedVideo.size} • Ready</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeUploadedVideo}
+                          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Remove
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* --- C. OPTIONAL VIDEO TOUR LINK --- */}
                 <div className="space-y-2 pt-3 border-t border-[#bfc9c3]/30">
                   <label className="block text-xs font-bold text-[#1b1c1c] uppercase flex items-center gap-1.5">
                     <LinkIcon className="w-3.5 h-3.5 text-[#003527]" />
@@ -867,13 +1015,14 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                   </label>
                   <input
                     type="url"
+                    disabled={Boolean(uploadedVideo)}
                     placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/... or Matterport link"
                     value={videoUrlInput}
                     onChange={(e) => {
                       setVideoUrlInput(e.target.value);
                       setSubmissionError(null);
                     }}
-                    className={`w-full px-3.5 py-2.5 rounded-lg border bg-white text-xs text-[#1b1c1c] focus:outline-none ${
+                    className={`w-full px-3.5 py-2.5 rounded-lg border bg-white text-xs text-[#1b1c1c] focus:outline-none disabled:bg-[#eef2ef] disabled:text-[#707974] ${
                       videoUrlInput.trim() && !validateVideoTourUrl(videoUrlInput).isValid
                         ? 'border-red-400 focus:border-red-500'
                         : 'border-[#bfc9c3] focus:border-[#003527]'
@@ -886,7 +1035,9 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                     </p>
                   )}
                   <p className="text-[10px] text-[#707974]">
-                    Provide an optional HTTPS link to a walkthrough video hosted on YouTube, Vimeo, or a 3D virtual tour on Matterport.
+                    {uploadedVideo
+                      ? 'Remove the uploaded video first if you prefer to use an online link.'
+                      : 'If your video is already online, you may provide its HTTPS link instead.'}
                   </p>
                 </div>
               </div>
