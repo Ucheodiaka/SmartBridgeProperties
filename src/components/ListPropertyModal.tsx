@@ -371,11 +371,12 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
       return;
     }
 
+    if (!uploadedVideo?.storagePath) {
+      setSubmissionError('Please upload a property walkthrough video before submitting.');
+      return;
+    }
+
     if (videoUrlInput.trim()) {
-      if (uploadedVideo) {
-        setSubmissionError('Please use either a direct video upload or a video tour link, not both.');
-        return;
-      }
       const videoValidation = validateVideoTourUrl(videoUrlInput);
       if (!videoValidation.isValid) {
         setSubmissionError(videoValidation.error || 'Invalid video tour URL.');
@@ -440,6 +441,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     isUploadingVideo ||
     hasFailedImages ||
     !hasUploadedImages ||
+    !uploadedVideo?.storagePath ||
     !hasAuthenticatedOwner ||
     hasInvalidVideoUrl;
 
@@ -951,8 +953,8 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                   <div className="flex items-center justify-between gap-3">
                     <label className="text-xs font-bold text-[#1b1c1c] uppercase flex items-center gap-1.5">
                       <Video className="w-3.5 h-3.5 text-[#003527]" />
-                      <span>Property Walkthrough Video</span>
-                      <span className="text-[10px] font-normal text-[#707974]">(Optional)</span>
+                      <span>Property Walkthrough Video *</span>
+                      <span className="text-[10px] font-normal text-red-600">(Required)</span>
                     </label>
                     <span className="text-[10px] font-semibold text-[#707974]">60 sec • 25MB max</span>
                   </div>
@@ -1015,14 +1017,13 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                   </label>
                   <input
                     type="url"
-                    disabled={Boolean(uploadedVideo)}
                     placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/... or Matterport link"
                     value={videoUrlInput}
                     onChange={(e) => {
                       setVideoUrlInput(e.target.value);
                       setSubmissionError(null);
                     }}
-                    className={`w-full px-3.5 py-2.5 rounded-lg border bg-white text-xs text-[#1b1c1c] focus:outline-none disabled:bg-[#eef2ef] disabled:text-[#707974] ${
+                    className={`w-full px-3.5 py-2.5 rounded-lg border bg-white text-xs text-[#1b1c1c] focus:outline-none ${
                       videoUrlInput.trim() && !validateVideoTourUrl(videoUrlInput).isValid
                         ? 'border-red-400 focus:border-red-500'
                         : 'border-[#bfc9c3] focus:border-[#003527]'
@@ -1035,9 +1036,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                     </p>
                   )}
                   <p className="text-[10px] text-[#707974]">
-                    {uploadedVideo
-                      ? 'Remove the uploaded video first if you prefer to use an online link.'
-                      : 'If your video is already online, you may provide its HTTPS link instead.'}
+                    You may also provide an online tour link, but it does not replace the required uploaded video.
                   </p>
                 </div>
               </div>
