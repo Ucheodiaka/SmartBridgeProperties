@@ -20,7 +20,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   return (
     <div
       id={`property-card-${property.id}`}
-      className="bg-white rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,53,39,0.08)] hover:shadow-[0_12px_28px_rgba(0,53,39,0.14)] transition-all duration-300 group flex flex-col border border-[#bfc9c3]/30"
+      className="bg-white rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,53,39,0.08)] hover:shadow-[0_12px_28px_rgba(0,53,39,0.14)] transition-all duration-300 group flex h-full min-h-[580px] flex-col border border-[#bfc9c3]/30"
     >
       {/* Property Thumbnail Image */}
       <div className="relative h-64 overflow-hidden bg-[#e4e2e1] cursor-pointer" onClick={() => onSelect(property)}>
@@ -95,7 +95,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           {/* Location link */}
           <div className="flex items-center gap-1.5 text-xs font-bold text-[#003527] uppercase tracking-wider mb-2">
             <MapPin className="w-3.5 h-3.5 text-[#003527]" />
-            <span>{property.location}</span>
+            <span className="line-clamp-1" title={property.location}>{property.location}</span>
           </div>
 
           {/* Title */}
@@ -106,6 +106,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           >
             {property.title}
           </h3>
+
+          <p className="mb-3 min-h-10 line-clamp-2 text-sm leading-5 text-[#404944]" title={property.address}>
+            {property.address}
+          </p>
+
+          <p className="mb-4 min-h-[60px] line-clamp-3 text-sm leading-5 text-[#707974]" title={property.description}>
+            {property.description}
+          </p>
 
           {/* Beds, Baths, Parking Stats */}
           <div className="flex items-center gap-4 mb-5 border-y border-[#bfc9c3]/30 py-3 text-xs font-semibold text-[#404944]">
@@ -135,6 +143,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 </span>
               )}
             </p>
+            {property.isNegotiable && (
+              <span className="mt-1 inline-flex rounded-full bg-[#fed65b]/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#735c00]">
+                Negotiable
+              </span>
+            )}
           </div>
 
           <button

@@ -72,7 +72,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         const matchesText =
           prop.title.toLowerCase().includes(query) ||
           prop.description.toLowerCase().includes(query) ||
-          prop.location.toLowerCase().includes(query);
+          prop.location.toLowerCase().includes(query) ||
+          prop.neighborhood.toLowerCase().includes(query) ||
+          prop.address.toLowerCase().includes(query);
         if (!matchesText) return false;
       }
 
