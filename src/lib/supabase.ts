@@ -1224,6 +1224,27 @@ const currentUserId = authData.user.id;
     }
   },
 
+  async uploadSubmissionVideo(file: File, userId: string): Promise<string | null> {
+    if (!isSupabaseConfigured || !supabase) return null;
+    try {
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'mp4';
+      const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+      const { data, error } = await supabase.storage
+        .from('property-submissions')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (error) throw error;
+      return data.path;
+    } catch (e) {
+      console.warn('Supabase uploadSubmissionVideo error:', e);
+      return null;
+    }
+  },
+
   // Admins promote or upload verified images directly to the public 'property-images' bucket
   async uploadApprovedPropertyImage(file: File, adminId: string): Promise<string | null> {
     if (!isSupabaseConfigured || !supabase) return null;
