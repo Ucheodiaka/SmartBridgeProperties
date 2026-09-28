@@ -15,6 +15,7 @@ import {
   InquiryStatus,
   LeadFollowUpUpdate,
   AdminStaffAccount,
+  ViewingRequestUpdate,
 } from './types';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -555,6 +556,34 @@ export default function App() {
     addToast(`Booking appointment status updated to ${status}.`, 'info');
   };
 
+  const handleUpdateViewingRequest = async (
+    bookingId: string,
+    update: ViewingRequestUpdate
+  ): Promise<boolean> => {
+    const saved = await supabaseDb.updateMyViewingRequest(bookingId, update);
+    if (!saved) {
+      addToast('The viewing request could not be updated. Please try again.', 'info');
+      return false;
+    }
+
+    setBookings((prev) =>
+      prev.map((booking) =>
+        booking.id === bookingId
+          ? {
+              ...booking,
+              status: update.status,
+              confirmedDate: update.confirmedDate || booking.confirmedDate,
+              confirmedTime: update.confirmedTime || booking.confirmedTime,
+              listerResponse: update.listerResponse,
+              respondedAt: new Date().toISOString(),
+            }
+          : booking
+      )
+    );
+    addToast('Viewing request updated successfully.', 'success');
+    return true;
+  };
+
   const handleShareProperty = (property: Property) => {
     navigator.clipboard?.writeText(window.location.href);
     addToast(`Link to "${property.title}" copied to clipboard!`, 'info');
@@ -777,6 +806,7 @@ export default function App() {
           bookings={bookings}
           onOpenListProperty={() => setIsListPropertyOpen(true)}
           onUpdateInquiryStatus={handleUpdateInquiryStatus}
+          onUpdateViewingRequest={handleUpdateViewingRequest}
           onUpdateOwner={(updated) => setCurrentOwner(updated)}
           onEditSubmission={(submission) => {
             setEditingSubmission(submission);
