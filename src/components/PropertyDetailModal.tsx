@@ -57,6 +57,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const listerAddress = property.ownerBusinessAddress;
   const listerDescription = property.ownerBusinessDescription;
   const listerType = property.ownerListerType;
+  const isUnavailable = property.status === 'sold' || property.status === 'rented';
 
   useEffect(() => {
     // Brief smooth skeleton hydration
@@ -106,6 +107,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               <span className="bg-[#003527] text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md uppercase tracking-wider flex items-center gap-1">
                 <ShieldCheck className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#fed65b]" />
                 <span className="hidden xs:inline">100% </span>Verified
+              </span>
+            )}
+            {isUnavailable && (
+              <span className="bg-[#1b1c1c] text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md uppercase tracking-wider">
+                {property.status}
               </span>
             )}
           </div>
@@ -496,6 +502,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               </div>
             </div>
 
+            {isUnavailable ? (
+              <div className="w-full md:w-auto rounded-xl border border-slate-300 bg-slate-100 px-5 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-700">
+                This property is {property.status} and is unavailable for enquiries or viewings.
+              </div>
+            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full md:w-auto md:shrink-0">
               <button
                 onClick={() => onOpenInquiry?.(property)}
@@ -512,6 +523,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 Request Viewing with Lister
               </button>
             </div>
+            )}
           </div>
         </div>
       </div>
