@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Calendar,
   Phone,
+  Mail,
   Share2,
   Heart,
   ChevronLeft,
@@ -52,6 +53,10 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const listerCompany = property.ownerCompanyName || property.ownerName || 'Verified Property Lister';
   const listerPhone = property.ownerPhone || 'Phone available after enquiry';
+  const listerEmail = property.ownerEmail;
+  const listerAddress = property.ownerBusinessAddress;
+  const listerDescription = property.ownerBusinessDescription;
+  const listerType = property.ownerListerType;
 
   useEffect(() => {
     // Brief smooth skeleton hydration
@@ -482,7 +487,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   Verified Property Lister
                 </div>
                 <h4 className="font-bold text-base text-[#1b1c1c]">{listerCompany}</h4>
+                {listerType && <p className="text-[11px] font-semibold text-[#003527]">{listerType}</p>}
                 <p className="text-xs text-[#707974] flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {listerPhone}</p>
+                {listerEmail && <p className="text-xs text-[#707974] flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> {listerEmail}</p>}
+                {listerAddress && <p className="text-xs text-[#707974] flex items-start gap-1"><MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" /> {listerAddress}</p>}
+                {listerDescription && <p className="text-[11px] text-[#707974] mt-2 max-w-xl line-clamp-2">{listerDescription}</p>}
                 <p className="text-[11px] text-[#707974] mt-1">Enquiries, offers, and viewing requests go directly to this verified lister.</p>
               </div>
             </div>
