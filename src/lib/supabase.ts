@@ -7,6 +7,7 @@ import {
   InspectionBooking,
   InquiryStatus,
   BookingStatus,
+  ViewingRequestUpdate,
   AuditStatus,
   PropertyStatus,
 } from '../types';
@@ -1033,6 +1034,10 @@ const currentUserId = authData.user.id;
         status: item.status as BookingStatus,
         assignedSpecialist: item.assigned_specialist,
         listerId: item.lister_id || undefined,
+        confirmedDate: item.confirmed_date || undefined,
+        confirmedTime: item.confirmed_time || undefined,
+        listerResponse: item.lister_response || undefined,
+        respondedAt: item.responded_at || undefined,
         createdAt: item.created_at,
       }));
     } catch (e) {
@@ -1073,6 +1078,27 @@ const currentUserId = authData.user.id;
       return true;
     } catch (e) {
       console.error('Supabase saveBooking error:', e);
+      return false;
+    }
+  },
+
+  async updateMyViewingRequest(
+    bookingId: string,
+    update: ViewingRequestUpdate
+  ): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(bookingId)) return false;
+    try {
+      const { data, error } = await supabase.rpc('update_my_viewing_request', {
+        target_booking_id: bookingId,
+        next_status: update.status,
+        next_confirmed_date: update.confirmedDate || null,
+        next_confirmed_time: update.confirmedTime || null,
+        next_lister_response: update.listerResponse?.trim() || null,
+      });
+      if (error) throw error;
+      return Boolean(data);
+    } catch (e) {
+      console.error('Supabase updateMyViewingRequest error:', e);
       return false;
     }
   },
