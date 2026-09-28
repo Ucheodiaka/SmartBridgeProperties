@@ -40,7 +40,9 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
   );
   const [avatar, setAvatar] = useState(currentOwner.avatar || '');
   const [avatarPath, setAvatarPath] = useState(currentOwner.avatarPath || '');
+  const [publicLogoUrl, setPublicLogoUrl] = useState(currentOwner.publicLogoUrl || '');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isUploadingPublicLogo, setIsUploadingPublicLogo] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -61,6 +63,7 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
       bio: bio.trim(),
       avatar,
       avatarPath,
+      publicLogoUrl,
       isVerifiedLandlord: true,
     };
 
@@ -76,6 +79,7 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
         listerType: updatedAccount.listerType,
         address: updatedAccount.address,
         bio: updatedAccount.bio,
+        publicLogoUrl: updatedAccount.publicLogoUrl,
       });
       if (!saved) throw new Error('Profile changes could not be saved.');
 
@@ -88,6 +92,32 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handlePublicLogoUpload = async (file?: File) => {
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setPhotoError('Please choose a JPG, PNG, or WebP image.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('The public listing image must be 5 MB or smaller.');
+      return;
+    }
+
+    setIsUploadingPublicLogo(true);
+    setPhotoError(null);
+    const uploadedUrl = await supabaseDb.uploadPublicListerLogo(file, currentOwner.id);
+    if (!uploadedUrl) {
+      setPhotoError('The public listing image could not be uploaded. Please try again.');
+      setIsUploadingPublicLogo(false);
+      return;
+    }
+
+    setPublicLogoUrl(uploadedUrl);
+    setIsUploadingPublicLogo(false);
   };
 
   const handlePhotoUpload = async (file?: File) => {
@@ -138,6 +168,7 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
               Your details are updated in your active session and stored in the database.
             </p>
           </div>
+
         </div>
       )}
 
@@ -181,6 +212,41 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
                 <p className="text-[11px] text-[#707974]">
                   JPG, PNG, or WebP. Maximum size: 5 MB. Your photo remains private.
                 </p>
+                {photoError && <p className="text-xs text-red-600 font-semibold">{photoError}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Public listing logo/photo */}
+          <div className="border-t border-[#bfc9c3]/30 pt-4">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#707974] mb-2 flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-[#003527]" />
+              Public Listing Logo / Photo (Optional)
+            </label>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              {publicLogoUrl ? (
+                <img src={publicLogoUrl} alt="Public listing logo" className="w-20 h-20 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-xs" />
+              ) : (
+                <div className="w-20 h-20 rounded-2xl bg-[#fed65b]/25 text-[#003527] flex items-center justify-center border-2 border-[#003527]/20">
+                  <Building2 className="w-8 h-8" />
+                </div>
+              )}
+              <div className="space-y-2">
+                <label className="inline-flex items-center gap-2 bg-[#003527] hover:bg-[#064e3b] text-white font-semibold text-xs px-4 py-2.5 rounded-xl cursor-pointer">
+                  <Upload className="w-4 h-4 text-[#fed65b]" />
+                  {isUploadingPublicLogo ? 'Uploading...' : 'Upload Public Logo / Photo'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={isUploadingPublicLogo}
+                    onChange={(event) => {
+                      void handlePublicLogoUpload(event.target.files?.[0]);
+                      event.currentTarget.value = '';
+                    }}
+                  />
+                </label>
+                <p className="text-[11px] text-[#707974]">This image will be visible on marketplace property cards. Maximum size: 5 MB.</p>
                 {photoError && <p className="text-xs text-red-600 font-semibold">{photoError}</p>}
               </div>
             </div>
@@ -313,6 +379,7 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
                 setCompanyName(currentOwner.companyName || '');
                 setAvatar(currentOwner.avatar || '');
                 setAvatarPath(currentOwner.avatarPath || '');
+                setPublicLogoUrl(currentOwner.publicLogoUrl || '');
                 setListerType(currentOwner.listerType || 'Landlord / Property Owner');
                 setAddress(currentOwner.address || 'Port Harcourt, Rivers State');
                 setBio(currentOwner.bio || '');
@@ -356,9 +423,9 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
             </div>
 
             <div className="flex items-center gap-4 mt-2">
-              {avatar ? (
+              {publicLogoUrl ? (
                 <img
-                  src={avatar}
+                  src={publicLogoUrl}
                   alt={name || 'Lister'}
                   className="w-16 h-16 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-xs"
                 />
