@@ -29,6 +29,7 @@ import {
   PropertySubmission,
   PropertyInquiry,
   InspectionBooking,
+  ViewingRequestUpdate,
 } from '../../types';
 import {
   signInWithGoogle,
@@ -73,6 +74,7 @@ interface OwnerPortalModalProps {
   bookings: InspectionBooking[];
   onOpenListProperty: () => void;
   onUpdateInquiryStatus: (inquiryId: string, status: PropertyInquiry['status']) => void;
+  onUpdateViewingRequest: (bookingId: string, update: ViewingRequestUpdate) => Promise<boolean>;
   initialAuthTab?: 'create' | 'signin';
   onUpdateOwner?: (owner: OwnerAccount) => void;
   onEditSubmission: (submission: PropertySubmission) => void;
@@ -88,6 +90,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   inquiries,
   bookings,
   onUpdateInquiryStatus,
+  onUpdateViewingRequest,
   onOpenListProperty,
   initialAuthTab = 'signin',
   onUpdateOwner,
@@ -112,6 +115,8 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
 
   // Dashboard Tab State
   const [activeTab, setActiveTab] = useState<'properties' | 'inquiries' | 'viewings' | 'profile'>('properties');
+  const [viewingDrafts, setViewingDrafts] = useState<Record<string, ViewingRequestUpdate>>({});
+  const [savingViewingId, setSavingViewingId] = useState<string | null>(null);
   const [selectedListing, setSelectedListing] = useState<{
     property?: Property;
     submission?: PropertySubmission;
@@ -1135,19 +1140,76 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                 <div className="space-y-3">
                   {ownerBookings.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-8 text-center text-sm text-[#707974]">No viewing requests have arrived yet.</div>
-                  ) : ownerBookings.map((booking) => (
-                    <article key={booking.id} className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-5 shadow-xs space-y-3">
+                  ) : ownerBookings.map((booking) => {
+                    const draft = viewingDrafts[booking.id] || {
+                      status: booking.status === 'pending' ? 'confirmed' : booking.status as ViewingRequestUpdate['status'],
+                      confirmedDate: booking.confirmedDate || booking.preferredDate,
+                      confirmedTime: booking.confirmedTime || booking.preferredTime?.slice(0, 5),
+                      listerResponse: booking.listerResponse || '',
+                    };
+                    const needsSchedule = draft.status === 'confirmed' || draft.status === 'rescheduled';
+                    return (
+                    <article key={booking.id} className="bg-white rounded-2xl border border-[#bfc9c3]/40 p-5 shadow-xs space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div><h4 className="font-playfair font-bold text-[#003527]">{booking.propertyTitle}</h4><p className="text-xs text-[#707974]">{booking.propertyLocation}</p></div>
-                        <span className="self-start rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase text-amber-800">{booking.status}</span>
+                        <span className={`self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase ${booking.status === 'pending' ? 'bg-amber-100 text-amber-800' : booking.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}`}>{booking.status}</span>
                       </div>
                       <div className="grid sm:grid-cols-3 gap-2 text-xs text-[#404944]">
                         <span className="font-semibold">{booking.name}</span><a href={`tel:${booking.phone}`} className="hover:underline">{booking.phone}</a><a href={`mailto:${booking.email}`} className="truncate hover:underline">{booking.email}</a>
                       </div>
-                      <p className="text-sm"><strong>Preferred time:</strong> {booking.preferredDate} at {booking.preferredTime}</p>
+                      <p className="text-sm"><strong>Visitor's proposed time:</strong> {booking.preferredDate} at {booking.preferredTime}</p>
                       {booking.notes && <p className="text-sm text-[#404944] whitespace-pre-wrap">{booking.notes}</p>}
+
+                      {booking.confirmedDate && booking.confirmedTime && (
+                        <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-900">
+                          <strong>Lister's scheduled time:</strong> {booking.confirmedDate} at {booking.confirmedTime}
+                          {booking.listerResponse && <p className="mt-1 text-xs">{booking.listerResponse}</p>}
+                        </div>
+                      )}
+
+                      <div className="border-t border-[#bfc9c3]/30 pt-4 space-y-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#707974]">Manage viewing request</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <select
+                            value={draft.status}
+                            onChange={(event) => setViewingDrafts((prev) => ({ ...prev, [booking.id]: { ...draft, status: event.target.value as ViewingRequestUpdate['status'] } }))}
+                            className="rounded-lg border border-[#bfc9c3] bg-white px-3 py-2.5 text-xs font-semibold text-[#003527]"
+                          >
+                            <option value="confirmed">Confirm proposed time</option>
+                            <option value="rescheduled">Suggest another time</option>
+                            <option value="completed">Mark completed</option>
+                            <option value="cancelled">Cancel viewing</option>
+                          </select>
+                          {needsSchedule && (
+                            <>
+                              <input type="date" value={draft.confirmedDate || ''} onChange={(event) => setViewingDrafts((prev) => ({ ...prev, [booking.id]: { ...draft, confirmedDate: event.target.value } }))} className="rounded-lg border border-[#bfc9c3] bg-white px-3 py-2.5 text-xs text-[#1b1c1c]" />
+                              <input type="time" value={(draft.confirmedTime || '').slice(0, 5)} onChange={(event) => setViewingDrafts((prev) => ({ ...prev, [booking.id]: { ...draft, confirmedTime: event.target.value } }))} className="rounded-lg border border-[#bfc9c3] bg-white px-3 py-2.5 text-xs text-[#1b1c1c]" />
+                            </>
+                          )}
+                        </div>
+                        <textarea
+                          rows={2}
+                          maxLength={500}
+                          value={draft.listerResponse || ''}
+                          onChange={(event) => setViewingDrafts((prev) => ({ ...prev, [booking.id]: { ...draft, listerResponse: event.target.value } }))}
+                          placeholder="Optional message for this viewing arrangement"
+                          className="w-full rounded-lg border border-[#bfc9c3] bg-white px-3 py-2.5 text-xs text-[#1b1c1c]"
+                        />
+                        <button
+                          type="button"
+                          disabled={savingViewingId === booking.id || (needsSchedule && (!draft.confirmedDate || !draft.confirmedTime))}
+                          onClick={async () => {
+                            setSavingViewingId(booking.id);
+                            await onUpdateViewingRequest(booking.id, draft);
+                            setSavingViewingId(null);
+                          }}
+                          className="rounded-xl bg-[#003527] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#064e3b] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {savingViewingId === booking.id ? 'Saving...' : 'Save Viewing Update'}
+                        </button>
+                      </div>
                     </article>
-                  ))}
+                  );})}
                 </div>
               )}
 
