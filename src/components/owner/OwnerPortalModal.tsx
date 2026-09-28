@@ -205,7 +205,9 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
           avatar: res.user.avatar,
           isVerifiedLandlord: true,
           joinedAt: new Date().toISOString().split('T')[0],
-          listerType: 'Landlord / Property Owner',
+          listerType: (res.user.listerType as OwnerAccount['listerType']) || 'Landlord / Property Owner',
+          address: res.user.address,
+          bio: res.user.bio,
         };
         onLogin(ownerProfile);
       } else if (res.error) {
@@ -312,14 +314,17 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
             role: (res.user.role as any) || 'landlord',
             companyName: res.user.companyName,
             avatar: res.user.avatar,
+            avatarPath: res.user.avatarPath,
             isVerifiedLandlord: true,
             joinedAt: new Date().toISOString().split('T')[0],
-            listerType:
+            listerType: (res.user.listerType as OwnerAccount['listerType']) || (
               res.user.role === 'agent'
                 ? 'Registered Real Estate Agent'
                 : res.user.role === 'developer'
                 ? 'Property Developer'
-                : 'Landlord / Property Owner',
+                : 'Landlord / Property Owner'),
+            address: res.user.address,
+            bio: res.user.bio,
           };
           onLogin(loggedInOwner);
         } else {
