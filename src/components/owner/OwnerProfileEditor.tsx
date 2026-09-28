@@ -5,7 +5,6 @@ import {
   Phone,
   Building2,
   MapPin,
-  Camera,
   Upload,
   CheckCircle2,
   ShieldCheck,
@@ -38,9 +37,8 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
     currentOwner.bio ||
       'Verified property advertiser managing verified residential and commercial assets across Port Harcourt.'
   );
-  const [avatar, setAvatar] = useState(currentOwner.avatar || '');
-  const [avatarPath, setAvatarPath] = useState(currentOwner.avatarPath || '');
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [publicLogoUrl, setPublicLogoUrl] = useState(currentOwner.publicLogoUrl || '');
+  const [isUploadingPublicLogo, setIsUploadingPublicLogo] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -59,8 +57,7 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
       listerType,
       address: address.trim(),
       bio: bio.trim(),
-      avatar,
-      avatarPath,
+      publicLogoUrl,
       isVerifiedLandlord: true,
     };
 
@@ -72,7 +69,10 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
         name: updatedAccount.name,
         phone: updatedAccount.phone,
         companyName: updatedAccount.companyName,
-        avatarPath: updatedAccount.avatarPath,
+        listerType: updatedAccount.listerType,
+        address: updatedAccount.address,
+        bio: updatedAccount.bio,
+        publicLogoUrl: updatedAccount.publicLogoUrl,
       });
       if (!saved) throw new Error('Profile changes could not be saved.');
 
@@ -87,7 +87,7 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
     }
   };
 
-  const handlePhotoUpload = async (file?: File) => {
+  const handlePublicLogoUpload = async (file?: File) => {
     if (!file) return;
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -96,22 +96,21 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setPhotoError('The profile photo must be 5 MB or smaller.');
+      setPhotoError('The public listing image must be 5 MB or smaller.');
       return;
     }
 
-    setIsUploadingPhoto(true);
+    setIsUploadingPublicLogo(true);
     setPhotoError(null);
-    const uploaded = await supabaseDb.uploadProfileAvatar(file, currentOwner.id);
-    if (!uploaded) {
-      setPhotoError('The photo could not be uploaded. Please try again.');
-      setIsUploadingPhoto(false);
+    const uploadedUrl = await supabaseDb.uploadPublicListerLogo(file, currentOwner.id);
+    if (!uploadedUrl) {
+      setPhotoError('The public listing image could not be uploaded. Please try again.');
+      setIsUploadingPublicLogo(false);
       return;
     }
 
-    setAvatar(uploaded.signedUrl);
-    setAvatarPath(uploaded.path);
-    setIsUploadingPhoto(false);
+    setPublicLogoUrl(uploadedUrl);
+    setIsUploadingPublicLogo(false);
   };
 
   return (
@@ -122,7 +121,7 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
           Lister & Host Profile Settings
         </h3>
         <p className="text-xs text-[#707974] mt-1">
-          Manage your official contact details and private profile photo.
+          Manage your official contact details and public company logo or profile image.
         </p>
       </div>
 
@@ -135,6 +134,7 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
               Your details are updated in your active session and stored in the database.
             </p>
           </div>
+
         </div>
       )}
 
@@ -142,42 +142,36 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Columns: Editable Inputs */}
         <div className="lg:col-span-2 space-y-5 bg-white p-5 sm:p-6 rounded-2xl border border-[#bfc9c3]/40 shadow-xs">
-          {/* Private profile photo */}
+          {/* Single company logo/profile image */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-[#707974] mb-2 flex items-center gap-1.5">
-              <Camera className="w-3.5 h-3.5 text-[#003527]" />
-              Private Profile Photo
+              <Building2 className="w-3.5 h-3.5 text-[#003527]" />
+              Company Logo / Profile Image (Optional)
             </label>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt="Current profile"
-                  className="w-20 h-20 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-xs"
-                />
+              {publicLogoUrl ? (
+                <img src={publicLogoUrl} alt="Public listing logo" className="w-20 h-20 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-xs" />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-[#003527]/10 text-[#003527] flex items-center justify-center border-2 border-[#003527]/20">
-                  <User className="w-8 h-8" />
+                <div className="w-20 h-20 rounded-2xl bg-[#fed65b]/25 text-[#003527] flex items-center justify-center border-2 border-[#003527]/20">
+                  <Building2 className="w-8 h-8" />
                 </div>
               )}
               <div className="space-y-2">
                 <label className="inline-flex items-center gap-2 bg-[#003527] hover:bg-[#064e3b] text-white font-semibold text-xs px-4 py-2.5 rounded-xl cursor-pointer">
                   <Upload className="w-4 h-4 text-[#fed65b]" />
-                  {isUploadingPhoto ? 'Uploading Photo...' : 'Upload Profile Photo'}
+                  {isUploadingPublicLogo ? 'Uploading...' : 'Upload Logo / Profile Image'}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     className="sr-only"
-                    disabled={isUploadingPhoto}
+                    disabled={isUploadingPublicLogo}
                     onChange={(event) => {
-                      void handlePhotoUpload(event.target.files?.[0]);
+                      void handlePublicLogoUpload(event.target.files?.[0]);
                       event.currentTarget.value = '';
                     }}
                   />
                 </label>
-                <p className="text-[11px] text-[#707974]">
-                  JPG, PNG, or WebP. Maximum size: 5 MB. Your photo remains private.
-                </p>
+                <p className="text-[11px] text-[#707974]">This single image represents your profile and will be visible on marketplace property cards. Maximum size: 5 MB.</p>
                 {photoError && <p className="text-xs text-red-600 font-semibold">{photoError}</p>}
               </div>
             </div>
@@ -254,10 +248,11 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
             <div>
               <label className="block text-xs font-semibold text-[#1b1c1c] mb-1 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-[#003527]" />
-                Company / Agency / Brand Name
+                Company / Agency / Brand Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
+                required
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="e.g. Odiaka Real Estate Holdings"
@@ -269,13 +264,14 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
             <div>
               <label className="block text-xs font-semibold text-[#1b1c1c] mb-1 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-[#003527]" />
-                Operational City / District
+                Full Business Address <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
+                required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="e.g. GRA Phase 2, Port Harcourt"
+                placeholder="e.g. 15 Aba Road, GRA Phase 2, Port Harcourt, Rivers State"
                 className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-xs sm:text-sm text-[#1b1c1c] focus:outline-hidden focus:border-[#003527]"
               />
             </div>
@@ -284,10 +280,12 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
           {/* Bio / Description */}
           <div>
             <label className="block text-xs font-semibold text-[#1b1c1c] mb-1">
-              Advertiser Bio & Verification Overview
+              Company / Agency Description <span className="text-red-500">*</span>
             </label>
             <textarea
               rows={3}
+              required
+              maxLength={500}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Tell buyers and tenants about your portfolio..."
@@ -304,8 +302,10 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
                 setEmail(currentOwner.email);
                 setPhone(currentOwner.phone);
                 setCompanyName(currentOwner.companyName || '');
-                setAvatar(currentOwner.avatar || '');
-                setAvatarPath(currentOwner.avatarPath || '');
+                setPublicLogoUrl(currentOwner.publicLogoUrl || '');
+                setListerType(currentOwner.listerType || 'Landlord / Property Owner');
+                setAddress(currentOwner.address || 'Port Harcourt, Rivers State');
+                setBio(currentOwner.bio || '');
                 setPhotoError(null);
               }}
               className="inline-flex items-center gap-1.5 text-xs text-[#707974] hover:text-[#1b1c1c] font-semibold transition-colors cursor-pointer"
@@ -346,9 +346,9 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
             </div>
 
             <div className="flex items-center gap-4 mt-2">
-              {avatar ? (
+              {publicLogoUrl ? (
                 <img
-                  src={avatar}
+                  src={publicLogoUrl}
                   alt={name || 'Lister'}
                   className="w-16 h-16 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-xs"
                 />

@@ -43,10 +43,14 @@ export interface AuthUserProfile {
   name: string;
   avatar?: string;
   avatarPath?: string;
+  publicLogoUrl?: string;
   role?: 'landlord' | 'agent' | 'developer' | 'admin';
   companyName?: string;
   phone?: string;
   verified?: boolean;
+  listerType?: string;
+  address?: string;
+  bio?: string;
 }
 
 /**
@@ -120,10 +124,14 @@ export async function signInWithEmail(
       name: profile?.name || authUser.user_metadata?.full_name || email.split('@')[0],
       avatar: profile?.avatar || authUser.user_metadata?.avatar_url,
       avatarPath: profile?.avatarPath,
+      publicLogoUrl: profile?.publicLogoUrl,
       role: profile.role,
       companyName: profile?.companyName || authUser.user_metadata?.company_name,
       phone: profile?.phone || authUser.user_metadata?.phone,
       verified: profile?.verified ?? false,
+      listerType: profile?.listerType,
+      address: profile?.address,
+      bio: profile?.bio,
     };
 
     return { success: true, user: userProfile };
@@ -391,6 +399,10 @@ export const supabaseDb = {
         ownerEmail: item.owner_email,
         ownerPhone: item.owner_phone,
         ownerCompanyName: item.owner_company_name,
+        ownerBusinessAddress: item.owner_business_address,
+        ownerBusinessDescription: item.owner_business_description,
+        ownerListerType: item.owner_lister_type,
+        ownerLogoUrl: item.owner_logo_url,
         status: item.status || 'approved',
       }));
     } catch (e) {
@@ -1086,6 +1098,10 @@ const currentUserId = authData.user.id;
         role: item.role,
         avatar: item.avatar_url,
         verified: item.verified,
+        listerType: item.lister_type,
+        address: item.business_address,
+        bio: item.business_description,
+        publicLogoUrl: item.public_logo_url,
       }));
     } catch (e) {
       console.warn('Supabase fetchProfiles error:', e);
@@ -1130,6 +1146,10 @@ const currentUserId = authData.user.id;
         avatar,
         avatarPath,
         verified: data.verified,
+        listerType: data.lister_type,
+        address: data.business_address,
+        bio: data.business_description,
+        publicLogoUrl: data.public_logo_url,
       };
     } catch (e) {
       console.warn('Supabase fetchProfile error:', e);
@@ -1153,6 +1173,10 @@ const currentUserId = authData.user.id;
       if (profile.companyName !== undefined) payload.company_name = profile.companyName || null;
       if (profile.avatarPath !== undefined) payload.avatar_url = profile.avatarPath || null;
       else if (profile.avatar !== undefined) payload.avatar_url = profile.avatar || null;
+      if (profile.listerType !== undefined) payload.lister_type = profile.listerType || null;
+      if (profile.address !== undefined) payload.business_address = profile.address || null;
+      if (profile.bio !== undefined) payload.business_description = profile.bio || null;
+      if (profile.publicLogoUrl !== undefined) payload.public_logo_url = profile.publicLogoUrl || null;
 
       // Note: The frontend must never send or update 'role' or 'verified' through saveProfile()
       const { error } = await supabase
@@ -1201,6 +1225,35 @@ const currentUserId = authData.user.id;
       return { path: data.path, signedUrl: signedData.signedUrl };
     } catch (e) {
       console.warn('Supabase uploadProfileAvatar error:', e);
+      return null;
+    }
+  },
+
+  async uploadPublicListerLogo(file: File, userId: string): Promise<string | null> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(userId)) return null;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024;
+    if (!allowedTypes.includes(file.type) || file.size > maxSize) return null;
+
+    try {
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${userId}/listing-logo-${Date.now()}.${fileExt}`;
+      const { data, error } = await supabase.storage
+        .from('lister-public-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          contentType: file.type,
+          upsert: false,
+        });
+      if (error) throw error;
+
+      const { data: publicData } = supabase.storage
+        .from('lister-public-images')
+        .getPublicUrl(data.path);
+      return publicData.publicUrl || null;
+    } catch (e) {
+      console.warn('Supabase uploadPublicListerLogo error:', e);
       return null;
     }
   },

@@ -77,6 +77,10 @@ export interface Property {
   ownerName?: string;
   ownerPhone?: string;
   ownerCompanyName?: string;
+  ownerBusinessAddress?: string;
+  ownerBusinessDescription?: string;
+  ownerListerType?: string;
+  ownerLogoUrl?: string;
   status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'unpublished' | 'sold' | 'rented';
 }
 
@@ -162,9 +166,10 @@ export interface OwnerAccount {
   companyName?: string;
   avatar?: string;
   avatarPath?: string;
+  publicLogoUrl?: string;
   isVerifiedLandlord: boolean;
   joinedAt: string;
-  listerType?: 'Landlord / Property Owner' | 'Registered Real Estate Agent' | 'Property Developer';
+  listerType?: 'Landlord / Property Owner' | 'Registered Real Estate Agent' | 'Property Developer' | 'Short-let Host';
   address?: string;
   bio?: string;
 }
