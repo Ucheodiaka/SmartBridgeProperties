@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Bed, Bath, ShieldCheck, Heart, ArrowUpRight } from 'lucide-react';
+import { MapPin, Bed, Bath, ShieldCheck, Heart, ArrowUpRight, Building2 } from 'lucide-react';
 import { Property } from '../types';
 
 interface PropertyCardProps {
@@ -132,6 +132,27 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             </div>
             <div className="w-1 h-1 rounded-full bg-[#bfc9c3]" />
             <span className="text-[#707974]">{property.parkingSpaces} Cars</span>
+          </div>
+
+          <div className="mb-4 flex items-center gap-3 rounded-xl bg-[#f7f5ef] p-3 border border-[#bfc9c3]/30">
+            {property.ownerLogoUrl ? (
+              <img
+                src={property.ownerLogoUrl}
+                alt={`${property.ownerCompanyName || 'Property lister'} logo`}
+                className="h-11 w-11 shrink-0 rounded-xl border border-[#bfc9c3]/50 bg-white object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="h-11 w-11 shrink-0 rounded-xl bg-[#003527] text-[#fed65b] flex items-center justify-center">
+                <Building2 className="h-5 w-5" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-[#707974]">Listed by</span>
+              <span className="block truncate text-sm font-bold text-[#003527]">
+                {property.ownerCompanyName || property.ownerName || 'Verified Property Lister'}
+              </span>
+            </div>
           </div>
         </div>
 
