@@ -734,21 +734,24 @@ const currentUserId = authData.user.id;
           : path;
         if (!privatePath) throw new Error('The submission media path is invalid.');
 
-        const { data: fileData, error: downloadError } = await supabase.storage
-          .from('property-submissions')
-          .download(privatePath);
-        if (downloadError) throw downloadError;
-
         const fileName = privatePath.split('/').pop() || `${Date.now()}-property-media`;
         const publicPath = `approved/${submissionId}/${fileName}`;
-        const { error: uploadError } = await supabase.storage
+
+        // Retried approvals may already have copied some media before a later
+        // file failed. Reuse those public objects instead of creating conflicts.
+        const { data: alreadyExists } = await supabase.storage
           .from('property-images')
-          .upload(publicPath, fileData, {
-            contentType: fileData.type || undefined,
-            cacheControl: '31536000',
-            upsert: true,
-          });
-        if (uploadError) throw uploadError;
+          .exists(publicPath);
+
+        if (!alreadyExists) {
+          // Supabase performs this cross-bucket copy server-side. This avoids
+          // downloading large videos into the admin's browser and uploading
+          // them again, which can fail on slower connections.
+          const { error: copyError } = await supabase.storage
+            .from('property-submissions')
+            .copy(privatePath, publicPath, { destinationBucket: 'property-images' });
+          if (copyError) throw copyError;
+        }
 
         return supabase.storage.from('property-images').getPublicUrl(publicPath).data.publicUrl;
       };
