@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, CheckCircle2, Clock3, MapPin, XCircle } from 'lucide-react';
+import { Building2, CheckCircle2, Clock3, MapPin, Video, XCircle } from 'lucide-react';
 import { AuditStatus, PropertySubmission } from '../../types';
 
 interface AdminSubmissionsProps {
@@ -130,6 +130,24 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
                         <span>{submission.otherChargesDescription || 'Other'}: <b>₦{Number(submission.otherCharges || 0).toLocaleString()}</b></span>
                       </div>
                     </div>
+
+                    {(submission.videos?.[0] || submission.videoUrl) && (
+                      <div className="mt-3 rounded-xl border border-[#bfc9c3]/40 overflow-hidden bg-[#101513]">
+                        <div className="flex items-center gap-2 bg-[#003527] px-3 py-2 text-white">
+                          <Video className="w-4 h-4 text-[#fed65b]" />
+                          <strong className="text-xs">Review walkthrough video before approval</strong>
+                        </div>
+                        <video
+                          src={submission.videos?.[0] || submission.videoUrl}
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="w-full max-h-80 object-contain bg-black"
+                        >
+                          Your browser does not support video playback.
+                        </video>
+                      </div>
+                    )}
 
                     {status === 'pending' && (
                       <div className="flex flex-wrap gap-3 mt-5">

@@ -451,7 +451,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               <div className="rounded-xl overflow-hidden bg-black border border-[#bfc9c3]/50 shadow-lg aspect-video max-h-[460px] flex items-center justify-center relative">
                 {property.videoUrl?.startsWith('http') || (property.videos && property.videos.length > 0) ? (
                   <video
-                    src={property.videoUrl || property.videos?.[0]}
+                    src={property.videos?.[0] || property.videoUrl}
                     controls
                     autoPlay
                     playsInline
