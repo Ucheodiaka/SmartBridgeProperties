@@ -817,7 +817,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
               <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#bfc9c3]/40 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                 <div className="flex items-center gap-4">
                   <img
-                    src={currentOwner.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
+                    src={currentOwner.publicLogoUrl || currentOwner.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
                     alt={currentOwner.name}
                     className="w-14 h-14 rounded-2xl object-cover border-2 border-[#003527]/20 shadow-sm"
                   />
