@@ -315,6 +315,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
             companyName: res.user.companyName,
             avatar: res.user.avatar,
             avatarPath: res.user.avatarPath,
+            publicLogoUrl: res.user.publicLogoUrl,
             isVerifiedLandlord: true,
             joinedAt: new Date().toISOString().split('T')[0],
             listerType: (res.user.listerType as OwnerAccount['listerType']) || (
