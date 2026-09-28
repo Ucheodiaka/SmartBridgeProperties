@@ -47,6 +47,9 @@ export interface AuthUserProfile {
   companyName?: string;
   phone?: string;
   verified?: boolean;
+  listerType?: string;
+  address?: string;
+  bio?: string;
 }
 
 /**
@@ -124,6 +127,9 @@ export async function signInWithEmail(
       companyName: profile?.companyName || authUser.user_metadata?.company_name,
       phone: profile?.phone || authUser.user_metadata?.phone,
       verified: profile?.verified ?? false,
+      listerType: profile?.listerType,
+      address: profile?.address,
+      bio: profile?.bio,
     };
 
     return { success: true, user: userProfile };
@@ -391,6 +397,9 @@ export const supabaseDb = {
         ownerEmail: item.owner_email,
         ownerPhone: item.owner_phone,
         ownerCompanyName: item.owner_company_name,
+        ownerBusinessAddress: item.owner_business_address,
+        ownerBusinessDescription: item.owner_business_description,
+        ownerListerType: item.owner_lister_type,
         status: item.status || 'approved',
       }));
     } catch (e) {
@@ -1086,6 +1095,9 @@ const currentUserId = authData.user.id;
         role: item.role,
         avatar: item.avatar_url,
         verified: item.verified,
+        listerType: item.lister_type,
+        address: item.business_address,
+        bio: item.business_description,
       }));
     } catch (e) {
       console.warn('Supabase fetchProfiles error:', e);
@@ -1130,6 +1142,9 @@ const currentUserId = authData.user.id;
         avatar,
         avatarPath,
         verified: data.verified,
+        listerType: data.lister_type,
+        address: data.business_address,
+        bio: data.business_description,
       };
     } catch (e) {
       console.warn('Supabase fetchProfile error:', e);
@@ -1153,6 +1168,9 @@ const currentUserId = authData.user.id;
       if (profile.companyName !== undefined) payload.company_name = profile.companyName || null;
       if (profile.avatarPath !== undefined) payload.avatar_url = profile.avatarPath || null;
       else if (profile.avatar !== undefined) payload.avatar_url = profile.avatar || null;
+      if (profile.listerType !== undefined) payload.lister_type = profile.listerType || null;
+      if (profile.address !== undefined) payload.business_address = profile.address || null;
+      if (profile.bio !== undefined) payload.business_description = profile.bio || null;
 
       // Note: The frontend must never send or update 'role' or 'verified' through saveProfile()
       const { error } = await supabase
