@@ -73,6 +73,9 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
         phone: updatedAccount.phone,
         companyName: updatedAccount.companyName,
         avatarPath: updatedAccount.avatarPath,
+        listerType: updatedAccount.listerType,
+        address: updatedAccount.address,
+        bio: updatedAccount.bio,
       });
       if (!saved) throw new Error('Profile changes could not be saved.');
 
@@ -146,7 +149,7 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-[#707974] mb-2 flex items-center gap-1.5">
               <Camera className="w-3.5 h-3.5 text-[#003527]" />
-              Private Profile Photo
+              Private Profile Photo (Optional)
             </label>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               {avatar ? (
@@ -254,10 +257,11 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
             <div>
               <label className="block text-xs font-semibold text-[#1b1c1c] mb-1 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-[#003527]" />
-                Company / Agency / Brand Name
+                Company / Agency / Brand Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
+                required
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="e.g. Odiaka Real Estate Holdings"
@@ -269,13 +273,14 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
             <div>
               <label className="block text-xs font-semibold text-[#1b1c1c] mb-1 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-[#003527]" />
-                Operational City / District
+                Full Business Address <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
+                required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="e.g. GRA Phase 2, Port Harcourt"
+                placeholder="e.g. 15 Aba Road, GRA Phase 2, Port Harcourt, Rivers State"
                 className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-xs sm:text-sm text-[#1b1c1c] focus:outline-hidden focus:border-[#003527]"
               />
             </div>
@@ -284,10 +289,12 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
           {/* Bio / Description */}
           <div>
             <label className="block text-xs font-semibold text-[#1b1c1c] mb-1">
-              Advertiser Bio & Verification Overview
+              Company / Agency Description <span className="text-red-500">*</span>
             </label>
             <textarea
               rows={3}
+              required
+              maxLength={500}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Tell buyers and tenants about your portfolio..."
@@ -306,6 +313,9 @@ export const OwnerProfileEditor: React.FC<OwnerProfileEditorProps> = ({
                 setCompanyName(currentOwner.companyName || '');
                 setAvatar(currentOwner.avatar || '');
                 setAvatarPath(currentOwner.avatarPath || '');
+                setListerType(currentOwner.listerType || 'Landlord / Property Owner');
+                setAddress(currentOwner.address || 'Port Harcourt, Rivers State');
+                setBio(currentOwner.bio || '');
                 setPhotoError(null);
               }}
               className="inline-flex items-center gap-1.5 text-xs text-[#707974] hover:text-[#1b1c1c] font-semibold transition-colors cursor-pointer"
