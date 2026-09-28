@@ -114,6 +114,17 @@ export interface InspectionBooking {
   createdAt: string;
   assignedSpecialist?: string;
   listerId?: string;
+  confirmedDate?: string;
+  confirmedTime?: string;
+  listerResponse?: string;
+  respondedAt?: string;
+}
+
+export interface ViewingRequestUpdate {
+  status: Exclude<BookingStatus, 'pending'>;
+  confirmedDate?: string;
+  confirmedTime?: string;
+  listerResponse?: string;
 }
 
 export type PropertyStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'unpublished' | 'sold' | 'rented';
