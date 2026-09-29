@@ -57,6 +57,8 @@ export interface Property {
   bathrooms: number;
   parkingSpaces: number;
   sizeSqFt: number;
+  totalUnits?: number;
+  availableUnits?: number;
   isVerified: boolean;
   isFeatured: boolean;
   images: string[];
@@ -149,6 +151,8 @@ export interface PropertySubmission {
   otherChargesDescription?: string;
   bedrooms: number | string;
   bathrooms: number | string;
+  totalUnits?: number | string;
+  availableUnits?: number | string;
   ownerName: string;
   ownerPhone: string;
   ownerEmail: string;
