@@ -8,20 +8,23 @@ import {
   LogOut,
   Plus,
   ArrowLeft,
+  Megaphone,
 } from 'lucide-react';
-import { Property, InspectionBooking, PropertySubmission, PropertyInquiry, InquiryStatus, LeadFollowUpUpdate, AdminTab, AuditStatus, BookingStatus, AgentInfo, AdminStaffAccount } from '../../types';
+import { Property, InspectionBooking, PropertySubmission, PropertyInquiry, InquiryStatus, LeadFollowUpUpdate, AdminTab, AuditStatus, BookingStatus, AgentInfo, AdminStaffAccount, BusinessPromotion } from '../../types';
 import { AdminOverview } from './AdminOverview';
 import { AdminPropertiesTable } from './AdminPropertiesTable';
 import { AdminAnalytics } from './AdminAnalytics';
 import { AdminLeads } from './AdminLeads';
 import { AdminSubmissions } from './AdminSubmissions';
 import { AdminPropertyEditorModal } from './AdminPropertyEditorModal';
+import { AdminPromotionsManager } from './AdminPromotionsManager';
 
 interface AdminDashboardProps {
   properties: Property[];
   bookings: InspectionBooking[];
   submissions: PropertySubmission[];
   inquiries: PropertyInquiry[];
+  promotions: BusinessPromotion[];
   agents: AgentInfo[];
   currentAdminStaff?: AdminStaffAccount | null;
   onAdminLogout?: () => void;
@@ -38,6 +41,8 @@ interface AdminDashboardProps {
   onUpdateInquiryStatus: (inquiryId: string, status: InquiryStatus) => void;
   onUpdateLeadFollowUp: (inquiryId: string, updates: LeadFollowUpUpdate) => Promise<boolean>;
   onViewPropertyDetail: (property: Property) => void;
+  onSavePromotion: (promotion: BusinessPromotion) => Promise<boolean>;
+  onDeletePromotion: (id: string) => Promise<boolean>;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -45,6 +50,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   bookings,
   submissions,
   inquiries,
+  promotions,
   agents,
   currentAdminStaff,
   onAdminLogout,
@@ -61,6 +67,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateInquiryStatus,
   onUpdateLeadFollowUp,
   onViewPropertyDetail,
+  onSavePromotion,
+  onDeletePromotion,
 }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [editorModalOpen, setEditorModalOpen] = useState(false);
@@ -95,6 +103,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       label: 'Leads',
       icon: MessageSquare,
       count: inquiries.filter((inquiry) => inquiry.status === 'new').length,
+    },
+    {
+      id: 'promotions' as AdminTab,
+      label: 'Homepage Promotions',
+      icon: Megaphone,
+      count: promotions.filter((promotion) => promotion.isActive).length,
     },
     { id: 'analytics' as AdminTab, label: 'Market Analytics', icon: TrendingUp },
   ];
@@ -240,6 +254,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             currentAdminStaff={currentAdminStaff}
             onUpdateStatus={onUpdateInquiryStatus}
             onUpdateFollowUp={onUpdateLeadFollowUp}
+          />
+        )}
+
+        {activeTab === 'promotions' && (
+          <AdminPromotionsManager
+            promotions={promotions}
+            onSave={onSavePromotion}
+            onDelete={onDeletePromotion}
           />
         )}
 
