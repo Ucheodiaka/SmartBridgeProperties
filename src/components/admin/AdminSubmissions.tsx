@@ -110,6 +110,11 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
                       }`}>
                         {isPropertyUpdate ? 'pending update' : status}
                       </span>
+                      {submission.listingType === 'sale' && submission.isDistressSale && (
+                        <span className="text-[11px] uppercase font-extrabold px-3 py-1.5 rounded-full bg-red-600 text-white">
+                          Distress Sale
+                        </span>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 text-xs">
