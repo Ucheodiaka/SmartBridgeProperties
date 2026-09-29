@@ -226,7 +226,29 @@ export interface PropertyInquiry {
   lastContactedAt?: string;
 }
 
-export type AdminTab = 'overview' | 'properties' | 'submissions' | 'leads' | 'verification' | 'bookings' | 'analytics' | 'agents';
+export type PromotionCategory =
+  | 'Property Management'
+  | 'Property Consulting'
+  | 'Property Valuation'
+  | 'Verified Partner'
+  | 'Other Service';
+
+export interface BusinessPromotion {
+  id: string;
+  businessName: string;
+  category: PromotionCategory;
+  description: string;
+  imageUrl?: string;
+  linkUrl?: string;
+  phone?: string;
+  ctaLabel: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type AdminTab = 'overview' | 'properties' | 'submissions' | 'leads' | 'promotions' | 'verification' | 'bookings' | 'analytics' | 'agents';
 
 export interface AdminStaffAccount {
   id: string;
