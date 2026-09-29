@@ -45,6 +45,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               {property.status}
             </span>
           )}
+          {property.type === 'sale' && property.isDistressSale && (
+            <span className="bg-red-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
+              Distress Sale
+            </span>
+          )}
           {property.type === 'sale' ? (
             <span className="bg-[#fed65b] text-[#745c00] text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
               For Sale
