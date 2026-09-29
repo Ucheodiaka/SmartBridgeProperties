@@ -123,6 +123,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             {property.description}
           </p>
 
+          {(property.totalUnits || 1) > 1 && (
+            <div className="mb-4 inline-flex rounded-full bg-[#003527]/10 px-3 py-1 text-xs font-bold text-[#003527]">
+              {property.availableUnits ?? 1} of {property.totalUnits} units available
+            </div>
+          )}
+
           {/* Beds, Baths, Parking Stats */}
           <div className="flex items-center gap-4 mb-5 border-y border-[#bfc9c3]/30 py-3 text-xs font-semibold text-[#404944]">
             <div className="flex items-center gap-1.5">
