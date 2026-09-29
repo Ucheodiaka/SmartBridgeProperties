@@ -31,6 +31,7 @@ interface AdminDashboardProps {
   onToggleVerified: (propertyId: string) => void;
   onToggleFeatured: (propertyId: string) => void;
   onUpdateAvailability: (propertyId: string, status: Extract<AuditStatus, 'approved' | 'unpublished' | 'sold' | 'rented'>) => Promise<boolean>;
+  onUpdateUnits: (propertyId: string, availableUnits: number) => Promise<boolean>;
   onUpdateSubmissionStatus: (submissionId: string, status: AuditStatus, notes?: string) => Promise<void>;
   onApproveAndPublishSubmission: (submission: PropertySubmission, auditScore: number) => Promise<void>;
   onUpdateBookingStatus: (bookingId: string, status: BookingStatus, specialist?: string) => void;
@@ -53,6 +54,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onToggleVerified,
   onToggleFeatured,
   onUpdateAvailability,
+  onUpdateUnits,
   onUpdateSubmissionStatus,
   onApproveAndPublishSubmission,
   onUpdateBookingStatus,
@@ -219,6 +221,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onToggleVerified={onToggleVerified}
             onToggleFeatured={onToggleFeatured}
             onUpdateAvailability={onUpdateAvailability}
+            onUpdateUnits={onUpdateUnits}
             onViewProperty={onViewPropertyDetail}
           />
         )}
