@@ -308,6 +308,11 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
                         >
                           {property.type === 'sale' ? 'For Sale' : 'For Rent'}
                         </span>
+                        {property.isDistressSale && property.type === 'sale' && (
+                          <span className="ml-1 inline-block mt-0.5 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded-xs bg-red-600 text-white">
+                            Distress Sale
+                          </span>
+                        )}
                       </div>
                     </td>
 
