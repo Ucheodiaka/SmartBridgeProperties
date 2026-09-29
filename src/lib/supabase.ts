@@ -385,6 +385,8 @@ export const supabaseDb = {
         bathrooms: item.bathrooms || 0,
         parkingSpaces: item.parking_spaces || 2,
         sizeSqFt: item.size_sq_ft || 2800,
+        totalUnits: Number(item.total_units) || 1,
+        availableUnits: Number(item.available_units ?? 1),
         isVerified: Boolean(item.is_verified ?? false),
         isFeatured: Boolean(item.is_featured ?? false),
         images: item.images || [],
@@ -438,6 +440,8 @@ export const supabaseDb = {
         bathrooms: property.bathrooms || 0,
         parking_spaces: property.parkingSpaces || 0,
         size_sq_ft: property.sizeSqFt || 0,
+        total_units: property.totalUnits || 1,
+        available_units: property.availableUnits ?? 1,
         is_verified: property.isVerified ?? false,
         is_featured: property.isFeatured ?? false,
         status: property.status || 'pending',
@@ -488,6 +492,21 @@ export const supabaseDb = {
       return result?.property_id === propertyId && result?.new_status === status;
     } catch (e) {
       console.error('Supabase updatePropertyAvailability error:', e);
+      return false;
+    }
+  },
+
+  async updatePropertyUnits(propertyId: string, availableUnits: number): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(propertyId)) return false;
+    try {
+      const { data, error } = await supabase.rpc('update_property_units', {
+        p_property_id: propertyId,
+        p_available_units: availableUnits,
+      });
+      if (error) throw error;
+      return Array.isArray(data) && data.length === 1;
+    } catch (e) {
+      console.error('Supabase updatePropertyUnits error:', e);
       return false;
     }
   },
@@ -577,6 +596,8 @@ export const supabaseDb = {
             otherChargesDescription: item.other_charges_description || '',
             bedrooms: item.bedrooms,
             bathrooms: item.bathrooms,
+            totalUnits: Number(item.total_units) || 1,
+            availableUnits: Number(item.available_units ?? 1),
             ownerName: item.owner_name,
             ownerPhone: item.owner_phone,
             ownerEmail: item.owner_email,
@@ -642,6 +663,8 @@ const currentUserId = authData.user.id;
         other_charges_description: sub.otherChargesDescription || null,
         bedrooms: Number(sub.bedrooms) || 0,
         bathrooms: Number(sub.bathrooms) || 0,
+        total_units: Number(sub.totalUnits) || 1,
+        available_units: Number(sub.availableUnits ?? sub.totalUnits) || 1,
         owner_name: sub.ownerName,
         owner_phone: sub.ownerPhone,
         owner_email: sub.ownerEmail,
@@ -698,6 +721,8 @@ const currentUserId = authData.user.id;
         otherChargesDescription: data.other_charges_description || '',
         bedrooms: data.bedrooms,
         bathrooms: data.bathrooms,
+        totalUnits: Number(data.total_units) || 1,
+        availableUnits: Number(data.available_units ?? 1),
         ownerName: data.owner_name,
         ownerPhone: data.owner_phone,
         ownerEmail: data.owner_email,
@@ -859,6 +884,8 @@ const currentUserId = authData.user.id;
         otherChargesDescription: data.other_charges_description || '',
         bedrooms: data.bedrooms,
         bathrooms: data.bathrooms,
+        totalUnits: Number(data.total_units) || 1,
+        availableUnits: Number(data.available_units ?? 1),
         ownerName: data.owner_name,
         ownerPhone: data.owner_phone,
         ownerEmail: data.owner_email,
