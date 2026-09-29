@@ -44,6 +44,7 @@ export interface Property {
   priceDisplay: string;
   pricePeriod?: string; // e.g. "/yr"
   isNegotiable?: boolean;
+  isDistressSale?: boolean;
   leaseTermYears?: number;
   agencyFeePercentage?: number;
   cautionFee?: number;
@@ -142,6 +143,7 @@ export interface PropertySubmission {
   address: string;
   price: number | string;
   isNegotiable?: boolean;
+  isDistressSale?: boolean;
   leaseTermYears?: number | string;
   agencyFeePercentage?: number | string;
   cautionFee?: number | string;
