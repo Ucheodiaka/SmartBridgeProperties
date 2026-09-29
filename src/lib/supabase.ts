@@ -10,6 +10,7 @@ import {
   ViewingRequestUpdate,
   AuditStatus,
   PropertyStatus,
+  BusinessPromotion,
 } from '../types';
 
 // Environment variables
@@ -347,6 +348,112 @@ function formatDateForSQL(dateStr?: string): string {
 // ==========================================
 
 export const supabaseDb = {
+  async fetchBusinessPromotions(includeInactive = false): Promise<BusinessPromotion[] | null> {
+    if (!isSupabaseConfigured || !supabase) return null;
+    try {
+      let query = supabase
+        .from('business_promotions')
+        .select('*')
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      if (!includeInactive) query = query.eq('is_active', true);
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return (data || []).map((item) => ({
+        id: item.id,
+        businessName: item.business_name,
+        category: item.category,
+        description: item.description,
+        imageUrl: item.image_url || undefined,
+        linkUrl: item.link_url || undefined,
+        phone: item.phone || undefined,
+        ctaLabel: item.cta_label || 'Learn More',
+        isActive: Boolean(item.is_active),
+        displayOrder: Number(item.display_order) || 0,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+      }));
+    } catch (e) {
+      console.warn('Supabase fetchBusinessPromotions error:', e);
+      return null;
+    }
+  },
+
+  async saveBusinessPromotion(promotion: BusinessPromotion): Promise<BusinessPromotion | null> {
+    if (!isSupabaseConfigured || !supabase) return null;
+    try {
+      const payload = {
+        business_name: promotion.businessName.trim(),
+        category: promotion.category,
+        description: promotion.description.trim(),
+        image_url: promotion.imageUrl || null,
+        link_url: promotion.linkUrl || null,
+        phone: promotion.phone || null,
+        cta_label: promotion.ctaLabel.trim() || 'Learn More',
+        is_active: promotion.isActive,
+        display_order: promotion.displayOrder,
+        updated_at: new Date().toISOString(),
+      };
+
+      const request = promotion.id
+        ? supabase.from('business_promotions').update(payload).eq('id', promotion.id)
+        : supabase.from('business_promotions').insert(payload);
+      const { data, error } = await request.select('*').single();
+      if (error) throw error;
+
+      return {
+        id: data.id,
+        businessName: data.business_name,
+        category: data.category,
+        description: data.description,
+        imageUrl: data.image_url || undefined,
+        linkUrl: data.link_url || undefined,
+        phone: data.phone || undefined,
+        ctaLabel: data.cta_label || 'Learn More',
+        isActive: Boolean(data.is_active),
+        displayOrder: Number(data.display_order) || 0,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
+    } catch (e) {
+      console.error('Supabase saveBusinessPromotion error:', e);
+      return null;
+    }
+  },
+
+  async deleteBusinessPromotion(id: string): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase || !isUUID(id)) return false;
+    try {
+      const { error } = await supabase.from('business_promotions').delete().eq('id', id);
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      console.error('Supabase deleteBusinessPromotion error:', e);
+      return false;
+    }
+  },
+
+  async uploadBusinessPromotionImage(file: File): Promise<string | null> {
+    if (!isSupabaseConfigured || !supabase) return null;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type) || file.size > 5 * 1024 * 1024) return null;
+
+    try {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `promotions/${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${extension}`;
+      const { data, error } = await supabase.storage
+        .from('homepage-promotions')
+        .upload(path, file, { cacheControl: '31536000', contentType: file.type, upsert: false });
+      if (error) throw error;
+      return supabase.storage.from('homepage-promotions').getPublicUrl(data.path).data.publicUrl || null;
+    } catch (e) {
+      console.error('Supabase uploadBusinessPromotionImage error:', e);
+      return null;
+    }
+  },
+
   // 1. PROPERTIES (reads from public_properties view for safe visitor access)
   async fetchProperties(asPublic = true): Promise<Property[] | null> {
     if (!isSupabaseConfigured || !supabase) return null;
