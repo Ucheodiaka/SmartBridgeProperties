@@ -556,6 +556,17 @@ export default function App() {
     addToast(`Booking appointment status updated to ${status}.`, 'info');
   };
 
+  const handleUpdatePropertyUnits = async (propertyId: string, availableUnits: number) => {
+    const property = properties.find((item) => item.id === propertyId);
+    if (!property) return false;
+    const saved = await supabaseDb.updatePropertyUnits(propertyId, availableUnits);
+    if (!saved) { addToast('Unit availability could not be updated.', 'info'); return false; }
+    const status = availableUnits === 0 ? (property.type === 'sale' ? 'sold' : 'rented') : 'approved';
+    setProperties((prev) => prev.map((item) => item.id === propertyId ? { ...item, availableUnits, status } : item));
+    addToast('Available units updated successfully.', 'success');
+    return true;
+  };
+
   const handleUpdateViewingRequest = async (
     bookingId: string,
     update: ViewingRequestUpdate
@@ -621,6 +632,7 @@ export default function App() {
           onToggleVerified={handleToggleVerified}
           onToggleFeatured={handleToggleFeatured}
           onUpdateAvailability={handleUpdatePropertyAvailability}
+          onUpdateUnits={handleUpdatePropertyUnits}
           onUpdateSubmissionStatus={handleUpdateSubmissionStatus}
           onApproveAndPublishSubmission={handleApproveAndPublishSubmission}
           onUpdateBookingStatus={handleUpdateBookingStatus}
