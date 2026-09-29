@@ -29,6 +29,7 @@ interface AdminPropertiesTableProps {
   onToggleVerified: (propertyId: string) => void;
   onToggleFeatured: (propertyId: string) => void;
   onUpdateAvailability: (propertyId: string, status: AvailabilityStatus) => Promise<boolean>;
+  onUpdateUnits: (propertyId: string, availableUnits: number) => Promise<boolean>;
   onViewProperty: (property: Property) => void;
 }
 
@@ -40,6 +41,7 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
   onToggleVerified,
   onToggleFeatured,
   onUpdateAvailability,
+  onUpdateUnits,
   onViewProperty,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -337,6 +339,22 @@ export const AdminPropertiesTable: React.FC<AdminPropertiesTableProps> = ({
                           {property.type === 'rent' && <option value="rented">Rented</option>}
                           <option value="unpublished">Unpublished</option>
                         </select>
+                        <label className="flex items-center gap-1 text-[10px] font-bold text-[#404944]">
+                          Units
+                          <input
+                            type="number"
+                            min="0"
+                            max={property.totalUnits || 1}
+                            defaultValue={property.availableUnits ?? 1}
+                            onBlur={(event) => {
+                              const next = Number(event.currentTarget.value);
+                              if (Number.isInteger(next) && next >= 0 && next <= (property.totalUnits || 1) && next !== (property.availableUnits ?? 1)) void onUpdateUnits(property.id, next);
+                            }}
+                            className="w-14 rounded border border-[#bfc9c3] bg-white px-1.5 py-1 text-center"
+                            aria-label={`Available units for ${property.title}`}
+                          />
+                          / {property.totalUnits || 1}
+                        </label>
                         <button
                           type="button"
                           onClick={() => onToggleVerified(property.id)}
