@@ -103,6 +103,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     address: editingSubmission?.address || '',
     price: editingSubmission ? String(editingSubmission.price) : '',
     isNegotiable: editingSubmission?.isNegotiable || false,
+    isDistressSale: editingSubmission?.isDistressSale || false,
     leaseTermYears: editingSubmission?.leaseTermYears ? String(editingSubmission.leaseTermYears) : '3',
     agencyFeePercentage: editingSubmission?.agencyFeePercentage ? String(editingSubmission.agencyFeePercentage) : '',
     cautionFee: editingSubmission?.cautionFee ? String(editingSubmission.cautionFee) : '',
@@ -395,6 +396,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
         id: editingSubmission?.id,
         approvedPropertyId: editingSubmission?.approvedPropertyId,
         price: cleanPrice ? Number(cleanPrice) : 0,
+        isDistressSale: formData.listingType === 'sale' && formData.isDistressSale,
         bedrooms: Number(formData.bedrooms) || 0,
         bathrooms: Number(formData.bathrooms) || 0,
         totalUnits: Math.max(1, Number(formData.totalUnits) || 1),
@@ -650,6 +652,17 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                       />
                       Price is negotiable
                     </label>
+                    {formData.listingType === 'sale' && (
+                      <label className="mt-2 flex items-center gap-2 text-xs font-bold text-red-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.isDistressSale}
+                          onChange={(e) => setFormData({ ...formData, isDistressSale: e.target.checked })}
+                          className="h-4 w-4 accent-red-600"
+                        />
+                        Mark as Distress Sale
+                      </label>
+                    )}
                   </div>
                 </div>
 
