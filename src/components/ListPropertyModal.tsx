@@ -112,6 +112,8 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     otherChargesDescription: editingSubmission?.otherChargesDescription || '',
     bedrooms: editingSubmission ? String(editingSubmission.bedrooms) : '4',
     bathrooms: editingSubmission ? String(editingSubmission.bathrooms) : '4',
+    totalUnits: editingSubmission?.totalUnits ? String(editingSubmission.totalUnits) : '1',
+    availableUnits: editingSubmission?.availableUnits !== undefined ? String(editingSubmission.availableUnits) : '1',
     ownerName: currentOwner?.name || '',
     ownerPhone: currentOwner?.phone || '',
     ownerEmail: currentOwner?.email || '',
@@ -395,6 +397,8 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
         price: cleanPrice ? Number(cleanPrice) : 0,
         bedrooms: Number(formData.bedrooms) || 0,
         bathrooms: Number(formData.bathrooms) || 0,
+        totalUnits: Math.max(1, Number(formData.totalUnits) || 1),
+        availableUnits: Math.min(Math.max(0, Number(formData.availableUnits) || 0), Math.max(1, Number(formData.totalUnits) || 1)),
         leaseTermYears: formData.listingType === 'lease' ? Number(formData.leaseTermYears) || 1 : undefined,
         agencyFeePercentage: Number(formData.agencyFeePercentage.replace(/[^0-9.]/g, '')) || 0,
         cautionFee: Number(formData.cautionFee.replace(/[^0-9.]/g, '')) || 0,
@@ -677,6 +681,18 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                       className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl border border-[#bfc9c3]/50 bg-[#fbf9f8] p-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">Total Similar Units</label>
+                    <input required type="number" min="1" value={formData.totalUnits} onChange={(e) => setFormData({ ...formData, totalUnits: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">Units Currently Available</label>
+                    <input required type="number" min="0" max={Math.max(1, Number(formData.totalUnits) || 1)} value={formData.availableUnits} onChange={(e) => setFormData({ ...formData, availableUnits: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm" />
+                  </div>
+                  <p className="sm:col-span-2 text-[11px] text-[#707974]">Use 1 and 1 for a single property. Use larger numbers for identical units in one development.</p>
                 </div>
 
                 <div>
