@@ -52,6 +52,7 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
   const [address, setAddress] = useState('');
   const [price, setPrice] = useState<number>(100000000);
   const [isNegotiable, setIsNegotiable] = useState<boolean>(false);
+  const [isDistressSale, setIsDistressSale] = useState<boolean>(false);
   const [bedrooms, setBedrooms] = useState<number>(4);
   const [bathrooms, setBathrooms] = useState<number>(4);
   const [parkingSpaces, setParkingSpaces] = useState<number>(3);
@@ -90,6 +91,7 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
       setAddress(property.address);
       setPrice(property.price);
       setIsNegotiable(Boolean(property.isNegotiable));
+      setIsDistressSale(Boolean(property.isDistressSale));
       setBedrooms(property.bedrooms);
       setBathrooms(property.bathrooms);
       setParkingSpaces(property.parkingSpaces);
@@ -127,6 +129,7 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
       setAddress('');
       setPrice(150000000);
       setIsNegotiable(false);
+      setIsDistressSale(false);
       setBedrooms(4);
       setBathrooms(4);
       setParkingSpaces(3);
@@ -226,6 +229,7 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
       address: address.trim(),
       price: Number(price),
       isNegotiable,
+      isDistressSale: listingType === 'sale' && isDistressSale,
       priceDisplay: formatNairaDisplay(Number(price), listingType),
       pricePeriod: listingType === 'rent' ? '/yr' : undefined,
       type: listingType,
@@ -485,6 +489,17 @@ export const AdminPropertyEditorModal: React.FC<AdminPropertyEditorModalProps> =
                     />
                     Price is negotiable
                   </label>
+                  {listingType === 'sale' && (
+                    <label className="mt-2 flex items-center gap-2 text-xs font-bold text-red-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isDistressSale}
+                        onChange={(e) => setIsDistressSale(e.target.checked)}
+                        className="h-4 w-4 accent-red-600"
+                      />
+                      Distress Sale
+                    </label>
+                  )}
                   <p className="text-[11px] text-[#707974] mt-1">
                     Display preview: {formatNairaDisplay(price, listingType)} {listingType === 'rent' ? '/yr' : ''}
                   </p>
