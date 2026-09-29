@@ -110,6 +110,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <span className="hidden xs:inline">100% </span>Verified
               </span>
             )}
+            {property.type === 'sale' && property.isDistressSale && (
+              <span className="bg-red-600 text-white text-[10px] sm:text-xs font-extrabold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md uppercase tracking-wider">
+                Distress Sale
+              </span>
+            )}
             {isUnavailable && (
               <span className="bg-[#1b1c1c] text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md uppercase tracking-wider">
                 {property.status}
