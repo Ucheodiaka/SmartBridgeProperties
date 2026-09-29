@@ -16,12 +16,14 @@ import {
   LeadFollowUpUpdate,
   AdminStaffAccount,
   ViewingRequestUpdate,
+  BusinessPromotion,
 } from './types';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { TrustStats } from './components/TrustStats';
 import { FeaturedProperties } from './components/FeaturedProperties';
 import { NeighborhoodExplorer } from './components/NeighborhoodExplorer';
+import { BusinessPromotionsSection } from './components/BusinessPromotionsSection';
 import { PropertiesView } from './components/PropertiesView';
 import { PropertyDetailModal } from './components/PropertyDetailModal';
 import { AboutProcessModal } from './components/AboutProcessModal';
@@ -55,6 +57,7 @@ export default function App() {
   const [bookings, setBookings] = useState<InspectionBooking[]>([]);
   const [submissions, setSubmissions] = useState<PropertySubmission[]>([]);
   const [inquiries, setInquiries] = useState<PropertyInquiry[]>([]);
+  const [businessPromotions, setBusinessPromotions] = useState<BusinessPromotion[]>([]);
 
   // Portal identity must only come from a verified Supabase session/profile.
   // Never restore authorization state from localStorage because it is user-editable.
@@ -107,6 +110,9 @@ export default function App() {
         setProperties(cloudProps);
       }
     });
+    supabaseDb.fetchBusinessPromotions().then((items) => {
+      if (items !== null) setBusinessPromotions(items);
+    });
 
     const refreshProtectedData = async (forLister: boolean) => {
       const [cloudSubs, cloudInqs, cloudBookings] = await Promise.all([
@@ -140,6 +146,8 @@ export default function App() {
         if (adminProperties !== null) {
           setProperties(adminProperties);
         }
+        const adminPromotions = await supabaseDb.fetchBusinessPromotions(true);
+        if (adminPromotions !== null) setBusinessPromotions(adminPromotions);
 
         setCurrentAdminStaff({
           id: user.id,
@@ -567,6 +575,31 @@ export default function App() {
     return true;
   };
 
+  const handleSaveBusinessPromotion = async (promotion: BusinessPromotion) => {
+    const saved = await supabaseDb.saveBusinessPromotion(promotion);
+    if (!saved) {
+      addToast('The homepage promotion could not be saved.', 'info');
+      return false;
+    }
+    setBusinessPromotions((current) =>
+      [...current.filter((item) => item.id !== saved.id), saved]
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+    );
+    addToast('Homepage promotion saved successfully.', 'success');
+    return true;
+  };
+
+  const handleDeleteBusinessPromotion = async (id: string) => {
+    const deleted = await supabaseDb.deleteBusinessPromotion(id);
+    if (!deleted) {
+      addToast('The homepage promotion could not be deleted.', 'info');
+      return false;
+    }
+    setBusinessPromotions((current) => current.filter((item) => item.id !== id));
+    addToast('Homepage promotion deleted.', 'success');
+    return true;
+  };
+
   const handleUpdateViewingRequest = async (
     bookingId: string,
     update: ViewingRequestUpdate
@@ -620,6 +653,7 @@ export default function App() {
           bookings={bookings}
           submissions={submissions}
           inquiries={inquiries}
+          promotions={businessPromotions}
           agents={agents}
           currentAdminStaff={currentAdminStaff}
           onAdminLogout={handleAdminLogout}
@@ -639,6 +673,8 @@ export default function App() {
           onUpdateInquiryStatus={handleUpdateInquiryStatus}
           onUpdateLeadFollowUp={handleUpdateLeadFollowUp}
           onViewPropertyDetail={(prop) => setSelectedProperty(prop)}
+          onSavePromotion={handleSaveBusinessPromotion}
+          onDeletePromotion={handleDeleteBusinessPromotion}
         />
 
         {/* Global Modals while in admin preview */}
@@ -712,7 +748,12 @@ export default function App() {
               onToggleSave={handleToggleSave}
             />
 
-            {/* 4. Prime Port Harcourt Neighborhoods Explorer */}
+            {/* 4. Property Services & Business Promotions */}
+            <BusinessPromotionsSection
+              promotions={businessPromotions.filter((promotion) => promotion.isActive)}
+            />
+
+            {/* 5. Prime Port Harcourt Neighborhoods Explorer */}
             <NeighborhoodExplorer
               properties={publicProperties}
               onSelectNeighborhood={handleSelectNeighborhood}
