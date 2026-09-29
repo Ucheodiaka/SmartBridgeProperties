@@ -58,6 +58,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const listerDescription = property.ownerBusinessDescription;
   const listerType = property.ownerListerType;
   const isUnavailable = property.status === 'sold' || property.status === 'rented';
+  const hasMultipleUnits = (property.totalUnits || 1) > 1;
 
   useEffect(() => {
     // Brief smooth skeleton hydration
@@ -112,6 +113,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             {isUnavailable && (
               <span className="bg-[#1b1c1c] text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md uppercase tracking-wider">
                 {property.status}
+              </span>
+            )}
+            {hasMultipleUnits && (
+              <span className="bg-[#fed65b]/40 text-[#745c00] text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md uppercase tracking-wider">
+                {property.availableUnits ?? 1} of {property.totalUnits} units available
               </span>
             )}
           </div>
