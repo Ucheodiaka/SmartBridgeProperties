@@ -590,7 +590,9 @@ export default function App() {
   };
 
   // If Admin Screen is active
-  const publicProperties = properties.filter((property) => property.status === 'approved');
+  const publicProperties = properties.filter((property) =>
+    ['approved', 'sold', 'rented'].includes(property.status || 'approved')
+  );
 
   if (activeScreen === 'admin') {
     // If not authenticated as admin staff, redirect home and open admin login modal

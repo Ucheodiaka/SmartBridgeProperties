@@ -14,11 +14,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onSelect,
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const isUnavailable = property.status === 'sold' || property.status === 'rented';
 
   return (
     <div
       id={`property-card-${property.id}`}
-      className="bg-white rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,53,39,0.08)] hover:shadow-[0_12px_28px_rgba(0,53,39,0.14)] transition-all duration-300 group flex h-full min-h-[580px] flex-col border border-[#bfc9c3]/30"
+      className={`rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,53,39,0.08)] transition-all duration-300 group flex h-full min-h-[580px] flex-col border border-[#bfc9c3]/30 ${isUnavailable ? 'bg-slate-100 grayscale-[65%] opacity-80' : 'bg-white hover:shadow-[0_12px_28px_rgba(0,53,39,0.14)]'}`}
     >
       {/* Property Thumbnail Image */}
       <div className="relative h-64 overflow-hidden bg-[#e4e2e1] cursor-pointer" onClick={() => onSelect(property)}>
@@ -39,6 +40,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Floating Badges */}
         <div className="absolute top-4 left-4 flex flex-wrap gap-2 items-center z-10">
+          {isUnavailable && (
+            <span className="bg-[#1b1c1c] text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
+              {property.status}
+            </span>
+          )}
           {property.type === 'sale' ? (
             <span className="bg-[#fed65b] text-[#745c00] text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
               For Sale
@@ -86,7 +92,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             {property.propertyType} • {property.sizeSqFt.toLocaleString()} sq ft
           </span>
           <span className="text-white text-xs font-semibold flex items-center gap-1">
-            View Details <ArrowUpRight className="w-3.5 h-3.5" />
+            {isUnavailable ? 'View Listing History' : 'View Details'} <ArrowUpRight className="w-3.5 h-3.5" />
           </span>
         </div>
       </div>
@@ -167,7 +173,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             onClick={() => onSelect(property)}
             className="text-xs font-bold text-[#735c00] hover:text-[#003527] hover:bg-[#fed65b]/20 px-3.5 py-2 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
           >
-            Details
+            {isUnavailable ? 'View' : 'Details'}
             <ArrowUpRight className="w-3.5 h-3.5" />
           </button>
         </div>
