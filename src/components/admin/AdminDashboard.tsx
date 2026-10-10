@@ -338,3 +338,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Property Editor Modal */}
       {editorModalOpen && (
         <AdminPropertyEditorModal
+          isOpen={editorModalOpen}
+          property={editingProperty}
+          onClose={() => setEditorModalOpen(false)}
+          onSave={onSaveProperty}
+        />
+      )}
+    </div>
+  );
+};
