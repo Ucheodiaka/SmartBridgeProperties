@@ -193,29 +193,14 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
     };
   }, [privateImagePaths]);
 
-  // 1. Google Optional Auth Handler  // 1. Google Optional Auth Handler
+  // Google OAuth redirects to Google's secure account chooser. Supabase
+  // restores the session when the user returns to SmartBridge.
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     setAuthError(null);
     try {
       const res = await signInWithGoogle('lister');
-      if (res.success && res.user) {
-        const ownerProfile: OwnerAccount = {
-          id: res.user.id,
-          name: res.user.name,
-          email: res.user.email,
-          phone: res.user.phone || '+234 803 555 0192',
-          role: (res.user.role as any) || 'landlord',
-          companyName: res.user.companyName || 'Verified Property Lister',
-          avatar: res.user.avatar,
-          isVerifiedLandlord: true,
-          joinedAt: new Date().toISOString().split('T')[0],
-          listerType: (res.user.listerType as OwnerAccount['listerType']) || 'Landlord / Property Owner',
-          address: res.user.address,
-          bio: res.user.bio,
-        };
-        onLogin(ownerProfile);
-      } else if (res.error) {
+      if (res.error) {
         setAuthError(res.error);
       }
     } catch (err: any) {
@@ -356,29 +341,29 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-200">
       <div
-        className="bg-[#FCF9F2] w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl border border-white/40 flex flex-col max-h-[95vh] relative"
+        className="bg-[#FCF9F2] w-full max-w-5xl rounded-none sm:rounded-3xl overflow-hidden shadow-2xl border border-white/40 flex flex-col h-[100dvh] sm:h-auto sm:max-h-[95vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
-        <div className="sticky top-0 z-20 bg-[#003527] text-white px-5 sm:px-7 py-4 border-b border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#fed65b] text-[#003527] flex items-center justify-center font-bold shadow-xs">
+        <div className="sticky top-0 z-20 bg-[#003527] text-white px-3 sm:px-7 py-3 sm:py-4 border-b border-white/10 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#fed65b] text-[#003527] flex items-center justify-center font-bold shadow-xs shrink-0">
               <Building2 className="w-6 h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-playfair text-lg sm:text-xl font-bold tracking-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <h2 className="font-playfair text-base sm:text-xl font-bold tracking-tight truncate">
                   Property Lister Portal
                 </h2>
                 {currentOwner && (
-                  <span className="bg-[#fed65b]/20 text-[#fed65b] border border-[#fed65b]/40 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="hidden md:flex bg-[#fed65b]/20 text-[#fed65b] border border-[#fed65b]/40 text-[10px] font-bold px-2 py-0.5 rounded-full items-center gap-1 shrink-0">
                     <ShieldCheck className="w-3 h-3" /> Verified Lister
                   </span>
                 )}
               </div>
-              <span className="text-[10px] text-white/70 uppercase tracking-wider block font-medium">
+              <span className="hidden sm:block text-[10px] text-white/70 uppercase tracking-wider font-medium truncate">
                 Landlords, Agents & Property Developers • Sale & Rent Registry
               </span>
             </div>
@@ -404,7 +389,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="overflow-y-auto flex-1 p-4 sm:p-6 md:p-8">
+        <div className="overflow-y-auto overflow-x-hidden flex-1 p-3 sm:p-6 md:p-8">
           {!currentOwner ? (
             /* ============================================================ */
             /* 1. AUTHENTICATION GATE: CREATE ACCOUNT & SIGN IN TABS */
@@ -795,7 +780,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                   </>
                 )}
 
-                {/* Optional Google Authentication Button (Smaller, Secondary) */}
+                {/* Secure Google OAuth authentication */}
                 <div className="pt-2 border-t border-[#bfc9c3]/30">
                   <button
                     type="button"
@@ -808,7 +793,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                     ) : (
                       <GoogleIcon className="w-4 h-4" />
                     )}
-                    <span>Continue with Google (Optional)</span>
+                    <span>Continue securely with Google</span>
                   </button>
                 </div>
               </form>
