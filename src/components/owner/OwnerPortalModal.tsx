@@ -22,6 +22,8 @@ import {
   Calendar,
   Settings,
   MessageSquare,
+  Menu,
+  ChevronDown,
 } from 'lucide-react';
 import {
   OwnerAccount,
@@ -116,6 +118,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
 
   // Dashboard Tab State
   const [activeTab, setActiveTab] = useState<'properties' | 'inquiries' | 'viewings' | 'profile'>('properties');
+  const [isMobilePortalMenuOpen, setIsMobilePortalMenuOpen] = useState(false);
   const [viewingDrafts, setViewingDrafts] = useState<Record<string, ViewingRequestUpdate>>({});
   const [savingViewingId, setSavingViewingId] = useState<string | null>(null);
   const [selectedListing, setSelectedListing] = useState<{
@@ -891,8 +894,62 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                 </div>
               </div>
 
-              {/* Navigation Tabs */}
-              <div className="flex border-b border-[#bfc9c3]/40 gap-4 sm:gap-6 overflow-x-auto">
+              {/* Mobile portal navigation */}
+              <div className="sm:hidden relative">
+                <button
+                  type="button"
+                  onClick={() => setIsMobilePortalMenuOpen((open) => !open)}
+                  aria-expanded={isMobilePortalMenuOpen}
+                  aria-controls="lister-mobile-portal-menu"
+                  className="w-full min-h-12 rounded-xl border border-[#bfc9c3] bg-white px-4 py-3 text-[#003527] shadow-2xs flex items-center justify-between gap-3 cursor-pointer"
+                >
+                  <span className="flex items-center gap-2 min-w-0 text-sm font-bold">
+                    <Menu className="w-5 h-5 shrink-0" />
+                    <span className="truncate">
+                      {activeTab === 'properties' && `My Properties (${totalListings})`}
+                      {activeTab === 'inquiries' && `Buyer Enquiries (${ownerInquiries.length})`}
+                      {activeTab === 'viewings' && `Viewing Requests (${ownerBookings.length})`}
+                      {activeTab === 'profile' && 'Edit Profile'}
+                    </span>
+                  </span>
+                  <ChevronDown className={`w-5 h-5 shrink-0 transition-transform ${isMobilePortalMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isMobilePortalMenuOpen && (
+                  <div
+                    id="lister-mobile-portal-menu"
+                    className="absolute z-30 top-[calc(100%+0.5rem)] left-0 right-0 rounded-xl border border-[#bfc9c3] bg-white p-2 shadow-xl space-y-1"
+                  >
+                    {[
+                      { id: 'properties' as const, label: `My Properties (${totalListings})`, icon: Building2 },
+                      { id: 'inquiries' as const, label: `Buyer Enquiries & Leads (${ownerInquiries.length})`, icon: MessageSquare },
+                      { id: 'viewings' as const, label: `Viewing Requests (${ownerBookings.length})`, icon: Calendar },
+                      { id: 'profile' as const, label: 'Edit Profile', icon: Settings },
+                    ].map(({ id, label, icon: Icon }) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab(id);
+                          setIsMobilePortalMenuOpen(false);
+                        }}
+                        className={`w-full min-h-11 rounded-lg px-3 py-2.5 text-left text-sm font-semibold flex items-center gap-3 cursor-pointer transition-colors ${
+                          activeTab === id
+                            ? 'bg-[#003527] text-white'
+                            : 'text-[#404944] hover:bg-[#003527]/10'
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 shrink-0 ${activeTab === id ? 'text-[#fed65b]' : 'text-[#003527]'}`} />
+                        <span>{label}</span>
+                        {activeTab === id && <Check className="w-4 h-4 ml-auto text-[#fed65b]" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Tablet and desktop navigation tabs */}
+              <div className="hidden sm:flex border-b border-[#bfc9c3]/40 gap-4 sm:gap-6 overflow-x-auto">
                 <button
                   onClick={() => setActiveTab('properties')}
                   className={`pb-3 text-xs sm:text-sm font-bold transition-colors relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
