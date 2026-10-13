@@ -13,10 +13,12 @@ import {
   Sparkles,
   DollarSign,
   MessageSquare,
+  ExternalLink,
   AlertCircle,
 } from 'lucide-react';
 import { Property, PropertyInquiry } from '../types';
 import { supabaseDb } from '../lib/supabase';
+import { createWhatsAppHandoffUrl } from '../lib/whatsapp';
 
 interface PropertyInquiryModalProps {
   property: Property;
@@ -42,6 +44,22 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const whatsappUrl = createWhatsAppHandoffUrl(
+    property.ownerPhone,
+    [
+      `Hello ${property.ownerCompanyName || property.ownerName || 'Property Lister'},`,
+      '',
+      `I just submitted an enquiry on SmartBridge Properties for \"${property.title}\" at ${property.location}.`,
+      `Enquiry type: ${formData.inquiryType}`,
+      formData.offerAmount ? `Proposed amount: ${formData.offerAmount}` : '',
+      `Name: ${formData.buyerName}`,
+      `Phone: ${formData.buyerPhone}`,
+      formData.message ? `Message: ${formData.message}` : '',
+      '',
+      'Please check your SmartBridge Lister Portal for the saved enquiry.',
+    ].filter(Boolean).join('\n')
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,9 +94,7 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
       }
 
       setSubmitted(true);
-      setTimeout(() => {
-        onSubmitSuccess(newInquiry);
-      }, 1200);
+      onSubmitSuccess(newInquiry);
     } catch (err) {
       console.error('Unable to save property enquiry:', err);
       setErrorMessage('We could not send your enquiry. Please check your connection and try again.');
@@ -128,7 +144,7 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
               </h3>
               <p className="text-sm text-[#404944] max-w-md mx-auto leading-relaxed">
                 Thank you, <strong>{formData.buyerName}</strong>. Your enquiry regarding{' '}
-                <strong>{property.title}</strong> has been received by SmartBridge. We will contact you to confirm availability and the next steps.
+                <strong>{property.title}</strong> has been saved in the property lister&apos;s portal.
               </p>
               <div className="p-3.5 bg-[#003527]/10 rounded-xl border border-[#003527]/20 text-xs text-[#003527] max-w-md mx-auto text-left flex items-start gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-[#003527] shrink-0 mt-0.5" />
@@ -136,6 +152,32 @@ export const PropertyInquiryModal: React.FC<PropertyInquiryModalProps> = ({
                   <strong>Stay protected:</strong> Do not make payment until SmartBridge has confirmed the payment instructions and you have completed the checks appropriate for the property.
                 </span>
               </div>
+              {whatsappUrl ? (
+                <div className="space-y-2 max-w-md mx-auto">
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] text-[#092f1d] font-bold text-sm py-3.5 px-5 rounded-xl hover:bg-[#20bd5a] transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Continue on WhatsApp
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                  <p className="text-[11px] text-[#707974]">
+                    WhatsApp will open with a prepared message to {property.ownerCompanyName || property.ownerName || 'this property lister'}. Please press Send to notify them.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-[#707974]">The enquiry is saved. This lister does not currently have a valid WhatsApp number.</p>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-xs font-bold text-[#003527] underline underline-offset-4 cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
