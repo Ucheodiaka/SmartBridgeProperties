@@ -46,10 +46,41 @@
   --gold: #fed65b;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  overflow-x: clip;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+img,
+video,
+svg {
+  max-width: 100%;
+}
+
 body {
+  margin: 0;
   background-color: #FCF9F2;
   color: #1b1c1c;
   font-family: 'Inter', sans-serif;
+}
+
+@supports not (overflow: clip) {
+  html,
+  body,
+  #root {
+    overflow-x: hidden;
+  }
 }
 
 .font-playfair {

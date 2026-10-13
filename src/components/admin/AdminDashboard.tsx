@@ -9,6 +9,8 @@ import {
   Plus,
   ArrowLeft,
   Megaphone,
+  Menu,
+  X,
 } from 'lucide-react';
 import { Property, InspectionBooking, PropertySubmission, PropertyInquiry, InquiryStatus, LeadFollowUpUpdate, AdminTab, AuditStatus, BookingStatus, AgentInfo, AdminStaffAccount, BusinessPromotion } from '../../types';
 import { AdminOverview } from './AdminOverview';
@@ -73,6 +75,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [editorModalOpen, setEditorModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const handleOpenCreate = () => {
     setEditingProperty(null);
@@ -113,33 +116,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     { id: 'analytics' as AdminTab, label: 'Market Analytics', icon: TrendingUp },
   ];
 
+  const activeNavTab = navTabs.find((tab) => tab.id === activeTab) ?? navTabs[0];
+
+  const handleSelectTab = (tab: AdminTab) => {
+    setActiveTab(tab);
+    setMobileNavOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#FCF9F2] text-[#1b1c1c] flex flex-col font-inter">
       {/* Admin Top Navigation Header */}
       <header className="sticky top-0 z-40 bg-[#003527] text-white border-b border-[#003527]/40 shadow-md">
-        <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
+        <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-4 md:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
           {/* Logo & Admin Status */}
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-[#fed65b] text-[#003527] flex items-center justify-center shadow-md font-bold">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#fed65b] text-[#003527] flex items-center justify-center shadow-md font-bold shrink-0">
               <Building2 className="w-6 h-6" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-playfair text-xl md:text-2xl font-bold tracking-tight text-white leading-none">
+                <span className="font-playfair text-base sm:text-xl md:text-2xl font-bold tracking-tight text-white leading-none whitespace-nowrap">
                   SmartBridge <span className="font-normal text-[#fed65b]">Admin</span>
                 </span>
-                <span className="bg-[#fed65b]/20 text-[#fed65b] text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border border-[#fed65b]/30">
+                <span className="hidden md:inline bg-[#fed65b]/20 text-[#fed65b] text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border border-[#fed65b]/30">
                   Operations Desk
                 </span>
               </div>
-              <span className="text-[11px] text-[#fed65b]/80 font-medium block mt-0.5">
+              <span className="hidden sm:block text-[11px] text-[#fed65b]/80 font-medium mt-0.5 truncate">
                 Port Harcourt Physical Verification & Asset Registry
               </span>
             </div>
           </div>
 
           {/* Quick Header Actions */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {currentAdminStaff && (
               <div className="hidden lg:flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10 text-right">
                 <div>
@@ -176,7 +186,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <button
               id="btn-back-to-marketplace"
               onClick={onBackToMarketplace}
-              className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-4 py-2.5 rounded-xl border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
+              className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-2.5 sm:px-4 py-2.5 rounded-xl border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Public Marketplace</span>
@@ -185,8 +195,63 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
 
-        {/* Tab Navigation Strip */}
-        <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 flex items-center gap-1 overflow-x-auto no-scrollbar border-t border-white/10">
+        {/* Mobile Navigation Menu */}
+        <div className="md:hidden border-t border-white/10 px-3 py-2.5">
+          <button
+            type="button"
+            id="btn-admin-mobile-menu"
+            aria-expanded={mobileNavOpen}
+            aria-controls="admin-mobile-navigation"
+            onClick={() => setMobileNavOpen((open) => !open)}
+            className="w-full flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-white/10 px-3.5 py-2.5 text-left text-sm font-bold text-white cursor-pointer"
+          >
+            <span className="flex min-w-0 items-center gap-2.5">
+              {React.createElement(activeNavTab.icon, { className: 'w-4 h-4 shrink-0 text-[#fed65b]' })}
+              <span className="truncate">{activeNavTab.label}</span>
+            </span>
+            <span className="flex shrink-0 items-center gap-2 text-xs text-[#fed65b]">
+              Menu
+              {mobileNavOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </span>
+          </button>
+
+          {mobileNavOpen && (
+            <nav
+              id="admin-mobile-navigation"
+              aria-label="Admin sections"
+              className="mt-2 grid gap-1 rounded-xl border border-white/15 bg-[#00291f] p-2 shadow-xl"
+            >
+              {navTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    id={`admin-mobile-tab-${tab.id}`}
+                    type="button"
+                    onClick={() => handleSelectTab(tab.id)}
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-bold transition-colors cursor-pointer ${
+                      isActive
+                        ? 'bg-[#fed65b] text-[#003527]'
+                        : 'text-white/85 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="min-w-0 flex-1">{tab.label}</span>
+                    {tab.count !== undefined && (
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isActive ? 'bg-[#003527]/15' : 'bg-white/15'}`}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
+        </div>
+
+        {/* Desktop Tab Navigation Strip */}
+        <div className="hidden md:flex w-full max-w-[1400px] mx-auto px-4 md:px-8 items-center gap-1 overflow-x-auto no-scrollbar border-t border-white/10">
           {navTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -194,7 +259,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 key={tab.id}
                 id={`admin-tab-${tab.id}`}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleSelectTab(tab.id)}
                 className={`py-3 px-3.5 text-xs font-bold whitespace-nowrap flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
                   isActive
                     ? 'border-[#fed65b] text-[#fed65b] bg-white/5'
@@ -215,7 +280,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-3 sm:px-4 md:px-8 py-5 sm:py-8 overflow-x-hidden">
         {activeTab === 'overview' && (
           <AdminOverview
             properties={properties}

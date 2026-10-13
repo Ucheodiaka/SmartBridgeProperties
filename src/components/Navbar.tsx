@@ -42,21 +42,21 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-[#fbf9f8]/95 backdrop-blur-md border-b border-[#bfc9c3]/30 transition-all">
-      <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 h-18 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="w-full max-w-[1280px] mx-auto px-3 sm:px-6 lg:px-12 xl:px-16 h-16 sm:h-20 flex items-center justify-between gap-1.5 sm:gap-4">
         {/* Brand Logo */}
         <button
           id="nav-logo-button"
           onClick={() => handleNavClick('home')}
-          className="flex items-center gap-2 sm:gap-2.5 text-left group cursor-pointer shrink-0"
+          className="flex items-center gap-1.5 sm:gap-2.5 text-left group cursor-pointer min-w-0"
         >
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#003527] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#003527] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
             <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#fed65b]" />
           </div>
-          <div>
-            <span className="font-playfair text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-[#003527] block leading-none">
-              SmartBridge <span className="font-normal text-[#735c00]">Properties</span>
+          <div className="min-w-0">
+            <span className="font-playfair text-base sm:text-xl lg:text-2xl font-bold tracking-tight text-[#003527] block leading-none whitespace-nowrap">
+              SmartBridge <span className="font-normal text-[#735c00] max-[390px]:hidden">Properties</span>
             </span>
-            <span className="text-[9px] sm:text-[10px] tracking-wider uppercase font-semibold text-[#707974] block mt-0.5">
+            <span className="hidden sm:block text-[10px] tracking-wider uppercase font-semibold text-[#707974] mt-0.5 whitespace-nowrap">
               The Port Harcourt Standard
             </span>
           </div>
@@ -161,12 +161,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Mobile Action Buttons (visible under 768px) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 md:hidden">
+        <div className="flex items-center gap-1 sm:gap-2 md:hidden shrink-0">
           {/* Mobile Portal Gate Button */}
           <button
             id="nav-mobile-portal-button"
             onClick={onOpenPortalGate}
-            className="px-2.5 py-1.5 rounded-lg text-[#003527] bg-[#fed65b]/30 text-xs font-bold flex items-center gap-1 cursor-pointer min-h-[36px] border border-[#735c00]/30"
+            className="px-2 sm:px-2.5 py-1.5 rounded-lg text-[#003527] bg-[#fed65b]/30 text-[11px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer min-h-[36px] border border-[#735c00]/30"
             title="Portal Access (Lister & Admin)"
           >
             <KeyRound className="w-3.5 h-3.5 text-[#735c00]" />
