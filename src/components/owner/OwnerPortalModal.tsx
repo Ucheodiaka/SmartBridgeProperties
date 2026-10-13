@@ -112,6 +112,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [legalDocument, setLegalDocument] = useState<'terms' | 'privacy' | null>(null);
 
   // Dashboard Tab State
   const [activeTab, setActiveTab] = useState<'properties' | 'inquiries' | 'viewings' | 'profile'>('properties');
@@ -639,23 +640,29 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                         />
                         <span>
                           I agree to the SmartBridge Properties{' '}
-                          <a
-                            href="/terms-of-service.html"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              setLegalDocument('terms');
+                            }}
                             className="font-bold text-[#006f52] underline underline-offset-2"
                           >
                             Terms of Service
-                          </a>{' '}
+                          </button>{' '}
                           and{' '}
-                          <a
-                            href="/privacy-policy.html"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              setLegalDocument('privacy');
+                            }}
                             className="font-bold text-[#006f52] underline underline-offset-2"
                           >
                             Privacy Policy
-                          </a>{' '}
+                          </button>{' '}
                           for verified listings in Rivers State.
                         </span>
                       </label>
@@ -1233,6 +1240,43 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
           )}
         </div>
       </div>
+
+      {legalDocument && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 p-2 sm:p-5"
+          role="dialog"
+          aria-modal="true"
+          aria-label={legalDocument === 'terms' ? 'Terms of Service' : 'Privacy Policy'}
+          onClick={() => setLegalDocument(null)}
+        >
+          <div
+            className="flex h-[94dvh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-[#FCF9F2] shadow-2xl sm:h-[90dvh]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 bg-[#003527] px-4 py-3 text-white sm:px-5">
+              <div>
+                <p className="font-playfair text-lg font-bold sm:text-xl">
+                  {legalDocument === 'terms' ? 'Terms of Service' : 'Privacy Policy'}
+                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#fed65b]">SmartBridge Properties</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLegalDocument(null)}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10 hover:bg-white/20"
+                aria-label="Close legal document"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <iframe
+              src={legalDocument === 'terms' ? '/terms-of-service.html' : '/privacy-policy.html'}
+              title={legalDocument === 'terms' ? 'SmartBridge Terms of Service' : 'SmartBridge Privacy Policy'}
+              className="min-h-0 flex-1 border-0 bg-[#FCF9F2]"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
