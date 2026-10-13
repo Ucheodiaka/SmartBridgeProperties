@@ -318,7 +318,6 @@ export default function App() {
   };
 
   const handleInspectionBookingConfirmed = (booking: InspectionBooking) => {
-    setInspectionTargetProperty(null);
     setBookings((prev) => [booking, ...prev]);
     addToast(
       `Viewing request sent to the property lister for ${booking.preferredDate} at ${booking.preferredTime}.`,
@@ -329,7 +328,6 @@ export default function App() {
   // Buyer Inquiry Submission Handler
   const handleBuyerInquirySuccess = (newInquiry: PropertyInquiry) => {
     setInquiries((prev) => [newInquiry, ...prev]);
-    setInquiryTargetProperty(null);
     addToast(
       `Enquiry sent to the property lister for ${newInquiry.propertyTitle}.`,
       'success'
