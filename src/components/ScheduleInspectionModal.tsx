@@ -10,9 +10,12 @@ import {
   Phone,
   Mail,
   AlertCircle,
+  MessageSquare,
+  ExternalLink,
 } from 'lucide-react';
 import { Property, InspectionBooking } from '../types';
 import { supabaseDb } from '../lib/supabase';
+import { createWhatsAppHandoffUrl } from '../lib/whatsapp';
 
 interface ScheduleInspectionModalProps {
   property: Property;
@@ -37,6 +40,22 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const whatsappUrl = createWhatsAppHandoffUrl(
+    property.ownerPhone,
+    [
+      `Hello ${property.ownerCompanyName || property.ownerName || 'Property Lister'},`,
+      '',
+      `I just submitted a viewing request on SmartBridge Properties for \"${property.title}\" at ${property.location}.`,
+      `Preferred date: ${formData.preferredDate}`,
+      `Preferred time: ${formData.preferredTime}`,
+      `Name: ${formData.name}`,
+      `Phone: ${formData.phone}`,
+      formData.notes ? `Notes: ${formData.notes}` : '',
+      '',
+      'Please check your SmartBridge Lister Portal for the saved viewing request.',
+    ].filter(Boolean).join('\n')
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,9 +82,7 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
       }
 
       setIsSuccess(true);
-      setTimeout(() => {
-        onBookingConfirmed(booking);
-      }, 1200);
+      onBookingConfirmed(booking);
     } catch (err) {
       console.error('Unable to save viewing request:', err);
       setErrorMessage('We could not submit your viewing request. Please check your connection and try again.');
@@ -127,7 +144,26 @@ export const ScheduleInspectionModal: React.FC<ScheduleInspectionModalProps> = (
                   <strong>{property.location}</strong>. This request is not a confirmed appointment until you receive that confirmation.
                 </span>
               </div>
-              <div className="pt-2">
+              {whatsappUrl ? (
+                <div className="space-y-2 pt-1">
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] text-[#092f1d] font-bold px-5 py-3 rounded-xl text-xs shadow-xs hover:bg-[#20bd5a] transition-colors flex items-center justify-center gap-2"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Continue on WhatsApp
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                  <p className="text-[11px] text-[#707974]">
+                    WhatsApp will open with a prepared message to {property.ownerCompanyName || property.ownerName || 'this property lister'}. Please press Send to notify them.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-[#707974]">The viewing request is saved. This lister does not currently have a valid WhatsApp number.</p>
+              )}
+              <div>
                 <button
                   onClick={onClose}
                   className="bg-[#003527] text-[#fed65b] font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer shadow-xs hover:bg-[#064e3b] transition-colors"
