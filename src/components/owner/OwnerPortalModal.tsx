@@ -638,8 +638,25 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                           className="mt-0.5 rounded border-[#bfc9c3] text-[#003527] focus:ring-[#003527] cursor-pointer"
                         />
                         <span>
-                          I agree to the SmartBridge Properties <strong>Terms of Service</strong> and{' '}
-                          <strong>Privacy Policy</strong> for verified listings in Rivers State.
+                          I agree to the SmartBridge Properties{' '}
+                          <a
+                            href="/terms-of-service.html"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-bold text-[#006f52] underline underline-offset-2"
+                          >
+                            Terms of Service
+                          </a>{' '}
+                          and{' '}
+                          <a
+                            href="/privacy-policy.html"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-bold text-[#006f52] underline underline-offset-2"
+                          >
+                            Privacy Policy
+                          </a>{' '}
+                          for verified listings in Rivers State.
                         </span>
                       </label>
                     </div>

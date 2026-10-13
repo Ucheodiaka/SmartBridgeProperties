@@ -123,12 +123,24 @@ export const Footer: React.FC<FooterProps> = ({
                 </button>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigate('about')}
-                  className="text-[#c9c6c0] hover:text-[#ffe088] transition-colors cursor-pointer"
+                <a
+                  href="/privacy-policy.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#c9c6c0] hover:text-[#ffe088] transition-colors"
                 >
-                  Privacy Policy & Escrow Terms
-                </button>
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/terms-of-service.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#c9c6c0] hover:text-[#ffe088] transition-colors"
+                >
+                  Terms of Service
+                </a>
               </li>
               <li className="flex items-start gap-2.5 text-[#c9c6c0] pt-2">
                 <MapPin className="w-4 h-4 text-[#fed65b] shrink-0 mt-1" />
