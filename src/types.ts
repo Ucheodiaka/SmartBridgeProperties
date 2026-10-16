@@ -153,6 +153,10 @@ export interface PropertySubmission {
   otherChargesDescription?: string;
   bedrooms: number | string;
   bathrooms: number | string;
+  parkingSpaces?: number | string;
+  sizeSqFt?: number | string;
+  features?: string[];
+  amenities?: string[];
   totalUnits?: number | string;
   availableUnits?: number | string;
   ownerName: string;
