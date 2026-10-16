@@ -8,8 +8,6 @@ interface FeaturedPropertiesProps {
   properties: Property[];
   onSelectProperty: (property: Property) => void;
   onViewAll: () => void;
-  savedIds: string[];
-  onToggleSave: (id: string) => void;
   isLoading?: boolean;
 }
 
@@ -17,8 +15,6 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
   properties,
   onSelectProperty,
   onViewAll,
-  savedIds,
-  onToggleSave,
   isLoading = false,
 }) => {
   const markedFeatured = properties.filter((p) => p.isFeatured).slice(0, 3);
@@ -65,8 +61,6 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
               key={property.id}
               property={property}
               onSelect={onSelectProperty}
-              isSaved={savedIds.includes(property.id)}
-              onToggleSave={onToggleSave}
             />
           ))
         ) : (
