@@ -1250,6 +1250,13 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                   )}
                 </button>
 
+                {submissionError && (
+                  <div className="mt-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>{submissionError}</span>
+                  </div>
+                )}
+
                 {isSubmitDisabled && !isSubmitting && (
                   <div className="mt-2 text-[11px] text-center text-[#707974]">
                     {!hasAuthenticatedOwner && (
