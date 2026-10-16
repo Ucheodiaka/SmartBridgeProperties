@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BedDouble, Building2, CheckCircle2, FileText, MapPin, Pencil, Tag, X } from 'lucide-react';
+import { BedDouble, Building2, Car, CheckCircle2, FileText, MapPin, Maximize2, Pencil, Tag, X } from 'lucide-react';
 import { Property, PropertySubmission } from '../../types';
 
 interface OwnerPropertyDetailModalProps {
@@ -25,6 +25,10 @@ export const OwnerPropertyDetailModal: React.FC<OwnerPropertyDetailModalProps> =
   const propertyType = submission?.propertyType || property?.propertyType || 'Property';
   const bedrooms = Number(submission?.bedrooms ?? property?.bedrooms ?? 0);
   const bathrooms = Number(submission?.bathrooms ?? property?.bathrooms ?? 0);
+  const parkingSpaces = Number(submission?.parkingSpaces ?? property?.parkingSpaces ?? 0);
+  const sizeSqFt = Number(submission?.sizeSqFt ?? property?.sizeSqFt ?? 0);
+  const features = submission?.features || property?.features || [];
+  const amenities = submission?.amenities || property?.amenities || [];
   const description = submission?.description || property?.description || 'No description has been provided.';
   const status = submission?.status || property?.status || 'approved';
   const isPendingUpdate = status === 'pending' && Boolean(submission?.approvedPropertyId);
@@ -80,10 +84,20 @@ export const OwnerPropertyDetailModal: React.FC<OwnerPropertyDetailModalProps> =
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {status === 'rejected' && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+              <p className="font-bold">This property was rejected and needs correction.</p>
+              <p className="mt-1"><strong>Admin reason:</strong> {submission?.auditNotes || 'Please review the property information and contact SmartBridge if you need clarification.'}</p>
+              <p className="mt-2 text-xs">Use <strong>Edit and Resubmit</strong> below. Your existing photos, video and property details will remain in the form.</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="bg-white border border-[#d9e0dc] rounded-xl p-3"><Building2 className="w-4 h-4 text-[#003527]" /><span className="block text-[10px] text-[#707974] mt-2">PROPERTY TYPE</span><strong className="text-sm">{propertyType}</strong></div>
             <div className="bg-white border border-[#d9e0dc] rounded-xl p-3"><BedDouble className="w-4 h-4 text-[#003527]" /><span className="block text-[10px] text-[#707974] mt-2">BEDROOMS</span><strong className="text-sm">{bedrooms}</strong></div>
             <div className="bg-white border border-[#d9e0dc] rounded-xl p-3"><CheckCircle2 className="w-4 h-4 text-[#003527]" /><span className="block text-[10px] text-[#707974] mt-2">BATHROOMS</span><strong className="text-sm">{bathrooms}</strong></div>
+            <div className="bg-white border border-[#d9e0dc] rounded-xl p-3"><Car className="w-4 h-4 text-[#003527]" /><span className="block text-[10px] text-[#707974] mt-2">PARKING BAYS</span><strong className="text-sm">{parkingSpaces}</strong></div>
+            <div className="bg-white border border-[#d9e0dc] rounded-xl p-3"><Maximize2 className="w-4 h-4 text-[#003527]" /><span className="block text-[10px] text-[#707974] mt-2">SQUARE FEET</span><strong className="text-sm">{sizeSqFt.toLocaleString()}</strong></div>
             <div className="bg-white border border-[#d9e0dc] rounded-xl p-3"><Tag className="w-4 h-4 text-[#003527]" /><span className="block text-[10px] text-[#707974] mt-2">LISTING</span><strong className="text-sm capitalize">{listingType}</strong></div>
           </div>
 
@@ -92,15 +106,28 @@ export const OwnerPropertyDetailModal: React.FC<OwnerPropertyDetailModalProps> =
             <p className="text-sm text-[#505a54] leading-relaxed whitespace-pre-line">{description}</p>
           </div>
 
+          {(features.length > 0 || amenities.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white border border-[#d9e0dc] rounded-xl p-4">
+                <h4 className="font-bold text-[#003527] mb-2">Key Interior & Structural Features</h4>
+                {features.length > 0 ? <ul className="space-y-1.5 text-sm text-[#505a54]">{features.map((item) => <li key={item}>• {item}</li>)}</ul> : <p className="text-sm text-[#707974]">No features supplied.</p>}
+              </div>
+              <div className="bg-white border border-[#d9e0dc] rounded-xl p-4">
+                <h4 className="font-bold text-[#003527] mb-2">Estate Amenities & Utilities</h4>
+                {amenities.length > 0 ? <ul className="space-y-1.5 text-sm text-[#505a54]">{amenities.map((item) => <li key={item}>• {item}</li>)}</ul> : <p className="text-sm text-[#707974]">No amenities supplied.</p>}
+              </div>
+            </div>
+          )}
+
           {submission?.titleDocType && (
             <div className="flex items-center gap-2 text-sm text-[#505a54]"><FileText className="w-4 h-4 text-[#003527]" /><strong>Title document:</strong> {submission.titleDocType}</div>
           )}
 
           <div className="flex justify-end gap-3 pt-1">
             <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl border border-[#bfc9c3] text-sm font-bold text-[#003527] hover:bg-white cursor-pointer">Close</button>
-            {onEdit && status === 'approved' && (
+            {onEdit && (status === 'approved' || status === 'rejected') && (
               <button type="button" onClick={onEdit} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#003527] text-[#fed65b] text-sm font-bold hover:bg-[#064e3b] cursor-pointer">
-                <Pencil className="w-4 h-4" /> Edit Property
+                <Pencil className="w-4 h-4" /> {status === 'rejected' ? 'Edit and Resubmit' : 'Edit Property'}
               </button>
             )}
           </div>

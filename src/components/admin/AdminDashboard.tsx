@@ -308,6 +308,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {activeTab === 'submissions' && (
           <AdminSubmissions
             submissions={submissions}
+            properties={properties}
             onApprove={onApproveAndPublishSubmission}
             onUpdateStatus={onUpdateSubmissionStatus}
           />

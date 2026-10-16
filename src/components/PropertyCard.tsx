@@ -5,8 +5,6 @@ import { Property } from '../types';
 interface PropertyCardProps {
   property: Property;
   onSelect: (property: Property) => void;
-  isSaved?: boolean;
-  onToggleSave?: (propertyId: string) => void;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({
@@ -94,7 +92,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Price tag watermark for quick visibility on hover */}
         <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-4 flex justify-between items-end opacity-0 group-hover:opacity-100 transition-opacity">
           <span className="text-white text-xs font-semibold tracking-wide">
-            {property.propertyType} • {property.sizeSqFt.toLocaleString()} sq ft
+            {property.propertyType}{property.sizeSqFt > 0 ? ` • ${property.sizeSqFt.toLocaleString()} sq ft` : ''}
           </span>
           <span className="text-white text-xs font-semibold flex items-center gap-1">
             {isUnavailable ? 'View Listing History' : 'View Details'} <ArrowUpRight className="w-3.5 h-3.5" />
@@ -135,19 +133,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           )}
 
           {/* Beds, Baths, Parking Stats */}
-          <div className="flex items-center gap-4 mb-5 border-y border-[#bfc9c3]/30 py-3 text-xs font-semibold text-[#404944]">
-            <div className="flex items-center gap-1.5">
+          {(property.bedrooms > 0 || property.bathrooms > 0 || property.parkingSpaces > 0) && <div className="flex items-center gap-4 mb-5 border-y border-[#bfc9c3]/30 py-3 text-xs font-semibold text-[#404944]">
+            {property.bedrooms > 0 && <div className="flex items-center gap-1.5">
               <Bed className="w-4 h-4 text-[#707974]" />
               <span>{property.bedrooms} Beds</span>
-            </div>
-            <div className="w-1 h-1 rounded-full bg-[#bfc9c3]" />
-            <div className="flex items-center gap-1.5">
+            </div>}
+            {property.bathrooms > 0 && <div className="flex items-center gap-1.5">
               <Bath className="w-4 h-4 text-[#707974]" />
               <span>{property.bathrooms} Baths</span>
-            </div>
-            <div className="w-1 h-1 rounded-full bg-[#bfc9c3]" />
-            <span className="text-[#707974]">{property.parkingSpaces} Cars</span>
-          </div>
+            </div>}
+            {property.parkingSpaces > 0 && <span className="text-[#707974]">{property.parkingSpaces} Cars</span>}
+          </div>}
 
           <div className="mb-4 rounded-xl bg-[#f7f5ef] p-3 border border-[#bfc9c3]/30">
             <div className="min-w-0">

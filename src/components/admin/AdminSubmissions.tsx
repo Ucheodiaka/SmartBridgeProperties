@@ -1,20 +1,67 @@
 import React, { useState } from 'react';
 import { Building2, CheckCircle2, Clock3, MapPin, Video, XCircle } from 'lucide-react';
-import { AuditStatus, PropertySubmission } from '../../types';
+import { AuditStatus, Property, PropertySubmission } from '../../types';
 
 interface AdminSubmissionsProps {
   submissions: PropertySubmission[];
+  properties: Property[];
   onApprove: (submission: PropertySubmission, score: number) => Promise<void>;
   onUpdateStatus: (submissionId: string, status: AuditStatus, notes?: string) => Promise<void>;
 }
 
 export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
   submissions,
+  properties,
   onApprove,
   onUpdateStatus,
 }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
   const pendingCount = submissions.filter((submission) => submission.status === 'pending').length;
+
+  const formatMoney = (value: number | string | undefined) =>
+    `₦${Number(value || 0).toLocaleString()}`;
+  const formatList = (value: string[] | undefined) =>
+    value?.length ? [...value].sort().join(', ') : 'None supplied';
+  const formatYesNo = (value: boolean | undefined) => value ? 'Yes' : 'No';
+
+  const getPropertyChanges = (submission: PropertySubmission, current?: Property) => {
+    if (!current) return [];
+
+    const candidates = [
+      ['Title', current.title, submission.title],
+      ['Property category', current.propertyType, submission.propertyType],
+      ['Listing purpose', current.type, submission.listingType],
+      ['Location', current.location, submission.location],
+      ['Full address', current.address, submission.address],
+      ['Price', formatMoney(current.price), formatMoney(submission.price)],
+      ['Negotiable', formatYesNo(current.isNegotiable), formatYesNo(submission.isNegotiable)],
+      ['Distress sale', formatYesNo(current.isDistressSale), formatYesNo(submission.isDistressSale)],
+      ['Lease duration', current.leaseTermYears ? `${current.leaseTermYears} years` : 'Not applicable', submission.leaseTermYears ? `${submission.leaseTermYears} years` : 'Not applicable'],
+      ['Bedrooms', String(current.bedrooms ?? 0), String(submission.bedrooms ?? 0)],
+      ['Bathrooms', String(current.bathrooms ?? 0), String(submission.bathrooms ?? 0)],
+      ['Parking bays', String(current.parkingSpaces ?? 0), String(submission.parkingSpaces ?? 0)],
+      ['Property size', `${Number(current.sizeSqFt || 0).toLocaleString()} sq ft`, `${Number(submission.sizeSqFt || 0).toLocaleString()} sq ft`],
+      ['Total similar units', String(current.totalUnits ?? 1), String(submission.totalUnits ?? 1)],
+      ['Units available', String(current.availableUnits ?? 1), String(submission.availableUnits ?? 1)],
+      ['Interior & structural features', formatList(current.features), formatList(submission.features)],
+      ['Amenities & utilities', formatList(current.amenities), formatList(submission.amenities)],
+      ['Description', current.description || 'None supplied', submission.description || 'None supplied'],
+      ['Agency fee', `${Number(current.agencyFeePercentage || 0)}%`, `${Number(submission.agencyFeePercentage || 0)}%`],
+      ['Caution fee', formatMoney(current.cautionFee), formatMoney(submission.cautionFee)],
+      ['Service charge', formatMoney(current.serviceCharge), formatMoney(submission.serviceCharge)],
+      ['Legal fee', `${Number(current.legalFeePercentage || 0)}%`, `${Number(submission.legalFeePercentage || 0)}%`],
+      ['Other charges', formatMoney(current.otherCharges), formatMoney(submission.otherCharges)],
+      ['Other charge description', current.otherChargesDescription || 'None', submission.otherChargesDescription || 'None'],
+      ['Property photos', `${current.images?.length || 0} photo(s)`, `${submission.images?.length || 0} photo(s)`],
+      ['Walkthrough video', current.videos?.[0] || current.videoUrl ? 'Provided' : 'Not provided', submission.videos?.[0] || submission.videoUrl ? 'Provided' : 'Not provided'],
+    ] as const;
+
+    return candidates
+      .filter(([, before, after]) => before !== after)
+      .map(([label, before, after]) => ({ label, before, after }));
+  };
 
   const handleApprove = async (submission: PropertySubmission) => {
     if (!submission.id || processingId) return;
@@ -27,14 +74,16 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
   };
 
   const handleReject = async (submission: PropertySubmission) => {
-    if (!submission.id || processingId) return;
+    if (!submission.id || processingId || !rejectionReason.trim()) return;
     setProcessingId(submission.id);
     try {
       await onUpdateStatus(
         submission.id,
         'rejected',
-        'Listing requires correction before it can be published.'
+        rejectionReason.trim()
       );
+      setRejectingId(null);
+      setRejectionReason('');
     } finally {
       setProcessingId(null);
     }
@@ -70,6 +119,12 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
             const isProcessing = processingId === submission.id;
             const status = submission.status || 'pending';
             const isPropertyUpdate = status === 'pending' && Boolean(submission.approvedPropertyId);
+            const currentProperty = isPropertyUpdate
+              ? properties.find((property) => property.id === submission.approvedPropertyId)
+              : undefined;
+            const propertyChanges = isPropertyUpdate
+              ? getPropertyChanges(submission, currentProperty)
+              : [];
             return (
               <article
                 key={submission.id || submission.title}
@@ -136,6 +191,36 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
                       </div>
                     </div>
 
+                    {isPropertyUpdate && (
+                      <div className="mt-3 overflow-hidden rounded-xl border border-amber-300 bg-amber-50/60">
+                        <div className="border-b border-amber-200 bg-amber-100/80 px-3 py-2.5">
+                          <strong className="text-sm text-amber-950">What Changed — Current vs Submitted</strong>
+                          <p className="mt-0.5 text-[11px] text-amber-800">Review every changed field before approving this marketplace update.</p>
+                        </div>
+                        {!currentProperty ? (
+                          <p className="p-3 text-xs font-medium text-red-700">The currently published property could not be loaded. Do not approve until it is available for comparison.</p>
+                        ) : propertyChanges.length === 0 ? (
+                          <p className="p-3 text-xs text-[#404944]">No changed values were detected.</p>
+                        ) : (
+                          <div className="divide-y divide-amber-200/70">
+                            {propertyChanges.map((change) => (
+                              <div key={change.label} className="grid gap-2 p-3 text-xs md:grid-cols-[minmax(120px,0.7fr)_1fr_1fr]">
+                                <strong className="text-[#003527]">{change.label}</strong>
+                                <div className="min-w-0 rounded-lg bg-white/80 p-2 text-[#707974] break-words">
+                                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-red-700">Current</span>
+                                  {change.before}
+                                </div>
+                                <div className="min-w-0 rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-[#1b1c1c] break-words">
+                                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-emerald-700">Submitted</span>
+                                  {change.after}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {(submission.videos?.[0] || submission.videoUrl) && (
                       <div className="mt-3 rounded-xl border border-[#bfc9c3]/40 overflow-hidden bg-[#101513]">
                         <div className="flex items-center gap-2 bg-[#003527] px-3 py-2 text-white">
@@ -155,23 +240,65 @@ export const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({
                     )}
 
                     {status === 'pending' && (
-                      <div className="flex flex-wrap gap-3 mt-5">
-                        <button
-                          onClick={() => handleApprove(submission)}
-                          disabled={Boolean(processingId)}
-                          className="inline-flex items-center gap-2 bg-[#003527] text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-[#00513c] disabled:opacity-50 cursor-pointer"
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                          {isProcessing ? 'Processing…' : isPropertyUpdate ? 'Approve Property Update' : 'Approve and Publish'}
-                        </button>
-                        <button
-                          onClick={() => handleReject(submission)}
-                          disabled={Boolean(processingId)}
-                          className="inline-flex items-center gap-2 border border-red-200 text-red-700 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-red-50 disabled:opacity-50 cursor-pointer"
-                        >
-                          <XCircle className="w-4 h-4" />
-                          Reject
-                        </button>
+                      <div className="mt-5 space-y-3">
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            onClick={() => handleApprove(submission)}
+                            disabled={Boolean(processingId)}
+                            className="inline-flex items-center gap-2 bg-[#003527] text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-[#00513c] disabled:opacity-50 cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            {isProcessing ? 'Processing…' : isPropertyUpdate ? 'Approve Property Update' : 'Approve and Publish'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (rejectingId === submission.id) {
+                                setRejectingId(null);
+                                setRejectionReason('');
+                              } else {
+                                setRejectingId(submission.id || null);
+                                setRejectionReason('');
+                              }
+                            }}
+                            disabled={Boolean(processingId)}
+                            className="inline-flex items-center gap-2 border border-red-200 text-red-700 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-red-50 disabled:opacity-50 cursor-pointer"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            {rejectingId === submission.id ? 'Cancel Rejection' : 'Reject with Instructions'}
+                          </button>
+                        </div>
+
+                        {rejectingId === submission.id && (
+                          <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+                            <label htmlFor={`rejection-reason-${submission.id}`} className="block text-xs font-bold text-red-900">
+                              Admin Correction Instructions *
+                            </label>
+                            <p className="mt-1 text-[11px] text-red-700">Explain exactly what the lister must correct before resubmitting.</p>
+                            <textarea
+                              id={`rejection-reason-${submission.id}`}
+                              rows={3}
+                              required
+                              maxLength={500}
+                              value={rejectionReason}
+                              onChange={(event) => setRejectionReason(event.target.value)}
+                              placeholder="Example: Replace the blurred front-view photo and correct the property size from 2,500 to 2,850 sq ft."
+                              className="mt-2 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-[#1b1c1c] focus:border-red-500 focus:outline-none"
+                            />
+                            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                              <span className="text-[10px] text-red-700">{rejectionReason.length}/500 characters</span>
+                              <button
+                                type="button"
+                                onClick={() => handleReject(submission)}
+                                disabled={Boolean(processingId) || !rejectionReason.trim()}
+                                className="inline-flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2.5 text-xs font-bold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                              >
+                                <XCircle className="h-4 w-4" />
+                                {isProcessing ? 'Rejecting…' : 'Confirm Rejection'}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
