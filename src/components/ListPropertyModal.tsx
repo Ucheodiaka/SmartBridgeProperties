@@ -597,7 +597,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
                       Listing Purpose
@@ -607,7 +607,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                       onChange={(e) =>
                         setFormData({ ...formData, listingType: e.target.value as ListingType })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]"
+                      className="w-full min-h-11 px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]"
                     >
                       <option value="sale">For Sale (Direct Purchase)</option>
                       <option value="rent">For Rent (Annual Lease)</option>
@@ -624,7 +624,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                       onChange={(e) =>
                         setFormData({ ...formData, propertyType: e.target.value as PropertyType })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]"
+                      className="w-full min-h-11 px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]"
                     >
                       <option value="Duplex">Duplex</option>
                       <option value="Apartment">Apartment</option>
@@ -686,26 +686,28 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527]"
                     />
-                    <label className="mt-2 flex items-center gap-2 text-xs font-semibold text-[#404944] cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.isNegotiable}
-                        onChange={(e) => setFormData({ ...formData, isNegotiable: e.target.checked })}
-                        className="h-4 w-4 accent-[#003527]"
-                      />
-                      Price is negotiable
-                    </label>
-                    {formData.listingType === 'sale' && (
-                      <label className="mt-2 flex items-center gap-2 text-xs font-bold text-red-700 cursor-pointer">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-[#404944] cursor-pointer whitespace-nowrap">
                         <input
                           type="checkbox"
-                          checked={formData.isDistressSale}
-                          onChange={(e) => setFormData({ ...formData, isDistressSale: e.target.checked })}
-                          className="h-4 w-4 accent-red-600"
+                          checked={formData.isNegotiable}
+                          onChange={(e) => setFormData({ ...formData, isNegotiable: e.target.checked })}
+                          className="h-4 w-4 accent-[#003527]"
                         />
-                        Mark as Distress Sale
+                        Price is negotiable
                       </label>
-                    )}
+                      {formData.listingType === 'sale' && (
+                        <label className="flex items-center gap-2 text-xs font-bold text-red-700 cursor-pointer whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={formData.isDistressSale}
+                            onChange={(e) => setFormData({ ...formData, isDistressSale: e.target.checked })}
+                            className="h-4 w-4 accent-red-600"
+                          />
+                          Mark as Distress Sale
+                        </label>
+                      )}
+                    </div>
                   </div>
                 </div>
 
