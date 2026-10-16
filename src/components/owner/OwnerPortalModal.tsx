@@ -1096,6 +1096,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                       {ownerSubmissions.map((sub) => {
                         const isApproved = sub.status === 'approved';
                         const isUnavailable = ['sold', 'rented', 'unpublished'].includes(sub.status);
+                        const isRejected = sub.status === 'rejected';
                         const isPendingUpdate = sub.status === 'pending' && Boolean(sub.approvedPropertyId);
                         const statusLabel =
                           sub.status === 'sold'
@@ -1104,6 +1105,8 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                               ? 'Rented'
                               : sub.status === 'unpublished'
                                 ? 'Unpublished'
+                                : isRejected
+                                  ? 'Rejected — Correction Required'
                                 : isApproved
                                   ? 'Approved'
                                   : isPendingUpdate
@@ -1114,7 +1117,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                         return (
                         <div
                           key={sub.id || Math.random()}
-                          className={`${isApproved ? 'bg-emerald-50/50 border-emerald-300/60' : isUnavailable ? 'bg-slate-50/70 border-slate-300/70' : 'bg-amber-50/50 border-amber-300/60'} rounded-2xl border overflow-hidden shadow-xs flex flex-col w-full h-[28rem] sm:h-[30rem]`}
+                          className={`${isApproved ? 'bg-emerald-50/50 border-emerald-300/60' : isRejected ? 'bg-red-50/50 border-red-300/70' : isUnavailable ? 'bg-slate-50/70 border-slate-300/70' : 'bg-amber-50/50 border-amber-300/60'} rounded-2xl border overflow-hidden shadow-xs flex flex-col w-full h-[28rem] sm:h-[30rem]`}
                         >
                           <button type="button" onClick={() => setSelectedListing({ submission: sub })} className="relative h-52 sm:h-56 overflow-hidden bg-black/10 shrink-0 cursor-pointer text-left" aria-label={`View details for ${sub.title}`}>
                             {coverUrl ? (
@@ -1129,7 +1132,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                               </div>
                             )}
                             <div className="absolute top-2 left-2 flex gap-1.5">
-                              <span className={`${isApproved ? 'bg-emerald-700' : isUnavailable ? 'bg-slate-700' : 'bg-amber-600'} text-white text-[9px] font-bold px-2 py-0.5 rounded-sm shadow-xs flex items-center gap-1`}>
+                              <span className={`${isApproved ? 'bg-emerald-700' : isRejected ? 'bg-red-700' : isUnavailable ? 'bg-slate-700' : 'bg-amber-600'} text-white text-[9px] font-bold px-2 py-0.5 rounded-sm shadow-xs flex items-center gap-1`}>
                                 {isApproved ? <CheckCircle2 className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
                                 {statusLabel}
                               </span>
@@ -1166,7 +1169,7 @@ export const OwnerPortalModal: React.FC<OwnerPortalModalProps> = ({
                   property={selectedListing.property}
                   submission={selectedListing.submission}
                   onClose={() => setSelectedListing(null)}
-                  onEdit={selectedListing.submission?.status === 'approved' ? () => {
+                  onEdit={['approved', 'rejected'].includes(selectedListing.submission?.status || '') ? () => {
                     const submission = selectedListing.submission;
                     setSelectedListing(null);
                     if (submission) onEditSubmission(submission);
