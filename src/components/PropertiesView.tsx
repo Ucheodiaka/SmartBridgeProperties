@@ -8,18 +8,12 @@ interface PropertiesViewProps {
   properties: Property[];
   initialFilters: FilterState;
   onSelectProperty: (property: Property) => void;
-  savedIds: string[];
-  onToggleSave: (id: string) => void;
-  showSavedOnly?: boolean;
 }
 
 export const PropertiesView: React.FC<PropertiesViewProps> = ({
   properties,
   initialFilters,
   onSelectProperty,
-  savedIds,
-  onToggleSave,
-  showSavedOnly = false,
 }) => {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
@@ -45,11 +39,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   // Filter & search logic
   const filteredProperties = useMemo(() => {
     return properties.filter((prop) => {
-      // Saved-only filter
-      if (showSavedOnly && !savedIds.includes(prop.id)) {
-        return false;
-      }
-
       // Rent / Sale type
       if (filters.type !== 'all' && prop.type !== filters.type) {
         return false;
@@ -101,7 +90,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (filters.sortBy === 'newest') return b.id.localeCompare(a.id);
       return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
     });
-  }, [properties, filters, showSavedOnly, savedIds]);
+  }, [properties, filters]);
 
   const resetFilters = () => {
     handleFilterChange({
@@ -125,12 +114,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#735c00] uppercase tracking-wider mb-2">
               <Building className="w-3.5 h-3.5 text-[#003527]" />
-              {showSavedOnly ? 'Your Saved Portfolio' : 'Verified Listings Directory'}
+              Verified Listings Directory
             </div>
             <h1 className="font-playfair text-3xl md:text-4xl font-bold text-[#1b1c1c] tracking-tight">
-              {showSavedOnly
-                ? 'Saved Properties'
-                : filters.type === 'rent'
+              {filters.type === 'rent'
                 ? 'Properties For Rent in Port Harcourt'
                 : filters.type === 'sale'
                 ? 'Properties For Sale in Port Harcourt'
@@ -316,8 +303,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               key={property.id}
               property={property}
               onSelect={onSelectProperty}
-              isSaved={savedIds.includes(property.id)}
-              onToggleSave={onToggleSave}
             />
           ))}
         </div>
