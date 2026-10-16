@@ -12,7 +12,6 @@ import {
   Phone,
   Mail,
   Share2,
-  Heart,
   ChevronLeft,
   ChevronRight,
   Droplet,
@@ -33,8 +32,6 @@ interface PropertyDetailModalProps {
   onClose: () => void;
   onScheduleInspection: (property: Property) => void;
   onOpenInquiry?: (property: Property) => void;
-  isSaved: boolean;
-  onToggleSave: (id: string) => void;
   onShare: (property: Property) => void;
 }
 
@@ -43,8 +40,6 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   onClose,
   onScheduleInspection,
   onOpenInquiry,
-  isSaved,
-  onToggleSave,
   onShare,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -128,17 +123,6 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <button
-              onClick={() => onToggleSave(property.id)}
-              className="p-1.5 sm:p-2 rounded-lg bg-white border border-[#bfc9c3]/50 text-[#1b1c1c] hover:bg-[#f0eded] transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
-              title={isSaved ? 'Remove from Saved' : 'Save Property'}
-            >
-              <Heart
-                className={`w-4 sm:w-5 h-4 sm:h-5 ${
-                  isSaved ? 'fill-[#ba1a1a] text-[#ba1a1a]' : 'text-[#404944]'
-                }`}
-              />
-            </button>
             <button
               onClick={() => onShare(property)}
               className="p-1.5 sm:p-2 rounded-lg bg-white border border-[#bfc9c3]/50 text-[#1b1c1c] hover:bg-[#f0eded] transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
@@ -231,28 +215,28 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
           {/* Quick Specs Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
-            <div className="bg-white p-3 sm:p-4 rounded-xl border border-[#bfc9c3]/30 text-center shadow-xs">
+            {property.bedrooms > 0 && <div className="bg-white p-3 sm:p-4 rounded-xl border border-[#bfc9c3]/30 text-center shadow-xs">
               <Bed className="w-4 sm:w-5 h-4 sm:h-5 text-[#003527] mx-auto mb-1" />
               <span className="block text-base sm:text-lg font-bold text-[#1b1c1c]">{property.bedrooms}</span>
               <span className="text-[10px] sm:text-xs text-[#707974] uppercase font-semibold">Bedrooms</span>
-            </div>
-            <div className="bg-white p-3 sm:p-4 rounded-xl border border-[#bfc9c3]/30 text-center shadow-xs">
+            </div>}
+            {property.bathrooms > 0 && <div className="bg-white p-3 sm:p-4 rounded-xl border border-[#bfc9c3]/30 text-center shadow-xs">
               <Bath className="w-4 sm:w-5 h-4 sm:h-5 text-[#003527] mx-auto mb-1" />
               <span className="block text-base sm:text-lg font-bold text-[#1b1c1c]">{property.bathrooms}</span>
               <span className="text-[10px] sm:text-xs text-[#707974] uppercase font-semibold">Bathrooms</span>
-            </div>
-            <div className="bg-white p-3 sm:p-4 rounded-xl border border-[#bfc9c3]/30 text-center shadow-xs">
+            </div>}
+            {property.parkingSpaces > 0 && <div className="bg-white p-3 sm:p-4 rounded-xl border border-[#bfc9c3]/30 text-center shadow-xs">
               <Car className="w-4 sm:w-5 h-4 sm:h-5 text-[#003527] mx-auto mb-1" />
               <span className="block text-base sm:text-lg font-bold text-[#1b1c1c]">{property.parkingSpaces}</span>
               <span className="text-[10px] sm:text-xs text-[#707974] uppercase font-semibold">Parking Bays</span>
-            </div>
-            <div className="bg-white p-3 sm:p-4 rounded-xl border border-[#bfc9c3]/30 text-center shadow-xs">
+            </div>}
+            {property.sizeSqFt > 0 && <div className="bg-white p-3 sm:p-4 rounded-xl border border-[#bfc9c3]/30 text-center shadow-xs">
               <Maximize2 className="w-4 sm:w-5 h-4 sm:h-5 text-[#003527] mx-auto mb-1" />
               <span className="block text-base sm:text-lg font-bold text-[#1b1c1c]">
                 {property.sizeSqFt.toLocaleString()}
               </span>
               <span className="text-[10px] sm:text-xs text-[#707974] uppercase font-semibold">Sq Feet</span>
-            </div>
+            </div>}
           </div>
 
           {/* Tabs Navigation (Overview / Inspection Report) */}
@@ -337,7 +321,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
               {/* Features & Amenities */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                <div className="bg-white p-5 rounded-xl border border-[#bfc9c3]/30 shadow-xs">
+                {property.features.length > 0 && <div className="bg-white p-5 rounded-xl border border-[#bfc9c3]/30 shadow-xs">
                   <h4 className="text-sm font-bold text-[#003527] uppercase tracking-wider mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-[#003527]" />
                     Key Interior & Structural Features
@@ -350,9 +334,9 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                       </li>
                     ))}
                   </ul>
-                </div>
+                </div>}
 
-                <div className="bg-white p-5 rounded-xl border border-[#bfc9c3]/30 shadow-xs">
+                {property.amenities.length > 0 && <div className="bg-white p-5 rounded-xl border border-[#bfc9c3]/30 shadow-xs">
                   <h4 className="text-sm font-bold text-[#003527] uppercase tracking-wider mb-4 flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-[#003527]" />
                     Estate Amenities & Utilities
@@ -365,7 +349,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                       </li>
                     ))}
                   </ul>
-                </div>
+                </div>}
               </div>
             </div>
           )}
