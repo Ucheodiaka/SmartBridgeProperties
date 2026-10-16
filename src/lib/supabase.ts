@@ -491,8 +491,8 @@ export const supabaseDb = {
         propertyType: item.property_type || 'Apartment',
         bedrooms: item.bedrooms || 0,
         bathrooms: item.bathrooms || 0,
-        parkingSpaces: item.parking_spaces || 2,
-        sizeSqFt: item.size_sq_ft || 2800,
+        parkingSpaces: Number(item.parking_spaces) || 0,
+        sizeSqFt: Number(item.size_sq_ft) || 0,
         totalUnits: Number(item.total_units) || 1,
         availableUnits: Number(item.available_units ?? 1),
         isVerified: Boolean(item.is_verified ?? false),
@@ -706,6 +706,10 @@ export const supabaseDb = {
             otherChargesDescription: item.other_charges_description || '',
             bedrooms: item.bedrooms,
             bathrooms: item.bathrooms,
+            parkingSpaces: Number(item.parking_spaces) || 0,
+            sizeSqFt: Number(item.size_sq_ft) || 0,
+            features: item.features || [],
+            amenities: item.amenities || [],
             totalUnits: Number(item.total_units) || 1,
             availableUnits: Number(item.available_units ?? 1),
             ownerName: item.owner_name,
@@ -774,6 +778,10 @@ const currentUserId = authData.user.id;
         other_charges_description: sub.otherChargesDescription || null,
         bedrooms: Number(sub.bedrooms) || 0,
         bathrooms: Number(sub.bathrooms) || 0,
+        parking_spaces: Number(sub.parkingSpaces) || 0,
+        size_sq_ft: Number(sub.sizeSqFt) || 0,
+        features: sub.features || [],
+        amenities: sub.amenities || [],
         total_units: Number(sub.totalUnits) || 1,
         available_units: Number(sub.availableUnits ?? sub.totalUnits) || 1,
         owner_name: sub.ownerName,
@@ -793,17 +801,16 @@ const currentUserId = authData.user.id;
         payload.id = sub.id;
       }
 
-      const isApprovedPropertyUpdate = Boolean(
-        sub.id && isUUID(sub.id) && sub.approvedPropertyId
-      );
-      if (isApprovedPropertyUpdate) {
+      const isExistingSubmissionEdit = Boolean(sub.id && isUUID(sub.id));
+      if (isExistingSubmissionEdit) {
         delete payload.id;
+        payload.audit_notes = null;
       }
 
       // Approved listings are edited through their linked submission. The
       // database returns that submission to pending while the live property
       // remains unchanged until an administrator approves the update.
-      const query = isApprovedPropertyUpdate
+      const query = isExistingSubmissionEdit
         ? supabase
             .from('property_submissions')
             .update(payload)
@@ -833,6 +840,10 @@ const currentUserId = authData.user.id;
         otherChargesDescription: data.other_charges_description || '',
         bedrooms: data.bedrooms,
         bathrooms: data.bathrooms,
+        parkingSpaces: Number(data.parking_spaces) || 0,
+        sizeSqFt: Number(data.size_sq_ft) || 0,
+        features: data.features || [],
+        amenities: data.amenities || [],
         totalUnits: Number(data.total_units) || 1,
         availableUnits: Number(data.available_units ?? 1),
         ownerName: data.owner_name,
@@ -997,6 +1008,10 @@ const currentUserId = authData.user.id;
         otherChargesDescription: data.other_charges_description || '',
         bedrooms: data.bedrooms,
         bathrooms: data.bathrooms,
+        parkingSpaces: Number(data.parking_spaces) || 0,
+        sizeSqFt: Number(data.size_sq_ft) || 0,
+        features: data.features || [],
+        amenities: data.amenities || [],
         totalUnits: Number(data.total_units) || 1,
         availableUnits: Number(data.available_units ?? 1),
         ownerName: data.owner_name,
