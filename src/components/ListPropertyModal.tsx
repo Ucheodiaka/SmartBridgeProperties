@@ -47,6 +47,31 @@ const MAX_VIDEO_SIZE = 25 * 1024 * 1024;
 const MAX_VIDEO_DURATION_SECONDS = 60;
 const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
+const FEATURE_OPTIONS = [
+  'All bedrooms en-suite',
+  'Fitted kitchen',
+  'Built-in wardrobes',
+  'POP ceilings',
+  'Balcony or terrace',
+  'Boys quarters',
+  'Store room',
+  'Home office',
+];
+
+const AMENITY_OPTIONS = [
+  '24-hour security',
+  'Reliable electricity',
+  'Borehole or treated water',
+  'Drainage system',
+  'Paved access road',
+  'Gated estate',
+  'Swimming pool',
+  'Gym or recreation area',
+];
+
+const splitCustomItems = (value: string) =>
+  value.split(/[\n,]/).map((item) => item.trim()).filter(Boolean);
+
 // Validate that optional video tour link is a secure HTTPS link from YouTube, Vimeo, or Matterport
 const validateVideoTourUrl = (url: string): { isValid: boolean; error?: string } => {
   const trimmed = url.trim();
@@ -111,8 +136,10 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     legalFeePercentage: editingSubmission?.legalFeePercentage ? String(editingSubmission.legalFeePercentage) : '',
     otherCharges: editingSubmission?.otherCharges ? String(editingSubmission.otherCharges) : '',
     otherChargesDescription: editingSubmission?.otherChargesDescription || '',
-    bedrooms: editingSubmission ? String(editingSubmission.bedrooms) : '4',
-    bathrooms: editingSubmission ? String(editingSubmission.bathrooms) : '4',
+    bedrooms: editingSubmission ? String(editingSubmission.bedrooms) : '',
+    bathrooms: editingSubmission ? String(editingSubmission.bathrooms) : '',
+    parkingSpaces: editingSubmission?.parkingSpaces !== undefined ? String(editingSubmission.parkingSpaces) : '',
+    sizeSqFt: editingSubmission?.sizeSqFt !== undefined ? String(editingSubmission.sizeSqFt) : '',
     totalUnits: editingSubmission?.totalUnits ? String(editingSubmission.totalUnits) : '1',
     availableUnits: editingSubmission?.availableUnits !== undefined ? String(editingSubmission.availableUnits) : '1',
     ownerName: currentOwner?.name || '',
@@ -121,6 +148,18 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
     titleDocType: editingSubmission?.titleDocType || 'Certificate of Occupancy (C of O)',
     description: editingSubmission?.description || '',
   });
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() =>
+    (editingSubmission?.features || []).filter((item) => FEATURE_OPTIONS.includes(item))
+  );
+  const [customFeatures, setCustomFeatures] = useState(() =>
+    (editingSubmission?.features || []).filter((item) => !FEATURE_OPTIONS.includes(item)).join('\n')
+  );
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(() =>
+    (editingSubmission?.amenities || []).filter((item) => AMENITY_OPTIONS.includes(item))
+  );
+  const [customAmenities, setCustomAmenities] = useState(() =>
+    (editingSubmission?.amenities || []).filter((item) => !AMENITY_OPTIONS.includes(item)).join('\n')
+  );
 
   // Media state: Images and optional Video tour URL
   const [uploadedImages, setUploadedImages] = useState<UploadedMediaItem[]>(() =>
@@ -399,6 +438,10 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
         isDistressSale: formData.listingType === 'sale' && formData.isDistressSale,
         bedrooms: Number(formData.bedrooms) || 0,
         bathrooms: Number(formData.bathrooms) || 0,
+        parkingSpaces: Number(formData.parkingSpaces) || 0,
+        sizeSqFt: Number(formData.sizeSqFt) || 0,
+        features: Array.from(new Set([...selectedFeatures, ...splitCustomItems(customFeatures)])),
+        amenities: Array.from(new Set([...selectedAmenities, ...splitCustomItems(customAmenities)])),
         totalUnits: Math.max(1, Number(formData.totalUnits) || 1),
         availableUnits: Math.min(Math.max(0, Number(formData.availableUnits) || 0), Math.max(1, Number(formData.totalUnits) || 1)),
         leaseTermYears: formData.listingType === 'lease' ? Number(formData.leaseTermYears) || 1 : undefined,
@@ -554,7 +597,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
                       Listing Purpose
@@ -669,11 +712,12 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
-                      Bedrooms
+                      Bedrooms *
                     </label>
                     <input
+                      required
                       type="number"
-                      min="1"
+                      min="0"
                       max="20"
                       value={formData.bedrooms}
                       onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
@@ -683,16 +727,35 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
 
                   <div>
                     <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
-                      Bathrooms
+                      Bathrooms *
                     </label>
                     <input
+                      required
                       type="number"
-                      min="1"
+                      min="0"
                       max="20"
                       value={formData.bathrooms}
                       onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                      Parking Bays *
+                    </label>
+                    <input required type="number" min="0" max="100" value={formData.parkingSpaces}
+                      onChange={(e) => setFormData({ ...formData, parkingSpaces: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]" />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1b1c1c] mb-1.5 uppercase">
+                      Property Size (Sq Ft) *
+                    </label>
+                    <input required type="number" min="1" max="10000000" value={formData.sizeSqFt}
+                      onChange={(e) => setFormData({ ...formData, sizeSqFt: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c]" />
                   </div>
                 </div>
 
@@ -720,6 +783,46 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-lg border border-[#bfc9c3] bg-white text-sm text-[#1b1c1c] focus:border-[#003527]"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <fieldset className="rounded-xl border border-[#bfc9c3]/60 bg-white p-4 space-y-3">
+                    <legend className="px-1 text-xs font-bold uppercase text-[#003527]">Key Interior & Structural Features</legend>
+                    <p className="text-[11px] text-[#707974]">Select every feature that applies to this property.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {FEATURE_OPTIONS.map((option) => (
+                        <label key={option} className="flex items-start gap-2 text-xs text-[#404944] cursor-pointer">
+                          <input type="checkbox" checked={selectedFeatures.includes(option)}
+                            onChange={(e) => setSelectedFeatures((items) => e.target.checked ? [...items, option] : items.filter((item) => item !== option))}
+                            className="mt-0.5 h-4 w-4 accent-[#003527]" />
+                          <span>{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <label className="block text-xs font-bold text-[#404944]">Other features</label>
+                    <textarea rows={3} value={customFeatures} onChange={(e) => setCustomFeatures(e.target.value)}
+                      placeholder="Enter one per line, e.g. Marble staircase"
+                      className="w-full rounded-lg border border-[#bfc9c3] bg-white px-3 py-2 text-sm" />
+                  </fieldset>
+
+                  <fieldset className="rounded-xl border border-[#bfc9c3]/60 bg-white p-4 space-y-3">
+                    <legend className="px-1 text-xs font-bold uppercase text-[#003527]">Estate Amenities & Utilities</legend>
+                    <p className="text-[11px] text-[#707974]">Select every amenity or utility available.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {AMENITY_OPTIONS.map((option) => (
+                        <label key={option} className="flex items-start gap-2 text-xs text-[#404944] cursor-pointer">
+                          <input type="checkbox" checked={selectedAmenities.includes(option)}
+                            onChange={(e) => setSelectedAmenities((items) => e.target.checked ? [...items, option] : items.filter((item) => item !== option))}
+                            className="mt-0.5 h-4 w-4 accent-[#003527]" />
+                          <span>{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <label className="block text-xs font-bold text-[#404944]">Other amenities or utilities</label>
+                    <textarea rows={3} value={customAmenities} onChange={(e) => setCustomAmenities(e.target.value)}
+                      placeholder="Enter one per line, e.g. Dedicated transformer"
+                      className="w-full rounded-lg border border-[#bfc9c3] bg-white px-3 py-2 text-sm" />
+                  </fieldset>
                 </div>
 
                 <div className="rounded-xl border border-[#bfc9c3]/50 bg-[#fbf9f8] p-4 space-y-4">
