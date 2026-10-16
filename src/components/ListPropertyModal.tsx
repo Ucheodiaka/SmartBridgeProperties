@@ -788,10 +788,10 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <fieldset className="rounded-xl border border-[#bfc9c3]/60 bg-white p-4 space-y-3">
+                  <fieldset className="rounded-xl border border-[#bfc9c3]/60 bg-white p-4 flex h-full flex-col gap-3">
                     <legend className="px-1 text-xs font-bold uppercase text-[#003527]">Key Interior & Structural Features</legend>
                     <p className="text-[11px] text-[#707974]">Select every feature that applies to this property.</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid flex-1 grid-cols-1 sm:grid-cols-2 gap-2">
                       {FEATURE_OPTIONS.map((option) => (
                         <label key={option} className="flex items-start gap-2 text-xs text-[#404944] cursor-pointer">
                           <input type="checkbox" checked={selectedFeatures.includes(option)}
@@ -804,13 +804,13 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                     <label className="block text-xs font-bold text-[#404944]">Other features</label>
                     <textarea rows={3} value={customFeatures} onChange={(e) => setCustomFeatures(e.target.value)}
                       placeholder="Enter one per line, e.g. Marble staircase"
-                      className="w-full rounded-lg border border-[#bfc9c3] bg-white px-3 py-2 text-sm" />
+                      className="w-full min-h-24 rounded-lg border border-[#bfc9c3] bg-white px-3 py-2 text-sm" />
                   </fieldset>
 
-                  <fieldset className="rounded-xl border border-[#bfc9c3]/60 bg-white p-4 space-y-3">
+                  <fieldset className="rounded-xl border border-[#bfc9c3]/60 bg-white p-4 flex h-full flex-col gap-3">
                     <legend className="px-1 text-xs font-bold uppercase text-[#003527]">Estate Amenities & Utilities</legend>
                     <p className="text-[11px] text-[#707974]">Select every amenity or utility available.</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid flex-1 grid-cols-1 sm:grid-cols-2 gap-2">
                       {AMENITY_OPTIONS.map((option) => (
                         <label key={option} className="flex items-start gap-2 text-xs text-[#404944] cursor-pointer">
                           <input type="checkbox" checked={selectedAmenities.includes(option)}
@@ -823,7 +823,7 @@ export const ListPropertyModal: React.FC<ListPropertyModalProps> = ({
                     <label className="block text-xs font-bold text-[#404944]">Other amenities or utilities</label>
                     <textarea rows={3} value={customAmenities} onChange={(e) => setCustomAmenities(e.target.value)}
                       placeholder="Enter one per line, e.g. Dedicated transformer"
-                      className="w-full rounded-lg border border-[#bfc9c3] bg-white px-3 py-2 text-sm" />
+                      className="w-full min-h-24 rounded-lg border border-[#bfc9c3] bg-white px-3 py-2 text-sm" />
                   </fieldset>
                 </div>
 
