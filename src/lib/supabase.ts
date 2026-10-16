@@ -804,7 +804,6 @@ const currentUserId = authData.user.id;
       const isExistingSubmissionEdit = Boolean(sub.id && isUUID(sub.id));
       if (isExistingSubmissionEdit) {
         delete payload.id;
-        payload.audit_notes = null;
       }
 
       // Approved listings are edited through their linked submission. The
