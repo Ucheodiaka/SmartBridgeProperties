@@ -76,15 +76,6 @@ export default function App() {
   const [isPortalGateOpen, setIsPortalGateOpen] = useState(false);
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAboutProcessOpen, setIsAboutProcessOpen] = useState(false);
-  const [savedIds, setSavedIds] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('smartbridge_saved');
-      return saved ? JSON.parse(saved) : ['prop-1'];
-    } catch {
-      return ['prop-1'];
-    }
-  });
-
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [editingSubmission, setEditingSubmission] = useState<PropertySubmission | null>(null);
 
@@ -241,15 +232,8 @@ export default function App() {
     localStorage.removeItem('smartbridge_bookings');
     localStorage.removeItem('smartbridge_submissions');
     localStorage.removeItem('smartbridge_inquiries');
+    localStorage.removeItem('smartbridge_saved');
   }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('smartbridge_saved', JSON.stringify(savedIds));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [savedIds]);
 
   const addToast = (message: string, type: 'success' | 'info' = 'success') => {
     const id = Date.now().toString();
@@ -257,19 +241,6 @@ export default function App() {
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
-  };
-
-  const handleToggleSave = (id: string) => {
-    setSavedIds((prev) => {
-      const exists = prev.includes(id);
-      if (exists) {
-        addToast('Removed from your saved portfolio.', 'info');
-        return prev.filter((item) => item !== id);
-      } else {
-        addToast('Added to your saved portfolio!', 'success');
-        return [...prev, id];
-      }
-    });
   };
 
   const handleHeroSearch = (filters: Partial<FilterState>) => {
@@ -397,6 +368,7 @@ export default function App() {
   const handleListPropertySuccess = (data: PropertySubmission) => {
     setIsListPropertyOpen(false);
     const wasPropertyUpdate = Boolean(editingSubmission?.approvedPropertyId);
+    const wasRejectedResubmission = editingSubmission?.status === 'rejected';
     setEditingSubmission(null);
     const newSubmission: PropertySubmission = {
       ...data,
@@ -413,6 +385,8 @@ export default function App() {
     addToast(
       wasPropertyUpdate
         ? 'Property changes submitted for admin approval. The current marketplace listing remains live until approval.'
+        : wasRejectedResubmission
+          ? 'Corrected property resubmitted successfully and returned to the admin approval queue.'
         : 'Property listing submitted with media! Physical inspection audit queued at Operations Desk.',
       'success'
     );
@@ -688,8 +662,6 @@ export default function App() {
               setSelectedProperty(null);
               setInquiryTargetProperty(prop);
             }}
-            isSaved={savedIds.includes(selectedProperty.id)}
-            onToggleSave={handleToggleSave}
             onShare={handleShareProperty}
           />
         )}
@@ -742,8 +714,6 @@ export default function App() {
                 setActiveScreen('properties');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              savedIds={savedIds}
-              onToggleSave={handleToggleSave}
             />
 
             {/* 4. Property Services & Business Promotions */}
@@ -759,14 +729,11 @@ export default function App() {
           </div>
         )}
 
-        {(activeScreen === 'properties' || activeScreen === 'saved') && (
+        {activeScreen === 'properties' && (
           <PropertiesView
             properties={publicProperties}
             initialFilters={filterState}
             onSelectProperty={(prop) => setSelectedProperty(prop)}
-            savedIds={savedIds}
-            onToggleSave={handleToggleSave}
-            showSavedOnly={activeScreen === 'saved'}
           />
         )}
       </main>
@@ -791,8 +758,6 @@ export default function App() {
             setSelectedProperty(null);
             setInquiryTargetProperty(prop);
           }}
-          isSaved={savedIds.includes(selectedProperty.id)}
-          onToggleSave={handleToggleSave}
           onShare={handleShareProperty}
         />
       )}
